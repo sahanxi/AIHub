@@ -24,8 +24,8 @@ For commercial licensing, please contact support@quantumnous.com
  * product names through components — change these constants (or admin
  * Site settings) in one place.
  */
-export const PRODUCT_FALLBACK_NAME = 'AI API Platform'
-export const PRODUCT_FALLBACK_SHORT_NAME = 'AI API'
+export const PRODUCT_FALLBACK_NAME = 'AIHub'
+export const PRODUCT_FALLBACK_SHORT_NAME = 'AIHub'
 export const PRODUCT_FALLBACK_DESCRIPTION =
   'One API for GPT, Claude, and Gemini. Unified keys, CNY balance, and usage.'
 export const PRODUCT_FALLBACK_LOGO = '/logo.png'

@@ -10,7 +10,7 @@ When merging upstream: re-read this file, prefer rebasing our UI on theirs, and 
 
 | Change | Layer | Files | Why | Upstream merge notes |
 |---|---|---|---|---|
-| Product fallback name/logo/API base helpers | UI | `web/src/lib/product.ts`, `web/src/lib/constants.ts`, `web/index.html` | One place to replace brand; runtime still uses `SystemName`/`Logo` | Keep helpers; do not hardcode candidate product names |
+| Homepage 500: restore `cn` / `useSystemConfig` imports | UI | `system-brand.tsx`, `footer.tsx` | Branding commit dropped imports; SPA error boundary showed 500 after setup | Keep both fallback constants and the original utility imports |
 | Default UI language zh-CN | UI | `web/src/i18n/config.ts` | Mainland users; English retained | If upstream changes detector, keep `zhCN` fallback |
 | User IA sidebar | UI | `web/src/hooks/use-sidebar-data.ts`, `web/src/hooks/use-sidebar-config.ts` | Hide ops concepts from end users | Re-apply nav items after upstream sidebar refactors |
 | Homepage product copy + API examples | UI | `web/src/features/home/**` | Independent product, not New API marketing | HomePageContent admin HTML still overrides |

@@ -3,7 +3,7 @@
 Product branch: `product/v1`  
 Upstream: `QuantumNous/new-api` (`upstream/main`)  
 Engine: New API  
-Product: configurable brand (fallback name: **AI API Platform**)
+Product: configurable brand (fallback name: **AIHub**; runtime `SystemName`)
 
 This document describes the V1 commercial platform built **on** New API. New API is the engine, not the product brand.
 
@@ -12,7 +12,7 @@ This document describes the V1 commercial platform built **on** New API. New API
 ```
                     User (CN mainland)
                            │
-                    HTTPS / 443  (PENDING_CONFIGURATION: domain)
+                    HTTPS / 443  (`https://aihub.xzsmart.top`)
                            │
                            ▼
                     Nginx (edge template)
