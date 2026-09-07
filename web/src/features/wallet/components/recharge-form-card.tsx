@@ -388,7 +388,7 @@ export function RechargeFormCard({
                   <Alert>
                     <AlertDescription>
                       {t(
-                        'No payment methods available. Please contact administrator.'
+                        'No payment methods available. Alipay will appear here after EPay is configured.'
                       )}
                     </AlertDescription>
                   </Alert>
@@ -481,7 +481,7 @@ export function RechargeFormCard({
         <Alert>
           <AlertDescription>
             {t(
-              'Online topup is not enabled. Please use redemption code or contact administrator.'
+              'Alipay top-up is not configured yet. The wallet will not be credited until the operator sets EPay credentials.'
             )}
           </AlertDescription>
         </Alert>

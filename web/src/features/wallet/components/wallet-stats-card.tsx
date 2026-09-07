@@ -56,7 +56,9 @@ export function WalletStatsCard(props: WalletStatsCardProps) {
     {
       label: t('Current Balance'),
       value: formatQuota(props.user?.quota ?? 0),
-      description: t('Remaining quota'),
+      description: t(
+        'Platform balance is prepaid API credit. It is not a bank deposit and cannot be withdrawn as cash.'
+      ),
       icon: WalletCards,
       tone: 'success',
     },
