@@ -1,0 +1,114 @@
+# Production Compose for the productized New API engine.
+# Bind New API to loopback only. MySQL and Redis stay on the backend network.
+
+name: ai-platform
+
+services:
+  mysql:
+    image: mysql:8.0.41
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-newapi}
+      MYSQL_USER: ${MYSQL_USER:-newapi}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: ${TZ:-Asia/Shanghai}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb-buffer-pool-size=256M
+      - --max-connections=50
+      - --skip-log-bin
+    volumes:
+      - ${DATA_ROOT}/mysql:/var/lib/mysql
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  redis:
+    image: redis:7.4.2
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --requirepass
+      - ${REDIS_PASSWORD}
+      - --maxmemory
+      - 128mb
+      - --maxmemory-policy
+      - allkeys-lru
+    volumes:
+      - ${DATA_ROOT}/redis:/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a $$REDIS_PASSWORD ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  new-api:
+    image: ${IMAGE_NAME:-ai-platform-newapi}:${IMAGE_TAG:?IMAGE_TAG is required}
+    restart: unless-stopped
+    command: --log-dir /app/logs
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ${DATA_ROOT}/new-api:/data
+      - ${LOG_ROOT}/new-api:/app/logs
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      SQL_DSN: ${SQL_DSN}
+      REDIS_CONN_STRING: ${REDIS_CONN_STRING}
+      SESSION_SECRET: ${SESSION_SECRET}
+      CRYPTO_SECRET: ${CRYPTO_SECRET}
+      MEMORY_CACHE_ENABLED: "true"
+      BATCH_UPDATE_ENABLED: "true"
+      ERROR_LOG_ENABLED: "true"
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+      SESSION_COOKIE_TRUSTED_URL: ${SESSION_COOKIE_TRUSTED_URL:-}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.1,172.16.0.0/12}
+      SQL_MAX_IDLE_CONNS: "10"
+      SQL_MAX_OPEN_CONNS: "30"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3000/api/status | grep -o '\"success\":\\s*true' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+    internal: true
