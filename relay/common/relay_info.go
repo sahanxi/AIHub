@@ -605,12 +605,36 @@ func cloneRequestHeaders(c *gin.Context) map[string]string {
 		if value == "" {
 			continue
 		}
-		headers[key] = value
+		headers[key] = redactClonedHeaderValue(key, value)
 	}
 	if len(headers) == 0 {
 		return nil
 	}
 	return headers
+}
+
+func redactClonedHeaderValue(key, value string) string {
+	switch strings.ToLower(key) {
+	case "authorization", "x-api-key", "api-key", "cookie", "x-goog-api-key":
+		return maskSecretHeaderValue(value)
+	default:
+		return value
+	}
+}
+
+func maskSecretHeaderValue(value string) string {
+	lower := strings.ToLower(value)
+	if strings.HasPrefix(lower, "bearer ") {
+		return "Bearer " + maskSecretToken(strings.TrimSpace(value[7:]))
+	}
+	return maskSecretToken(value)
+}
+
+func maskSecretToken(token string) string {
+	if len(token) <= 8 {
+		return "***"
+	}
+	return token[:4] + "..." + token[len(token)-4:]
 }
 
 func GenRelayInfo(c *gin.Context, relayFormat types.RelayFormat, request dto.Request, ws *websocket.Conn) (*RelayInfo, error) {
