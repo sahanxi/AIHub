@@ -29,8 +29,10 @@ docker compose --env-file .env exec -T mysql \
     -p"${MYSQL_PASSWORD}" \
     --single-transaction \
     --routines \
+    --no-tablespaces \
     --databases "${MYSQL_DATABASE:-newapi}" \
   | gzip > "${DUMP}"
+chmod 600 "${DUMP}"
 
 cp docker-compose.yml "${CONFIG_BACKUP_DIR}/docker-compose-${STAMP}.yml"
 if [[ -d nginx ]]; then
