@@ -121,25 +121,25 @@ describe('security sidebar visibility', () => {
 })
 
 describe('audit log sidebar entry', () => {
-  it('admin settings default Audit Logs to visible and preserve its independent toggle when saved', () => {
+  it('admin settings default Audit Logs to hidden and preserve its independent toggle when saved', () => {
     const config = parseSidebarModulesAdmin(
       '{"console":{"enabled":true,"log":true}}'
     )
-    expect(config.console.audit).toBe(true)
-    config.console.audit = false
+    expect(config.console.audit).toBe(false)
+    config.console.audit = true
     const saved = parseSidebarModulesAdmin(serializeSidebarModulesAdmin(config))
     const { result } = sidebarFor(saved)
     const titles = result.current
       .flatMap((group) => group.items)
       .map((item) => item.title)
-    expect(titles).not.toContain('Audit Logs')
+    expect(titles).toContain('Audit Logs')
     expect(titles).toContain('Usage Logs')
   })
 
   it('legacy configurations show a separate Audit Logs link immediately after Usage Logs', () => {
     const { result } = sidebarFor(
-      { console: { enabled: true, log: true } },
-      { console: { enabled: true, log: true } }
+      { console: { enabled: true, log: true, audit: true } },
+      { console: { enabled: true, log: true, audit: true } }
     )
     const items =
       result.current.find((group) => group.id === 'general')?.items ?? []
@@ -172,7 +172,9 @@ describe('audit log sidebar entry', () => {
   )
 
   it('hiding Usage Logs does not hide the independently configured Audit Logs entry', () => {
-    const { result } = sidebarFor({ console: { enabled: true, log: false } })
+    const { result } = sidebarFor({
+      console: { enabled: true, log: false, audit: true },
+    })
     const titles = result.current
       .flatMap((group) => group.items)
       .map((item) => item.title)

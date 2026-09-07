@@ -18,14 +18,11 @@ For commercial licensing, please contact support@quantumnous.com
 */
 /**
  * Home page constants
- * All hardcoded data for home page sections
  */
 import { type TFunction } from 'i18next'
 
-// Layout - Main base classes
 export const MAIN_BASE_CLASSES = 'bg-background text-foreground w-full'
 
-// Hero section - AI Applications (Left side)
 export const AI_APPLICATIONS = [
   'LobeHub.Color',
   'Dify.Color',
@@ -33,97 +30,59 @@ export const AI_APPLICATIONS = [
   'Cline',
 ] as const
 
-// Hero section - AI Models (Right side)
-export const AI_MODELS = [
-  'Qwen.Color',
-  'DeepSeek.Color',
-  'Doubao.Color',
-  'OpenAI',
-  'Claude.Color',
-  'Gemini.Color',
-] as const
+export const AI_MODELS = ['OpenAI', 'Claude.Color', 'Gemini.Color'] as const
 
-// Hero section - Gateway Features
 export const GATEWAY_FEATURES = [
-  'Cost Tracking',
-  'Model Access',
-  'Guardrails',
-  'Observability',
-  'Budgets',
-  'Load Balancing',
-  'Rate Limiting',
-  'Token Mgmt',
-  'Prompt Caching',
-  'Pass-Through',
+  'Unified API',
+  'Unified balance',
+  'Pay as you go',
+  'Clear usage',
 ] as const
 
-// Stats section - Default statistics
 export const DEFAULT_STATS = [
   {
-    value: '50',
-    suffix: '+',
-    description: 'upstream services integrated',
+    value: '3',
+    suffix: '',
+    description: 'first-party model providers',
   },
   {
-    value: '100',
-    suffix: '+',
-    description: 'model billing support',
+    value: '1',
+    suffix: '',
+    description: 'OpenAI-compatible API',
   },
   {
-    value: '50',
-    suffix: '+',
-    description: 'compatible API routes',
+    value: '1',
+    suffix: '',
+    description: 'wallet for all models',
   },
   {
-    value: '10',
-    suffix: '+',
-    description: 'scheduling controls',
+    value: 'CNY',
+    suffix: '',
+    description: 'default billing currency',
   },
 ] as const
 
-// Features section - Default features
 export const DEFAULT_FEATURES = [
   {
-    title: 'Lightning Fast',
+    title: 'Unified API',
     description:
-      'Optimized network architecture ensures millisecond response times',
-    iconName: 'Zap',
-  },
-  {
-    title: 'Secure & Reliable',
-    description:
-      'Enterprise-grade security with comprehensive permission management',
-    iconName: 'Shield',
-  },
-  {
-    title: 'Global Coverage',
-    description: 'Multi-region deployment for stable global access',
-    iconName: 'Globe',
-  },
-  {
-    title: 'Developer Friendly',
-    description: 'Compatible API routes for common AI application workflows',
+      'Call GPT, Claude, and Gemini through one OpenAI-compatible endpoint.',
     iconName: 'Code',
   },
   {
-    title: 'High Performance',
-    description: 'Support for high concurrency with automatic load balancing',
-    iconName: 'Gauge',
+    title: 'Unified balance',
+    description: 'One wallet covers every model. Recharge once, use across providers.',
+    iconName: 'Wallet',
   },
   {
-    title: 'Transparent Billing',
-    description: 'Pay-as-you-go with real-time usage monitoring',
+    title: 'Pay as you go',
+    description: 'Usage is billed by tokens. Check prices before you call.',
     iconName: 'DollarSign',
   },
   {
-    title: 'Team Collaboration',
-    description: 'Multi-user management with flexible permission allocation',
-    iconName: 'Users',
-  },
-  {
-    title: 'Open Source',
-    description: 'Community driven, self-hosted, and extensible',
-    iconName: 'HeartHandshake',
+    title: 'Clear usage',
+    description: 'See requests, tokens, and CNY spend per key and model.',
+    iconName: 'BarChart3',
   },
 ] as const
 

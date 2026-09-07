@@ -38,18 +38,19 @@ type SidebarModulesUserConfig = SidebarModulesAdminConfig | null
  */
 const DEFAULT_SIDEBAR_MODULES: SidebarModulesAdminConfig = {
   chat: {
-    enabled: true,
-    playground: true,
-    chat: true,
+    enabled: false,
+    playground: false,
+    chat: false,
   },
   console: {
     enabled: true,
     detail: true,
     token: true,
     log: true,
-    audit: true,
-    midjourney: true,
-    task: true,
+    pricing: true,
+    audit: false,
+    midjourney: false,
+    task: false,
   },
   personal: {
     enabled: true,
@@ -103,6 +104,7 @@ const URL_TO_CONFIG_MAP: Record<string, { section: string; module: string }> = {
   '/dashboard/models': { section: 'console', module: 'detail' },
   '/dashboard/users': { section: 'console', module: 'detail' },
   '/keys': { section: 'console', module: 'token' },
+  '/pricing': { section: 'console', module: 'pricing' },
   '/usage-logs': { section: 'console', module: 'log' },
   '/usage-logs/common': { section: 'console', module: 'log' },
   '/usage-logs/audit': { section: 'console', module: 'audit' },

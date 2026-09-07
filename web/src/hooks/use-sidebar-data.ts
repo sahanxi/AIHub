@@ -61,11 +61,13 @@ export function useSidebarData(): SidebarData {
             title: t('Playground'),
             url: '/playground',
             icon: FlaskConical,
+            requiredRole: ROLE.ADMIN,
           },
           {
             title: t('Chat'),
             icon: MessageSquare,
             type: 'chat-presets',
+            requiredRole: ROLE.ADMIN,
           },
         ],
       },
@@ -79,14 +81,14 @@ export function useSidebarData(): SidebarData {
             icon: Activity,
           },
           {
-            title: t('Dashboard'),
-            url: '/dashboard/models',
-            icon: LayoutDashboard,
-          },
-          {
             title: t('API Keys'),
             url: '/keys',
             icon: Key,
+          },
+          {
+            title: t('Models and pricing'),
+            url: '/pricing',
+            icon: Box,
           },
           {
             title: t('Usage Logs'),
@@ -94,9 +96,16 @@ export function useSidebarData(): SidebarData {
             icon: FileText,
           },
           {
+            title: t('Dashboard'),
+            url: '/dashboard/models',
+            icon: LayoutDashboard,
+            requiredRole: ROLE.ADMIN,
+          },
+          {
             title: t('Audit Logs'),
             url: '/usage-logs/audit',
             icon: ClipboardList,
+            requiredRole: ROLE.ADMIN,
           },
           {
             title: t('Task Logs'),
@@ -104,6 +113,7 @@ export function useSidebarData(): SidebarData {
             activeUrls: ['/usage-logs/drawing'],
             configUrls: ['/usage-logs/drawing', '/usage-logs/task'],
             icon: ListTodo,
+            requiredRole: ROLE.ADMIN,
           },
         ],
       },

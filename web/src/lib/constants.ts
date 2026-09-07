@@ -19,10 +19,11 @@ For commercial licensing, please contact support@quantumnous.com
 /**
  * Application-wide constants
  */
+import { PRODUCT_FALLBACK_LOGO, PRODUCT_FALLBACK_NAME } from '@/lib/product'
 
-// System Configuration Defaults
-export const DEFAULT_SYSTEM_NAME = 'New API'
-export const DEFAULT_LOGO = '/logo.png'
+// System Configuration Defaults — runtime values still come from SystemName / Logo.
+export const DEFAULT_SYSTEM_NAME = PRODUCT_FALLBACK_NAME
+export const DEFAULT_LOGO = PRODUCT_FALLBACK_LOGO
 
 // LocalStorage Keys
 export const STORAGE_KEYS = {
