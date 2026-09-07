@@ -25,7 +25,7 @@ When merging upstream: re-read this file, prefer rebasing our UI on theirs, and 
 | CORS: no `*` + credentials | Extension | `middleware/cors.go` | Browser credential isolation | Same-origin dashboard; SDK uses Authorization |
 | Redact secret headers in relay clones | Extension | `relay/common/relay_info.go` | Authorization must not leak into expr/logs | Do not redact channel keys used for upstream calls |
 | EPay callback amount check | Extension | `controller/topup.go` + tests | Defense in depth vs signed underpay | Keep `RechargeEpay` idempotency |
-| Production compose / nginx / scripts | Config | `deploy/`, `scripts/` | Hardened runtime | Do not copy official `docker-compose.yml` ports/passwords |
+| Production compose / nginx / scripts | Config | `deploy/`, `scripts/` | Hardened runtime; Nginx for `aihub.xzsmart.top`; logo file is on the host data volume, not git | Do not copy official `docker-compose.yml` ports/passwords. Enable HTTP→HTTPS 301 only after SG allows :443 |
 | Product docs | Config | `docs/*.md` | Operations + upgrade | Keep LICENSE/NOTICE |
 
 ## Should
