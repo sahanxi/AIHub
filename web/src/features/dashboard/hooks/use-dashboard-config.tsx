@@ -92,8 +92,8 @@ export function useModelStatCardsConfig(): StatCardConfig[] {
 
 export function useSummaryCardsConfig(totals: {
   todayUsageDisplay: string
-  usedDisplay: string
-  requestCountDisplay: string
+  monthUsageDisplay: string
+  todayRequestDisplay: string
   currencyLabel: string
   currencyEnabled: boolean
 }) {
@@ -102,27 +102,27 @@ export function useSummaryCardsConfig(totals: {
   return [
     {
       key: 'todayUsage',
-      title: t('Last 24h usage'),
+      title: t('Today spend'),
       value: totals.todayUsageDisplay,
       description: totals.currencyEnabled
-        ? `${t('Consumed in the last 24 hours')} (${totals.currencyLabel})`
-        : t('Consumed in the last 24 hours'),
+        ? `${t('Consumed today')} (${totals.currencyLabel})`
+        : t('Consumed today'),
       icon: Flame,
     },
     {
-      key: 'usage',
-      title: t('Historical Usage'),
-      value: totals.usedDisplay,
+      key: 'monthUsage',
+      title: t('This month spend'),
+      value: totals.monthUsageDisplay,
       description: totals.currencyEnabled
-        ? `${t('Total consumed')} (${totals.currencyLabel})`
-        : t('Total consumed quota'),
+        ? `${t('Consumed this month')} (${totals.currencyLabel})`
+        : t('Consumed this month'),
       icon: TrendingUp,
     },
     {
       key: 'requests',
-      title: t('Request Count'),
-      value: totals.requestCountDisplay,
-      description: t('Total requests made'),
+      title: t('Today requests'),
+      value: totals.todayRequestDisplay,
+      description: t('Requests made today'),
       icon: Activity,
     },
   ]

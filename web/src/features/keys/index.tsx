@@ -35,7 +35,16 @@ export function ApiKeys() {
           <ApiKeysPrimaryButtons />
         </SectionPageLayout.Actions>
         <SectionPageLayout.Content>
-          <ApiKeysTable />
+          <div className='flex h-full min-h-0 flex-col gap-3'>
+            <p className='text-muted-foreground text-sm'>
+              {t(
+                'API keys are as sensitive as passwords. Copy them only when needed, and never share them publicly.'
+              )}
+            </p>
+            <div className='min-h-0 flex-1'>
+              <ApiKeysTable />
+            </div>
+          </div>
         </SectionPageLayout.Content>
       </SectionPageLayout>
 

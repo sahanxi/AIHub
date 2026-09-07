@@ -30,7 +30,7 @@ import type { QuotaDataItem } from '@/features/dashboard/types'
 import { useStatus } from '@/hooks/use-status'
 import { getCurrencyLabel, isCurrencyDisplayEnabled } from '@/lib/currency'
 import { formatNumber, formatQuota } from '@/lib/format'
-import { computeTimeRange } from '@/lib/time'
+import { getStartOfDay } from '@/lib/time'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -141,34 +141,74 @@ export function SummaryCards() {
   const user = useAuthStore((state) => state.auth.user)
   const { status, loading } = useStatus()
 
-  const summaryTimeRange = useMemo(() => computeTimeRange(1), [])
+  const todayRange = useMemo(() => {
+    const start = getStartOfDay()
+    return {
+      start_timestamp: Math.floor(start.getTime() / 1000),
+      end_timestamp: Math.floor(Date.now() / 1000) + 3600,
+    }
+  }, [])
+  const monthRange = useMemo(() => {
+    const now = new Date()
+    const start = new Date(now.getFullYear(), now.getMonth(), 1)
+    start.setHours(0, 0, 0, 0)
+    return {
+      start_timestamp: Math.floor(start.getTime() / 1000),
+      end_timestamp: Math.floor(Date.now() / 1000) + 3600,
+    }
+  }, [])
   const remainQuota = Number(user?.quota ?? 0)
-  const usedQuota = Number(user?.used_quota ?? 0)
-  const requestCount = Number(user?.request_count ?? 0)
 
   const usageTrendQuery = useQuery({
     queryKey: [
       'dashboard',
       'overview',
-      'summary-sparklines',
-      summaryTimeRange.start_timestamp,
-      summaryTimeRange.end_timestamp,
+      'summary-today',
+      todayRange.start_timestamp,
+      todayRange.end_timestamp,
     ],
     queryFn: async () =>
       getUserQuotaDates({
-        start_timestamp: summaryTimeRange.start_timestamp,
-        end_timestamp: summaryTimeRange.end_timestamp,
+        start_timestamp: todayRange.start_timestamp,
+        end_timestamp: todayRange.end_timestamp,
         default_time: 'hour',
       }),
     staleTime: 60 * 1000,
   })
 
-  const summaryValues = useMemo(() => {
+  const monthUsageQuery = useQuery({
+    queryKey: [
+      'dashboard',
+      'overview',
+      'summary-month',
+      monthRange.start_timestamp,
+      monthRange.end_timestamp,
+    ],
+    queryFn: async () =>
+      getUserQuotaDates({
+        start_timestamp: monthRange.start_timestamp,
+        end_timestamp: monthRange.end_timestamp,
+        default_time: 'day',
+      }),
+    staleTime: 60 * 1000,
+  })
+
+  const todayStats = useMemo(() => {
+    const rows = usageTrendQuery.data?.data ?? []
     return {
-      usedDisplay: formatQuota(usedQuota),
-      requestCountDisplay: formatNumber(requestCount),
+      quota: rows.reduce((total, item) => total + (Number(item.quota) || 0), 0),
+      count: rows.reduce((total, item) => total + (Number(item.count) || 0), 0),
     }
-  }, [requestCount, usedQuota])
+  }, [usageTrendQuery.data?.data])
+
+  const monthQuota = useMemo(
+    () =>
+      (monthUsageQuery.data?.data ?? []).reduce(
+        (total, item) => total + (Number(item.quota) || 0),
+        0
+      ),
+    [monthUsageQuery.data?.data]
+  )
 
   const currencyEnabledFromStore = isCurrencyDisplayEnabled()
   const statusCurrencyFlag =
@@ -186,31 +226,26 @@ export function SummaryCards() {
       buildSummarySparklines(
         usageTrendQuery.data?.data ?? [],
         remainQuota,
-        summaryTimeRange.start_timestamp,
-        summaryTimeRange.end_timestamp
+        todayRange.start_timestamp,
+        todayRange.end_timestamp
       ),
     [
       remainQuota,
-      summaryTimeRange.end_timestamp,
-      summaryTimeRange.start_timestamp,
+      todayRange.end_timestamp,
+      todayRange.start_timestamp,
       usageTrendQuery.data?.data,
     ]
   )
 
-  const recentUsage = useMemo(
-    () =>
-      (usageTrendQuery.data?.data ?? []).reduce(
-        (total, item) => total + (Number(item.quota) || 0),
-        0
-      ),
-    [usageTrendQuery.data?.data]
-  )
+  const recentUsage = todayStats.quota
 
   const healthLevel = getHealthLevel(remainQuota, recentUsage)
   const healthCfg = HEALTH_CONFIG[healthLevel]
   const runwayDays = getRunwayDays(remainQuota, recentUsage)
 
-  const todayUsageDisplay = formatQuota(recentUsage)
+  const todayUsageDisplay = formatQuota(todayStats.quota)
+  const monthUsageDisplay = formatQuota(monthQuota)
+  const todayRequestDisplay = formatNumber(todayStats.count)
   let runwayDisplay: string
   if (runwayDays !== null) {
     if (runwayDays < 1) {
@@ -227,8 +262,9 @@ export function SummaryCards() {
   }
 
   const items = useSummaryCardsConfig({
-    ...summaryValues,
     todayUsageDisplay,
+    monthUsageDisplay,
+    todayRequestDisplay,
     currencyEnabled,
     currencyLabel,
   }).map((config, index) => {
@@ -310,7 +346,7 @@ export function SummaryCards() {
               <div className='bg-background/60 rounded-lg px-2.5 py-2'>
                 <div className='text-muted-foreground flex items-center gap-1 text-[11px] leading-none font-medium'>
                   <Flame className='size-3 shrink-0' aria-hidden='true' />
-                  <span className='truncate'>{t('Last 24h usage')}</span>
+                  <span className='truncate'>{t('Today spend')}</span>
                 </div>
                 <div className='text-foreground mt-1.5 truncate text-xs font-semibold tabular-nums'>
                   {formatQuota(recentUsage)}
