@@ -5,7 +5,8 @@ Host layout:
 ```
 /opt/ai-platform/
   src/new-api/     # this git checkout, branch product/v1
-  deploy/          # compose, .env (600), nginx template
+  secrets/.env     # chmod 600; never inside the git tree
+  deploy/          # compose, nginx template; .env is a symlink to secrets/.env
   data/            # mysql, redis, new-api
   logs/
   backups/
@@ -28,8 +29,8 @@ Do not log in or paste API keys over `http://54.238.30.145`.
 2. Optional but recommended on t3.small (2 GB RAM): 2 GiB swap file.
 3. Create `/opt/ai-platform/{data,logs,backups}` owned by `ubuntu`.
 4. Place this repository at `/opt/ai-platform/src/new-api`.
-5. Copy `deploy/` and `scripts/` to `/opt/ai-platform/`.
-6. `sudo bash scripts/generate-env.sh` then set `IMAGE_TAG`.
+5. Copy `deploy/` (compose + nginx) and `scripts/` to `/opt/ai-platform/`. Do not keep production `.env` inside `src/new-api`.
+6. `bash /opt/ai-platform/scripts/generate-env.sh` (writes `/opt/ai-platform/secrets/.env`, chmod 600). Then set `IMAGE_TAG` if needed.
 7. `docker build -t ai-platform-newapi:v1-<sha> /opt/ai-platform/src/new-api`
 8. `cd /opt/ai-platform/deploy && docker compose --env-file .env up -d`
 9. `bash /opt/ai-platform/scripts/healthcheck.sh`

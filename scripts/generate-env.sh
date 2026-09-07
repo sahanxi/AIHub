@@ -5,11 +5,14 @@ set -euo pipefail
 
 ROOT="${AI_PLATFORM_ROOT:-/opt/ai-platform}"
 DEPLOY="${ROOT}/deploy"
-ENV_FILE="${DEPLOY}/.env"
+SECRETS="${ROOT}/secrets"
+ENV_FILE="${SECRETS}/.env"
 EXAMPLE="${DEPLOY}/.env.example"
 
-if [[ -f "${ENV_FILE}" ]]; then
-  echo "${ENV_FILE} already exists" >&2
+mkdir -p "${SECRETS}" "${DEPLOY}"
+
+if [[ -f "${ENV_FILE}" ]] || [[ -f "${DEPLOY}/.env" && ! -L "${DEPLOY}/.env" ]]; then
+  echo "an env file already exists under ${SECRETS} or ${DEPLOY}; refusing to overwrite" >&2
   exit 1
 fi
 
@@ -51,5 +54,6 @@ TRUSTED_PROXIES=127.0.0.1,172.16.0.0/12
 EOF
 
 chmod 600 "${ENV_FILE}"
-echo "wrote ${ENV_FILE} (chmod 600). Values are not printed."
+ln -sfn "${ENV_FILE}" "${DEPLOY}/.env"
+echo "wrote ${ENV_FILE} (chmod 600) and linked ${DEPLOY}/.env. Values are not printed."
 echo "example template remains at ${EXAMPLE}"
