@@ -157,6 +157,9 @@ export function formatPrice(
   const displayGroupRatio = getDisplayGroupRatio(model, selectedGroup)
 
   let priceInUSD = calculateTokenPrice(model, type, displayGroupRatio)
+  if (!Number.isFinite(priceInUSD)) {
+    return '—'
+  }
   priceInUSD = applyRechargeRate(
     priceInUSD,
     showWithRecharge,
