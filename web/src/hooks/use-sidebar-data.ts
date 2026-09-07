@@ -96,12 +96,6 @@ export function useSidebarData(): SidebarData {
             icon: FileText,
           },
           {
-            title: t('Dashboard'),
-            url: '/dashboard/models',
-            icon: LayoutDashboard,
-            requiredRole: ROLE.ADMIN,
-          },
-          {
             title: t('Audit Logs'),
             url: '/usage-logs/audit',
             icon: ClipboardList,
@@ -113,6 +107,12 @@ export function useSidebarData(): SidebarData {
             activeUrls: ['/usage-logs/drawing'],
             configUrls: ['/usage-logs/drawing', '/usage-logs/task'],
             icon: ListTodo,
+            requiredRole: ROLE.ADMIN,
+          },
+          {
+            title: t('Dashboard'),
+            url: '/dashboard/models',
+            icon: LayoutDashboard,
             requiredRole: ROLE.ADMIN,
           },
         ],

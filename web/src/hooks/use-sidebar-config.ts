@@ -38,9 +38,9 @@ type SidebarModulesUserConfig = SidebarModulesAdminConfig | null
  */
 const DEFAULT_SIDEBAR_MODULES: SidebarModulesAdminConfig = {
   chat: {
-    enabled: false,
-    playground: false,
-    chat: false,
+    enabled: true,
+    playground: true,
+    chat: true,
   },
   console: {
     enabled: true,
@@ -48,9 +48,9 @@ const DEFAULT_SIDEBAR_MODULES: SidebarModulesAdminConfig = {
     token: true,
     log: true,
     pricing: true,
-    audit: false,
-    midjourney: false,
-    task: false,
+    audit: true,
+    midjourney: true,
+    task: true,
   },
   personal: {
     enabled: true,
