@@ -16,17 +16,24 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { Combobox } from '@/components/ui/combobox'
 import { AlertTriangle } from 'lucide-react'
 import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
+import { Combobox } from '@/components/ui/combobox'
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import {
   combineBillingExpr,
@@ -85,13 +92,9 @@ function TaskBillingPreview(props: TaskBillingPreviewProps) {
   const { t } = useTranslation()
   const enumFields = getTaskEnumFields(props.usageSchema)
   const numberFields = getTaskNumberFields(props.usageSchema)
-    const result = props.config
-      ? evaluateTaskVisualConfig(
-          props.config,
-          props.sample,
-          props.usageSchema
-        )
-      : null
+  const result = props.config
+    ? evaluateTaskVisualConfig(props.config, props.sample, props.usageSchema)
+    : null
 
   if (!result) {
     return (
@@ -136,26 +139,26 @@ function TaskBillingPreview(props: TaskBillingPreviewProps) {
         <Field className='gap-1.5'>
           <FieldLabel>{t('Example spec')}</FieldLabel>
           <Combobox
-options={props.usageExamples.map((example) => ({
+            options={props.usageExamples.map((example) => ({
               value: example.label,
               label: example.label,
             }))}
-value={
+            value={
               props.usageExamples.find((example) =>
                 Object.entries(example.facts).every(
                   ([field, value]) => props.sample[field] === value
                 )
               )?.label ?? null
             }
-onValueChange={(label) => {
+            onValueChange={(label) => {
               const example = props.usageExamples?.find(
                 (item) => item.label === label
               )
               if (example) props.onSampleReplace({ ...example.facts })
             }}
-className='w-full'
-placeholder={t('Example spec')}
-/>
+            className='w-full'
+            placeholder={t('Example spec')}
+          />
         </Field>
       ) : null}
       {enumFields.length + numberFields.length > 0 ? (
@@ -171,13 +174,13 @@ placeholder={t('Example spec')}
                   <code>{field}</code>
                 </FieldLabel>
                 <Combobox
-options={items}
-value={String(props.sample[field] ?? '')}
-onValueChange={(value) =>
+                  options={items}
+                  value={String(props.sample[field] ?? '')}
+                  onValueChange={(value) =>
                     value !== null && props.onSampleChange(field, value)
                   }
-className='w-full'
-/>
+                  className='w-full'
+                />
               </Field>
             )
           })}
@@ -477,7 +480,10 @@ export const TaskUsagePricingEditor = memo(function TaskUsagePricingEditor(
                                 className='font-mono'
                               />
                               <span className='text-muted-foreground shrink-0 text-xs'>
-                                $/{t(getTaskUsagePriceUnitLabelKey(definition.unit))}
+                                $/
+                                {t(
+                                  getTaskUsagePriceUnitLabelKey(definition.unit)
+                                )}
                               </span>
                             </div>
                             {description ? (

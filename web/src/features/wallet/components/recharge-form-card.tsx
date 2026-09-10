@@ -353,7 +353,7 @@ export function RechargeFormCard({
                           ) : (
                             getPaymentIcon(
                               method.type,
-                              'h-4 w-4',
+                              'h-5 w-5 rounded-sm',
                               method.icon,
                               method.name
                             )
@@ -388,7 +388,7 @@ export function RechargeFormCard({
                   <Alert>
                     <AlertDescription>
                       {t(
-                        'No payment methods available. Alipay will appear here after EPay is configured.'
+                        'No payment methods available. Alipay will appear here after Alipay is configured.'
                       )}
                     </AlertDescription>
                   </Alert>
@@ -481,7 +481,7 @@ export function RechargeFormCard({
         <Alert>
           <AlertDescription>
             {t(
-              'Alipay top-up is not configured yet. The wallet will not be credited until the operator sets EPay credentials.'
+              'Alipay top-up is not configured yet. The wallet will not be credited until the operator sets Alipay credentials.'
             )}
           </AlertDescription>
         </Alert>

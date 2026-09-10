@@ -18,7 +18,10 @@ For commercial licensing, please contact support@quantumnous.com
 */
 // Static translation keys that don't get picked up by the t('...') regex.
 // These cover dynamic labels (e.g. constants, configs) that are passed into t at runtime.
+import { DOCS_STATIC_TRANSLATION_KEYS } from '@/features/docs/docs-data'
+
 export const STATIC_I18N_KEYS = [
+  ...DOCS_STATIC_TRANSLATION_KEYS,
   'Account deletion',
   // Model management and metadata synchronization
   'Model management',
@@ -676,4 +679,12 @@ export const STATIC_I18N_KEYS = [
   'Vendor name and icon must not exceed 128 characters.',
   'Shown',
   'Not shown',
+
+  // Auth marketing panel
+  'Higher efficiency',
+  'Unlock productivity',
+  'Team collaboration',
+  'Create greater value together',
+  'Open ecosystem',
+  'Connect more possibilities',
 ] as const

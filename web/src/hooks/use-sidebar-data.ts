@@ -20,6 +20,7 @@ import {
   Activity,
   Box,
   ClipboardList,
+  Briefcase,
   CreditCard,
   FileText,
   FlaskConical,
@@ -127,6 +128,11 @@ export function useSidebarData(): SidebarData {
             icon: Wallet,
           },
           {
+            title: t('ChatGPT Business'),
+            url: '/chatgpt-business',
+            icon: Briefcase,
+          },
+          {
             title: t('Profile'),
             url: '/profile',
             icon: User,
@@ -166,6 +172,12 @@ export function useSidebarData(): SidebarData {
             title: t('Subscriptions'),
             url: '/subscriptions',
             icon: CreditCard,
+          },
+          {
+            title: t('ChatGPT Business'),
+            url: '/chatgpt-business/admin',
+            icon: Briefcase,
+            requiredRole: ROLE.ADMIN,
           },
           {
             title: t('System Info'),

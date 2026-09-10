@@ -79,19 +79,23 @@ export function Wallet(props: WalletProps) {
   const [creemDialogOpen, setCreemDialogOpen] = useState(false)
   const [selectedCreemProduct, setSelectedCreemProduct] =
     useState<CreemProduct | null>(null)
-  const [showSubscriptionPanel, setShowSubscriptionPanel] = useState(
-    V1_SHOW_SUBSCRIPTION
-  )
+  const [showSubscriptionPanel, setShowSubscriptionPanel] =
+    useState(V1_SHOW_SUBSCRIPTION)
 
   const { status } = useStatus()
   const { currency } = useSystemConfig()
   const { topupInfo, presetAmounts, loading: topupLoading } = useTopupInfo()
 
-  // Calculate effective exchange rate - when display type is USD, use rate of 1
+  // Top-up amounts are already in the displayed currency. Only convert when
+  // the wallet is priced in USD but shown as another currency.
   const effectiveUsdExchangeRate = useMemo(() => {
-    return currency?.quotaDisplayType === 'USD'
-      ? 1
-      : currency?.usdExchangeRate || 1
+    if (
+      currency?.quotaDisplayType === 'USD' ||
+      currency?.quotaDisplayType === 'CNY'
+    ) {
+      return 1
+    }
+    return currency?.usdExchangeRate || 1
   }, [currency?.quotaDisplayType, currency?.usdExchangeRate])
   const {
     amount: paymentAmount,

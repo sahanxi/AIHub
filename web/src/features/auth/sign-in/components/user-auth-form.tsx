@@ -19,7 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from '@tanstack/react-router'
 import axios from 'axios'
-import { Loader2, LogIn, KeyRound } from 'lucide-react'
+import { ArrowRight, KeyRound, Loader2, Lock, User } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -41,6 +41,16 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { login, wechatLoginByCode } from '@/features/auth/api'
+import {
+  AUTH_INPUT_CLASS,
+  AUTH_OAUTH_CLASS,
+  AUTH_PRIVACY_HREF,
+  AUTH_SOFT_LINK_CLASS,
+  AUTH_SUBMIT_CLASS,
+  AUTH_TERMS_HREF,
+  AuthLeadingField,
+  AuthOrDivider,
+} from '@/features/auth/components/auth-field'
 import { LegalConsent } from '@/features/auth/components/legal-consent'
 import { OAuthProviders } from '@/features/auth/components/oauth-providers'
 import { loginFormSchema } from '@/features/auth/constants'
@@ -95,9 +105,7 @@ export function UserAuthForm({
   } = useTurnstile()
   const { handleLoginResult } = useAuthRedirect()
 
-  const hasUserAgreement = Boolean(status?.user_agreement_enabled)
-  const hasPrivacyPolicy = Boolean(status?.privacy_policy_enabled)
-  const requiresLegalConsent = hasUserAgreement || hasPrivacyPolicy
+  const requiresLegalConsent = true
   const passkeyButtonDisabled =
     isPasskeyLoading ||
     !passkeySupported ||
@@ -301,14 +309,23 @@ export function UserAuthForm({
 
   const alternativeLoginMethods = (
     <>
+      <OAuthProviders
+        status={status}
+        redirectTo={redirectTo}
+        disabled={isLoading || (requiresLegalConsent && !agreedToLegal)}
+        onWeChatLogin={hasWeChatLogin ? handleOpenWeChatDialog : undefined}
+        isWeChatLoading={isWeChatSubmitting}
+        showDivider={false}
+      />
+
       {passkeyLoginEnabled && (
-        <div className='mt-2 space-y-1'>
+        <div className='space-y-1'>
           <Button
             type='button'
             variant='outline'
             disabled={passkeyButtonDisabled}
             onClick={handlePasskeyLogin}
-            className='h-11 w-full justify-center gap-2 rounded-lg'
+            className={AUTH_OAUTH_CLASS}
           >
             {isPasskeyLoading ? (
               <Loader2 className='h-4 w-4 animate-spin' />
@@ -324,15 +341,6 @@ export function UserAuthForm({
           )}
         </div>
       )}
-
-      {/* OAuth Providers */}
-      <OAuthProviders
-        status={status}
-        redirectTo={redirectTo}
-        disabled={isLoading || (requiresLegalConsent && !agreedToLegal)}
-        onWeChatLogin={hasWeChatLogin ? handleOpenWeChatDialog : undefined}
-        isWeChatLoading={isWeChatSubmitting}
-      />
     </>
   )
 
@@ -340,14 +348,19 @@ export function UserAuthForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className={cn('grid gap-4', className)}
+        className={cn(
+          'grid gap-4 [&_[data-slot=form-message]]:text-[#D92D20]',
+          className
+        )}
         {...props}
       >
         {hasAlternativeLogin && alternativeLoginMethods}
+        {hasAlternativeLogin && passwordLoginEnabled ? (
+          <AuthOrDivider label={t('Or sign in with an account')} />
+        ) : null}
 
         {passwordLoginEnabled && (
           <>
-            {/* Username Field */}
             <FormField
               control={form.control}
               name='username'
@@ -355,17 +368,19 @@ export function UserAuthForm({
                 <FormItem>
                   <FormLabel>{t('Username or Email')}</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder={t('Enter your username or email')}
-                      {...field}
-                    />
+                    <AuthLeadingField icon={User}>
+                      <Input
+                        placeholder={t('Enter your username or email')}
+                        {...field}
+                        className={AUTH_INPUT_CLASS}
+                      />
+                    </AuthLeadingField>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Password Field */}
             <FormField
               control={form.control}
               name='password'
@@ -373,15 +388,21 @@ export function UserAuthForm({
                 <FormItem className='relative'>
                   <FormLabel>{t('Password')}</FormLabel>
                   <FormControl>
-                    <PasswordInput
-                      placeholder={t('Enter password')}
-                      {...field}
-                    />
+                    <AuthLeadingField icon={Lock}>
+                      <PasswordInput
+                        placeholder={t('Enter password')}
+                        {...field}
+                        className={AUTH_INPUT_CLASS}
+                      />
+                    </AuthLeadingField>
                   </FormControl>
                   <FormMessage />
                   <Link
                     to='/forgot-password'
-                    className='text-muted-foreground absolute end-0 -top-0.5 z-10 text-sm font-medium hover:opacity-75'
+                    className={cn(
+                      AUTH_SOFT_LINK_CLASS,
+                      'absolute end-0 -top-0.5 z-10'
+                    )}
                   >
                     {t('Forgot password?')}
                   </Link>
@@ -389,19 +410,22 @@ export function UserAuthForm({
               )}
             />
 
-            {/* Submit Button */}
             <Button
               type='submit'
-              className='mt-2 w-full justify-center gap-2'
+              className={AUTH_SUBMIT_CLASS}
               disabled={isLoading || (requiresLegalConsent && !agreedToLegal)}
             >
-              {isLoading ? <Loader2 className='animate-spin' /> : <LogIn />}
               {t('Sign in')}
+              {isLoading ? (
+                <Loader2 className='animate-spin' />
+              ) : (
+                <ArrowRight />
+              )}
             </Button>
 
             {/* Turnstile */}
             {isTurnstileEnabled && (
-              <div className='mt-2'>
+              <div>
                 <Turnstile
                   key={turnstileWidgetKey}
                   siteKey={turnstileSiteKey}
@@ -417,7 +441,10 @@ export function UserAuthForm({
           status={status}
           checked={agreedToLegal}
           onCheckedChange={setAgreedToLegal}
-          className='mt-1'
+          alwaysShow
+          termsHref={AUTH_TERMS_HREF}
+          privacyHref={AUTH_PRIVACY_HREF}
+          variant='plain'
         />
 
         {!hasAlternativeLogin && alternativeLoginMethods}

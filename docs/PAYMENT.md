@@ -5,29 +5,40 @@
 ```
 Wallet UI (Alipay)
   → POST /api/user/pay  (authenticated, server quotes amount)
-  → EPay-compatible gateway
-  → Alipay page
-  → GET/POST /api/user/epay/notify
-  → signature verify
-  → order exists + money matches stored TopUp.Money (±0.01)
-  → RechargeEpay (FOR UPDATE, pending → success once)
+  → Alipay Open Platform page/WAP pay (RSA2)
+  → POST /api/payment/alipay/notify
+  → RSA2 verify + app_id match
+  → order exists + total_amount matches stored TopUp.Money (±0.01)
+  → RechargeAlipay (FOR UPDATE, pending → success once)
   → user quota += Amount * QuotaPerUnit
 ```
 
-## Native fields (admin)
+EPay remains in the engine. If Alipay direct is not configured and EPay credentials are present, `/api/user/pay` still uses EPay.
 
-- `PayAddress` (EPay API URL)
-- `EpayId` (PID)
-- `EpayKey` (KEY)
+## Native Alipay (server env, never git / frontend)
+
+- `ALIPAY_APP_ID`
+- `ALIPAY_PRIVATE_KEY_FILE` (应用私钥, PKCS8)
+- `ALIPAY_PUBLIC_KEY_FILE` (支付宝公钥 from the console — not 应用公钥)
+- `ALIPAY_GATEWAY` (default `https://openapi.alipay.com/gateway.do`)
+- `ALIPAY_NOTIFY_URL` (default `{ServerAddress}/api/payment/alipay/notify`)
+
+Host files:
+
+- `/opt/ai-platform/secrets/alipay/app_private_key.pem` (mode 600)
+- `/opt/ai-platform/secrets/alipay/alipay_public_key.pem` (mode 600)
+
+`PENDING_CONFIGURATION` until `ALIPAY_PUBLIC_KEY_FILE` contains the 支付宝公钥 after the 应用公钥 is uploaded in 开放平台.
+
+## Other admin fields
+
 - `PayMethods` (default: Alipay only)
 - `payment_setting.amount_options` (preset amounts, not hardcoded in React)
-- `CustomCallbackAddress` / `ServerAddress` for notify URL
-
-`PENDING_CONFIGURATION`: EPay URL, PID, KEY. Do not invent production credentials.
+- `payment_setting.compliance_confirmed` (Root must confirm before top-up is enabled)
+- `CustomCallbackAddress` / `ServerAddress` for return URL
 
 ## What V1 does not do
 
-- Direct Alipay Open Platform SDK
 - Stripe / Creem / Waffo user UI (backend remains)
 - WeChat pay UI (add `wxpay` in Admin PayMethods later)
 - Client-side balance increment

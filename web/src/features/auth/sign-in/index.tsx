@@ -22,7 +22,7 @@ import { useTranslation } from 'react-i18next'
 import { useStatus } from '@/hooks/use-status'
 
 import { AuthLayout } from '../auth-layout'
-import { TermsFooter } from '../components/terms-footer'
+import { AUTH_LINK_CLASS } from '../components/auth-field'
 import { UserAuthForm } from './components/user-auth-form'
 
 export function SignIn() {
@@ -34,31 +34,21 @@ export function SignIn() {
     <AuthLayout>
       <div className='w-full space-y-8'>
         <div className='space-y-2'>
-          <h2 className='text-center text-2xl font-semibold tracking-tight sm:text-left'>
+          <h2 className='text-[36px] leading-tight font-semibold tracking-[-0.03em] text-[#111827]'>
             {t('Sign in')}
           </h2>
           {!status?.self_use_mode_enabled &&
             status?.register_enabled !== false && (
-              <p className='text-muted-foreground text-left text-sm sm:text-base'>
+              <p className='text-sm text-[#667085]'>
                 {t("Don't have an account?")}{' '}
-                <Link
-                  to='/sign-up'
-                  className='hover:text-primary font-medium underline underline-offset-4'
-                >
+                <Link to='/sign-up' className={AUTH_LINK_CLASS}>
                   {t('Sign up')}
                 </Link>
-                .
               </p>
             )}
         </div>
 
         <UserAuthForm redirectTo={redirect} />
-
-        <TermsFooter
-          variant='sign-in'
-          status={status}
-          className='text-center'
-        />
       </div>
     </AuthLayout>
   )

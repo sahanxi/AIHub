@@ -16,14 +16,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { Combobox } from '@/components/ui/combobox'
 import { useState } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
+import { Combobox } from '@/components/ui/combobox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-
 
 import { SettingsControlGroup } from '../../../components/settings-form-layout'
 import { OAUTH_PRESETS, type CustomOAuthFormValues } from '../types'
@@ -65,8 +64,18 @@ export function PresetSelector(props: PresetSelectorProps) {
     props.form.setValue('email_field', preset.email_field, {
       shouldDirty: true,
     })
+    props.form.setValue('well_known', preset.well_known ?? '', {
+      shouldDirty: true,
+    })
+    props.form.setValue('auth_style', preset.auth_style ?? 0, {
+      shouldDirty: true,
+    })
 
-    // Apply base URL if already entered
+    if (!preset.needsBaseUrl) {
+      applyEndpoints(preset)
+      return
+    }
+
     if (baseUrl) {
       applyEndpoints(preset, baseUrl)
     }
@@ -82,11 +91,25 @@ export function PresetSelector(props: PresetSelectorProps) {
     applyEndpoints(preset, url)
   }
 
-  const applyEndpoints = (
-    preset: (typeof OAUTH_PRESETS)[number],
-    url: string
-  ) => {
+  const applyEndpoints = (preset: (typeof OAUTH_PRESETS)[number], url = '') => {
+    if (!preset.needsBaseUrl) {
+      props.form.setValue(
+        'authorization_endpoint',
+        preset.authorization_endpoint,
+        { shouldDirty: true }
+      )
+      props.form.setValue('token_endpoint', preset.token_endpoint, {
+        shouldDirty: true,
+      })
+      props.form.setValue('user_info_endpoint', preset.user_info_endpoint, {
+        shouldDirty: true,
+      })
+      return
+    }
+
     const cleanUrl = url.replace(/\/+$/, '')
+    if (!cleanUrl) return
+
     props.form.setValue(
       'authorization_endpoint',
       cleanUrl + preset.authorization_endpoint,
@@ -102,6 +125,10 @@ export function PresetSelector(props: PresetSelectorProps) {
     )
   }
 
+  const selectedPresetNeedsBaseUrl =
+    OAUTH_PRESETS.find((preset) => preset.key === selectedPreset)
+      ?.needsBaseUrl !== false
+
   return (
     <SettingsControlGroup className='space-y-3 border-dashed'>
       <p className='text-sm font-medium'>{t('Quick Setup from Preset')}</p>
@@ -109,22 +136,29 @@ export function PresetSelector(props: PresetSelectorProps) {
         <div className='space-y-1.5'>
           <Label>{t('Preset Template')}</Label>
           <Combobox
- options={OAUTH_PRESETS.map((preset) => ({ value: preset.key, label: preset.name }))}
- value={selectedPreset}
- onValueChange={(value) => { if (value !== null) handlePresetChange(value) }}
- aria-label={t('Select preset')}
- placeholder={t('Select preset')}
- className='w-full'
-/>
-        </div>
-        <div className='space-y-1.5'>
-          <Label>{t('Base URL')}</Label>
-          <Input
-            placeholder={t('https://your-server.example.com')}
-            value={baseUrl}
-            onChange={(e) => handleBaseUrlChange(e.target.value)}
+            options={OAUTH_PRESETS.map((preset) => ({
+              value: preset.key,
+              label: preset.name,
+            }))}
+            value={selectedPreset}
+            onValueChange={(value) => {
+              if (value !== null) handlePresetChange(value)
+            }}
+            aria-label={t('Select preset')}
+            placeholder={t('Select preset')}
+            className='w-full'
           />
         </div>
+        {selectedPresetNeedsBaseUrl && (
+          <div className='space-y-1.5'>
+            <Label>{t('Base URL')}</Label>
+            <Input
+              placeholder={t('https://your-server.example.com')}
+              value={baseUrl}
+              onChange={(e) => handleBaseUrlChange(e.target.value)}
+            />
+          </div>
+        )}
       </div>
     </SettingsControlGroup>
   )

@@ -16,7 +16,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { Combobox } from '@/components/ui/combobox'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -28,10 +27,10 @@ import { GroupBadge } from '@/components/group-badge'
 import { JsonCodeEditor } from '@/components/json-code-editor'
 import { StatusBadge } from '@/components/status-badge'
 import { Button } from '@/components/ui/button'
+import { Combobox } from '@/components/ui/combobox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
-
 import { Separator } from '@/components/ui/separator'
 
 import {
@@ -298,14 +297,18 @@ export function EditTagDialog({ open, onOpenChange }: EditTagDialogProps) {
 
                 <div className='flex gap-2'>
                   <Combobox
- options={availableModels.map((model) => ({ value: model, label: model }))}
- onValueChange={(value: string | null) => {
-   if (value !== null && !selectedModels.includes(value)) setSelectedModels([...selectedModels, value])
- }}
- className='flex-1'
- placeholder={t('Add from available models...')}
- aria-label={t('Add from available models...')}
-/>
+                    options={availableModels.map((model) => ({
+                      value: model,
+                      label: model,
+                    }))}
+                    onValueChange={(value: string | null) => {
+                      if (value !== null && !selectedModels.includes(value))
+                        setSelectedModels([...selectedModels, value])
+                    }}
+                    className='flex-1'
+                    placeholder={t('Add from available models...')}
+                    aria-label={t('Add from available models...')}
+                  />
                 </div>
 
                 <div className='flex gap-2'>

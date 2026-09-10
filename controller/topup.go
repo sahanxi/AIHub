@@ -97,7 +97,7 @@ func GetTopUpInfo(c *gin.Context) {
 	}
 
 	data := gin.H{
-		"enable_online_topup":              isEpayTopUpEnabled(),
+		"enable_online_topup":              isEpayTopUpEnabled() || isAlipayDirectTopUpEnabled(),
 		"enable_stripe_topup":              isStripeTopUpEnabled(),
 		"enable_creem_topup":               isCreemTopUpEnabled(),
 		"enable_waffo_topup":               enableWaffo,
@@ -192,14 +192,7 @@ func getMinTopup() int64 {
 }
 
 func getTopUpQuota(amount int64) (int, error) {
-	quota := decimal.NewFromInt(amount)
-	if operation_setting.GetQuotaDisplayType() == operation_setting.QuotaDisplayTypeTokens {
-		quotaPerUnit := decimal.NewFromFloat(common.QuotaPerUnit)
-		quota = decimal.NewFromInt(quota.Div(quotaPerUnit).IntPart()).Mul(quotaPerUnit)
-	} else {
-		quota = quota.Mul(decimal.NewFromFloat(common.QuotaPerUnit))
-	}
-	return common.WalletQuotaFromDecimalStrict(quota)
+	return operation_setting.WalletQuotaFromTopUpAmount(amount)
 }
 
 func getMaxTopUpAmount() int64 {
@@ -216,6 +209,10 @@ func getMaxTopUpAmount() int64 {
 			Ceil().
 			Sub(decimal.NewFromInt(1)).
 			IntPart()
+	}
+	rate := operation_setting.GetUsdToCurrencyRate(operation_setting.USDExchangeRate)
+	if rate > 0 && rate != 1 {
+		return maxStoredAmount.Mul(decimal.NewFromFloat(rate)).Floor().IntPart()
 	}
 	return maxStoredAmount.IntPart()
 }
@@ -296,6 +293,11 @@ func RequestEpay(c *gin.Context) {
 
 	if !operation_setting.ContainsPayMethod(req.PaymentMethod) {
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "支付方式不存在"})
+		return
+	}
+
+	if isAlipayDirectTopUpEnabled() && req.PaymentMethod == "alipay" {
+		requestAlipayDirect(c, id, req, payMoney)
 		return
 	}
 

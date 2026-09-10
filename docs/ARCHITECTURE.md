@@ -109,23 +109,22 @@ V1 path:
 
 ```
 User wallet UI
-    → New API RequestEpay
-    → EPay-compatible gateway
-    → Alipay
-    → /api/user/epay/notify (signed)
-    → RechargeEpay (row lock, pending→success once)
+    → POST /api/user/pay
+    → Alipay Open Platform (RSA2 page/WAP pay)
+    → POST /api/payment/alipay/notify
+    → RechargeAlipay (row lock, pending→success once)
     → wallet quota
 ```
 
 Rules:
 
 - Browser never credits the wallet.
-- Credentials (`PayAddress`, `EpayId`, `EpayKey`) stay in admin options / server `.env` — never frontend or git.
+- Alipay private key and 支付宝公钥 stay in server secrets / env — never frontend or git.
 - Stripe / Creem / Waffo remain in backend; user UI only shows methods the server actually enables.
 - WeChat pay: code kept; default `PayMethods` is Alipay-only until admin enables it.
-- Direct Alipay Open Platform SDK is **not** in V1. Future provider: `payment-provider/alipay-direct`.
+- EPay remains as a fallback path when Alipay direct is not configured.
 
-`PENDING_CONFIGURATION`: EPay URL / PID / KEY.
+`PENDING_CONFIGURATION`: 支付宝公钥 (after uploading 应用公钥 in 开放平台).
 
 ## 7. Database
 
@@ -170,7 +169,7 @@ Generated per environment with `openssl rand -hex 48`, never reused:
 | `SESSION_SECRET` | same (fatal if `random_string`) |
 | `CRYPTO_SECRET` | same |
 | Upstream provider keys | Admin → Channels only |
-| EPay KEY | Admin payment settings |
+| Alipay app private key / 支付宝公钥 | `/opt/ai-platform/secrets/alipay/` chmod 600 |
 
 Git must not contain `.env`, `*.pem`, or live credentials. `deploy/.env.example` is names-only.
 

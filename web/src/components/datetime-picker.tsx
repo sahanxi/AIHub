@@ -127,9 +127,14 @@ export function DateTimePicker({
           {date ? dayjs(date).format('YYYY-MM-DD') : placeholderText}
           <ChevronDownIcon className='h-4 w-4 opacity-50' />
         </PopoverTrigger>
-        <PopoverContent className='w-auto overflow-hidden p-0' align='start'>
+        <PopoverContent
+          className='w-auto overflow-hidden p-0'
+          align='start'
+          positionMethod='fixed'
+        >
           <Calendar
             mode='single'
+            required
             selected={date}
             month={month}
             onMonthChange={setMonth}

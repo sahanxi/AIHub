@@ -1,6 +1,11 @@
 package operation_setting
 
-import "github.com/QuantumNous/new-api/setting/config"
+import (
+	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/setting/config"
+
+	"github.com/shopspring/decimal"
+)
 
 // 额度展示类型
 const (
@@ -24,7 +29,7 @@ type GeneralSetting struct {
 
 // 默认配置
 var generalSetting = GeneralSetting{
-	DocsLink:                   "https://docs.newapi.pro",
+	DocsLink:                   "/docs",
 	PingIntervalEnabled:        false,
 	PingIntervalSeconds:        60,
 	QuotaDisplayType:           QuotaDisplayTypeCNY,
@@ -88,4 +93,35 @@ func GetUsdToCurrencyRate(usdToCny float64) float64 {
 	default:
 		return 1
 	}
+}
+
+func topUpAmountExchangeRate() float64 {
+	switch GetQuotaDisplayType() {
+	case QuotaDisplayTypeCNY:
+		if USDExchangeRate > 0 {
+			return USDExchangeRate
+		}
+	case QuotaDisplayTypeCustom:
+		if generalSetting.CustomCurrencyExchangeRate > 0 {
+			return generalSetting.CustomCurrencyExchangeRate
+		}
+	}
+	return 1
+}
+
+// WalletQuotaFromTopUpAmount converts a user-facing top-up amount into wallet
+// quota. USD amounts stay 1:1 with QuotaPerUnit. CNY/CUSTOM amounts are local
+// currency, so they are divided by the USD exchange rate before conversion.
+func WalletQuotaFromTopUpAmount(amount int64) (int, error) {
+	quota := decimal.NewFromInt(amount)
+	if GetQuotaDisplayType() == QuotaDisplayTypeTokens {
+		quotaPerUnit := decimal.NewFromFloat(common.QuotaPerUnit)
+		quota = decimal.NewFromInt(quota.Div(quotaPerUnit).IntPart()).Mul(quotaPerUnit)
+		return common.WalletQuotaFromDecimalStrict(quota)
+	}
+	rate := topUpAmountExchangeRate()
+	if rate != 1 {
+		quota = quota.Div(decimal.NewFromFloat(rate))
+	}
+	return common.WalletQuotaFromDecimalStrict(quota.Mul(decimal.NewFromFloat(common.QuotaPerUnit)))
 }

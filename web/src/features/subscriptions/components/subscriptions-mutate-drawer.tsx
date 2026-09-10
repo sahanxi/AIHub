@@ -16,7 +16,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { Combobox } from '@/components/ui/combobox'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { CalendarClock, CreditCard, RefreshCw, Settings2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -33,6 +32,7 @@ import {
   sideDrawerSwitchItemClassName,
 } from '@/components/drawer-layout'
 import { Button } from '@/components/ui/button'
+import { Combobox } from '@/components/ui/combobox'
 import {
   Form,
   FormControl,
@@ -44,7 +44,14 @@ import {
 } from '@/components/ui/form'
 import { IconBadge } from '@/components/ui/icon-badge'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Sheet,
   SheetClose,
@@ -387,18 +394,23 @@ export function SubscriptionsMutateDrawer({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('Upgrade Group')}</FormLabel>
-                      <FormControl><Combobox
-options={[
-                          { value: '__none__', label: t('No Upgrade') },
-                          ...groupOptions.map((g) => ({ value: g, label: g })),
-                        ]}
-onValueChange={(v) =>
-                          field.onChange(v === '__none__' ? '' : v)
-                        }
-value={field.value || ''}
-className='w-full'
-placeholder={t('No Upgrade')}
-/></FormControl>
+                      <FormControl>
+                        <Combobox
+                          options={[
+                            { value: '__none__', label: t('No Upgrade') },
+                            ...groupOptions.map((g) => ({
+                              value: g,
+                              label: g,
+                            })),
+                          ]}
+                          onValueChange={(v) =>
+                            field.onChange(v === '__none__' ? '' : v)
+                          }
+                          value={field.value || ''}
+                          className='w-full'
+                          placeholder={t('No Upgrade')}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -410,21 +422,26 @@ placeholder={t('No Upgrade')}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('Downgrade Group')}</FormLabel>
-                      <FormControl><Combobox
-options={[
-                          {
-                            value: '__none__',
-                            label: t('Downgrade to pre-purchase group'),
-                          },
-                          ...groupOptions.map((g) => ({ value: g, label: g })),
-                        ]}
-onValueChange={(v) =>
-                          field.onChange(v === '__none__' ? '' : v)
-                        }
-value={field.value || ''}
-className='w-full'
-placeholder={t('Downgrade to pre-purchase group')}
-/></FormControl>
+                      <FormControl>
+                        <Combobox
+                          options={[
+                            {
+                              value: '__none__',
+                              label: t('Downgrade to pre-purchase group'),
+                            },
+                            ...groupOptions.map((g) => ({
+                              value: g,
+                              label: g,
+                            })),
+                          ]}
+                          onValueChange={(v) =>
+                            field.onChange(v === '__none__' ? '' : v)
+                          }
+                          value={field.value || ''}
+                          className='w-full'
+                          placeholder={t('Downgrade to pre-purchase group')}
+                        />
+                      </FormControl>
                       <FormDescription>
                         {t(
                           'Downgrade to this group after the subscription expires'
@@ -762,13 +779,13 @@ placeholder={t('Downgrade to pre-purchase group')}
                       <FormLabel>Waffo Pancake Product ID</FormLabel>
                       <div className='flex gap-2'>
                         <Combobox
-options={items}
-value={field.value || ''}
-onValueChange={(v) => field.onChange(v)}
-disabled={items.length === 0}
-className='w-full flex-1'
-placeholder={t('Select a product')}
-/>
+                          options={items}
+                          value={field.value || ''}
+                          onValueChange={(v) => field.onChange(v)}
+                          disabled={items.length === 0}
+                          className='w-full flex-1'
+                          placeholder={t('Select a product')}
+                        />
                         <Button
                           type='button'
                           variant='outline'

@@ -367,8 +367,21 @@ func migrateDB() error {
 		&SystemTaskLock{},
 		&CasbinRule{},
 		&AuthzRole{},
+		&BusinessWorkspace{},
+		&BusinessProduct{},
+		&BusinessPriceVersion{},
+		&BusinessQuote{},
+		&BusinessSeatOrder{},
+		&BusinessSeatOrderItem{},
+		&BusinessSeatSubscription{},
+		&BusinessSeat{},
+		&BusinessSeatTask{},
+		&BusinessSeatAuditLog{},
 	)
 	if err != nil {
+		return err
+	}
+	if err := EnsureBusinessProductSeed(); err != nil {
 		return err
 	}
 	if err := InitializeUserAuthVersions(); err != nil {

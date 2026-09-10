@@ -16,7 +16,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { Combobox } from '@/components/ui/combobox'
 import { useQuery } from '@tanstack/react-query'
 import { Download, Loader2, RefreshCcw, Terminal } from 'lucide-react'
 /*
@@ -42,8 +41,16 @@ import { useTranslation } from 'react-i18next'
 
 import { Dialog } from '@/components/dialog'
 import { Button } from '@/components/ui/button'
+import { Combobox } from '@/components/ui/combobox'
 import { IconBadge } from '@/components/ui/icon-badge'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 
 import { getDeploymentLogs, listDeploymentContainers } from '../../api'
@@ -254,7 +261,7 @@ export function ViewLogsDialog({
         <div className='space-y-1'>
           <div className='text-muted-foreground text-xs'>{t('Container')}</div>
           <Combobox
-options={containers.flatMap((c) => {
+            options={containers.flatMap((c) => {
               const id = c?.container_id
               if (typeof id !== 'string' || !id) return []
               const status =
@@ -268,12 +275,12 @@ options={containers.flatMap((c) => {
                 },
               ]
             })}
-value={containerId}
-onValueChange={(v) => v !== null && setContainerId(v)}
-disabled={isLoadingContainers || containers.length === 0}
-className='w-full'
-placeholder={containerPlaceholder}
-/>
+            value={containerId}
+            onValueChange={(v) => v !== null && setContainerId(v)}
+            disabled={isLoadingContainers || containers.length === 0}
+            className='w-full'
+            placeholder={containerPlaceholder}
+          />
         </div>
         <div className='space-y-1'>
           <div className='text-muted-foreground text-xs'>{t('Stream')}</div>

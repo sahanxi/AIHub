@@ -27,10 +27,13 @@ import {
   IconWeChat,
 } from '@/assets/brand-icons'
 import { Button } from '@/components/ui/button'
+import { getLobeIcon } from '@/lib/lobe-icon'
 import { cn } from '@/lib/utils'
 
 import { useOAuthLogin } from '../hooks/use-oauth-login'
+import { findGoogleCustomOAuthProvider } from '../lib/oauth'
 import type { SystemStatus } from '../types'
+import { AUTH_OAUTH_CLASS, AuthOrDivider } from './auth-field'
 
 type OAuthProvidersProps = {
   status: SystemStatus | null
@@ -39,6 +42,9 @@ type OAuthProvidersProps = {
   onWeChatLogin?: () => void
   isWeChatLoading?: boolean
   redirectTo?: string
+  showDivider?: boolean
+  dividerPlacement?: 'before' | 'after'
+  dividerLabel?: string
 }
 
 type ProviderButton = {
@@ -56,6 +62,9 @@ export function OAuthProviders({
   onWeChatLogin,
   isWeChatLoading = false,
   redirectTo,
+  showDivider = true,
+  dividerPlacement = 'before',
+  dividerLabel,
 }: OAuthProvidersProps) {
   const { t } = useTranslation()
   const {
@@ -130,50 +139,57 @@ export function OAuthProviders({
     })
   }
 
-  // Custom OAuth providers
   const customProviders = status?.custom_oauth_providers
+  const googleProvider = findGoogleCustomOAuthProvider(status)
   if (customProviders && customProviders.length > 0) {
     for (const provider of customProviders) {
+      const isGoogle = googleProvider?.slug === provider.slug
+      let icon = provider.icon ? getLobeIcon(provider.icon, 16) : undefined
+      let label = t('Continue with {{name}}', { name: provider.name })
+      if (isGoogle) {
+        icon = getLobeIcon('Google.Color', 18)
+        label = t('Sign in with Google')
+      }
       providerButtons.push({
         key: `custom-${provider.slug}`,
-        label: t('Continue with {{name}}', { name: provider.name }),
+        label,
         onClick: () => handleCustomOAuthLogin(provider),
+        icon,
       })
     }
   }
 
   if (providerButtons.length === 0) return null
 
+  const buttons = (
+    <div className='flex flex-col gap-2'>
+      {providerButtons.map(
+        ({ key, label, onClick, icon, disabled: extraDisabled }) => (
+          <Button
+            key={key}
+            variant='outline'
+            type='button'
+            disabled={disabled || isLoading || extraDisabled}
+            onClick={onClick}
+            className={AUTH_OAUTH_CLASS}
+          >
+            {icon}
+            {label}
+          </Button>
+        )
+      )}
+    </div>
+  )
+
   return (
     <div className={cn('space-y-3', className)}>
-      <div className='relative'>
-        <div className='absolute inset-0 flex items-center'>
-          <span className='w-full border-t' />
-        </div>
-        <div className='relative flex justify-center text-xs uppercase'>
-          <span className='bg-background text-muted-foreground px-2'>
-            {t('Or continue with')}
-          </span>
-        </div>
-      </div>
-
-      <div className='flex flex-col gap-2'>
-        {providerButtons.map(
-          ({ key, label, onClick, icon, disabled: extraDisabled }) => (
-            <Button
-              key={key}
-              variant='outline'
-              type='button'
-              disabled={disabled || isLoading || extraDisabled}
-              onClick={onClick}
-              className='h-11 w-full justify-center gap-2 rounded-lg'
-            >
-              {icon}
-              {label}
-            </Button>
-          )
-        )}
-      </div>
+      {showDivider && dividerPlacement === 'before' ? (
+        <AuthOrDivider label={dividerLabel} />
+      ) : null}
+      {buttons}
+      {showDivider && dividerPlacement === 'after' ? (
+        <AuthOrDivider label={dividerLabel} />
+      ) : null}
     </div>
   )
 }

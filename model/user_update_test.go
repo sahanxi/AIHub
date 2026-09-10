@@ -288,6 +288,47 @@ func TestInsertKeepsBlankPasswordForPasswordlessUser(t *testing.T) {
 	assert.Empty(t, stored.Password)
 }
 
+func TestInsertAppliesDefaultUserGroupWhenUnset(t *testing.T) {
+	setupUserUpdateTestState(t)
+
+	original := common.DefaultUserGroup
+	common.DefaultUserGroup = "standard"
+	t.Cleanup(func() {
+		common.DefaultUserGroup = original
+	})
+
+	user := &User{
+		Username: "default-group-user",
+		Role:     common.RoleCommonUser,
+		Status:   common.UserStatusEnabled,
+	}
+	require.NoError(t, user.Insert(0))
+	assert.Equal(t, "standard", user.Group)
+
+	var stored User
+	require.NoError(t, DB.Where("username = ?", user.Username).First(&stored).Error)
+	assert.Equal(t, "standard", stored.Group)
+}
+
+func TestInsertKeepsExplicitUserGroup(t *testing.T) {
+	setupUserUpdateTestState(t)
+
+	original := common.DefaultUserGroup
+	common.DefaultUserGroup = "standard"
+	t.Cleanup(func() {
+		common.DefaultUserGroup = original
+	})
+
+	user := &User{
+		Username: "explicit-group-user",
+		Role:     common.RoleCommonUser,
+		Status:   common.UserStatusEnabled,
+		Group:    "vip",
+	}
+	require.NoError(t, user.Insert(0))
+	assert.Equal(t, "vip", user.Group)
+}
+
 func TestUpdateUserBindColumnOnlyTouchesTheBindingColumn(t *testing.T) {
 	truncateTables(t)
 

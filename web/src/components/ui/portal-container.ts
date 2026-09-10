@@ -19,10 +19,11 @@ For commercial licensing, please contact support@quantumnous.com
 import * as React from 'react'
 
 /**
- * Element that floating popups (Combobox, Select, ...) portal into instead of
- * `document.body`. Layered surfaces that disable pointer events or trap focus
- * outside themselves, such as the vaul-based Drawer, provide their own content
- * element so nested popups stay interactive. `undefined` keeps the default.
+ * Element that floating popups (Combobox, Select, Popover, ...) portal into
+ * instead of `document.body`. Layered surfaces that disable pointer events or
+ * mark the rest of the document inert, such as Drawer, Sheet, and Dialog,
+ * provide their own content element so nested popups stay interactive.
+ * `undefined` keeps the default.
  */
 const PortalContainerContext = React.createContext<
   React.RefObject<HTMLElement | null> | undefined

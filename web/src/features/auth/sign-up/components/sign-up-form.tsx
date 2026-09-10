@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2 } from 'lucide-react'
+import { ArrowRight, Loader2, Lock, Mail, User } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -39,6 +39,13 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { register, wechatLoginByCode } from '@/features/auth/api'
+import {
+  AUTH_INPUT_CLASS,
+  AUTH_PRIVACY_HREF,
+  AUTH_SUBMIT_CLASS,
+  AUTH_TERMS_HREF,
+  AuthLeadingField,
+} from '@/features/auth/components/auth-field'
 import { LegalConsent } from '@/features/auth/components/legal-consent'
 import { OAuthProviders } from '@/features/auth/components/oauth-providers'
 import { registerFormSchema } from '@/features/auth/constants'
@@ -98,9 +105,7 @@ export function SignUpForm({
 
   const emailValue = form.watch('email')
   const emailVerificationRequired = !!status?.email_verification
-  const hasUserAgreement = Boolean(status?.user_agreement_enabled)
-  const hasPrivacyPolicy = Boolean(status?.privacy_policy_enabled)
-  const requiresLegalConsent = hasUserAgreement || hasPrivacyPolicy
+  const requiresLegalConsent = true
   const oauthRegisterEnabled =
     status?.oauth_register_enabled ??
     status?.data?.oauth_register_enabled ??
@@ -244,10 +249,12 @@ export function SignUpForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className={cn('grid gap-4', className)}
+        className={cn(
+          'grid gap-4 [&_[data-slot=form-message]]:text-[#D92D20]',
+          className
+        )}
         {...props}
       >
-        {/* Username Field */}
         <FormField
           control={form.control}
           name='username'
@@ -255,14 +262,19 @@ export function SignUpForm({
             <FormItem>
               <FormLabel>{t('Username')}</FormLabel>
               <FormControl>
-                <Input placeholder={t('Enter your username')} {...field} />
+                <AuthLeadingField icon={User}>
+                  <Input
+                    placeholder={t('Enter your username')}
+                    {...field}
+                    className={AUTH_INPUT_CLASS}
+                  />
+                </AuthLeadingField>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        {/* Password Field */}
         <FormField
           control={form.control}
           name='password'
@@ -270,17 +282,19 @@ export function SignUpForm({
             <FormItem>
               <FormLabel>{t('Password')}</FormLabel>
               <FormControl>
-                <PasswordInput
-                  placeholder={t('Enter password (8–128 characters)')}
-                  {...field}
-                />
+                <AuthLeadingField icon={Lock}>
+                  <PasswordInput
+                    placeholder={t('Enter password')}
+                    {...field}
+                    className={AUTH_INPUT_CLASS}
+                  />
+                </AuthLeadingField>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        {/* Confirm Password Field */}
         <FormField
           control={form.control}
           name='confirmPassword'
@@ -288,7 +302,13 @@ export function SignUpForm({
             <FormItem>
               <FormLabel>{t('Confirm password')}</FormLabel>
               <FormControl>
-                <PasswordInput placeholder={t('Confirm password')} {...field} />
+                <AuthLeadingField icon={Lock}>
+                  <PasswordInput
+                    placeholder={t('Please re-enter your password')}
+                    {...field}
+                    className={AUTH_INPUT_CLASS}
+                  />
+                </AuthLeadingField>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -308,11 +328,14 @@ export function SignUpForm({
                     {t('Email (required for verification)')}
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder={t('name@example.com')}
-                      type='email'
-                      {...field}
-                    />
+                    <AuthLeadingField icon={Mail}>
+                      <Input
+                        placeholder={t('name@example.com')}
+                        type='email'
+                        {...field}
+                        className={AUTH_INPUT_CLASS}
+                      />
+                    </AuthLeadingField>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -323,6 +346,7 @@ export function SignUpForm({
             <div className='flex items-end gap-2'>
               <div className='flex-1'>
                 <Input
+                  className='h-11 rounded-xl border-[#d9e6e1] bg-white text-sm shadow-none'
                   placeholder={t('Verification code')}
                   value={verificationCode}
                   onChange={(e) => setVerificationCode(e.target.value)}
@@ -348,7 +372,7 @@ export function SignUpForm({
 
         {/* Turnstile */}
         {isTurnstileEnabled && (
-          <div className='mt-2'>
+          <div>
             <Turnstile
               key={turnstileWidgetKey}
               siteKey={turnstileSiteKey}
@@ -361,21 +385,27 @@ export function SignUpForm({
           status={status}
           checked={agreedToLegal}
           onCheckedChange={setAgreedToLegal}
-          className='mt-1'
+          alwaysShow
+          termsHref={AUTH_TERMS_HREF}
+          privacyHref={AUTH_PRIVACY_HREF}
+          variant='plain'
         />
 
-        {/* Submit Button */}
         <Button
           type='submit'
-          className='mt-2 w-full justify-center gap-2'
+          className={AUTH_SUBMIT_CLASS}
           disabled={
             isLoading ||
             (requiresLegalConsent && !agreedToLegal) ||
             !turnstileReady
           }
         >
-          {isLoading ? <Loader2 className='h-4 w-4 animate-spin' /> : null}
           {t('Create account')}
+          {isLoading ? (
+            <Loader2 className='h-4 w-4 animate-spin' />
+          ) : (
+            <ArrowRight />
+          )}
         </Button>
 
         {oauthRegisterEnabled && (
@@ -384,6 +414,7 @@ export function SignUpForm({
             disabled={isLoading || (requiresLegalConsent && !agreedToLegal)}
             onWeChatLogin={hasWeChatLogin ? handleOpenWeChatDialog : undefined}
             isWeChatLoading={isWeChatSubmitting}
+            dividerLabel={t('Or register another way')}
             className='pt-2'
           />
         )}

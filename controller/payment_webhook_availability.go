@@ -92,6 +92,17 @@ func isWaffoPancakeWebhookEnabled() bool {
 	return isWaffoPancakeTopUpEnabled()
 }
 
+func isAlipayDirectTopUpEnabled() bool {
+	if !isPaymentComplianceConfirmed() {
+		return false
+	}
+	return setting.AlipayDirectConfigured() && operation_setting.ContainsPayMethod("alipay")
+}
+
+func isAlipayWebhookEnabled() bool {
+	return isAlipayDirectTopUpEnabled()
+}
+
 func isEpayTopUpEnabled() bool {
 	if !isPaymentComplianceConfirmed() {
 		return false

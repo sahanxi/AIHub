@@ -21,6 +21,7 @@ import { describe, expect, test } from 'vitest'
 import { PAYMENT_TYPES } from '../constants'
 import {
   dispatchSelectedPayment,
+  isRedirectCheckout,
   isStripePayment,
   isWaffoPayment,
   isWaffoPancakePayment,
@@ -33,6 +34,14 @@ describe('payment type classification', () => {
     expect(isWaffoPancakePayment(PAYMENT_TYPES.WAFFO_PANCAKE)).toBe(true)
     expect(isWaffoPancakePayment(PAYMENT_TYPES.WAFFO)).toBe(false)
     expect(isStripePayment(PAYMENT_TYPES.STRIPE)).toBe(true)
+  })
+})
+
+describe('alipay checkout mode', () => {
+  test('treats native Alipay as a GET redirect instead of an EPay form post', () => {
+    expect(isRedirectCheckout({ mode: 'redirect' })).toBe(true)
+    expect(isRedirectCheckout({ pid: '1', type: 'alipay' })).toBe(false)
+    expect(isRedirectCheckout(undefined)).toBe(false)
   })
 })
 

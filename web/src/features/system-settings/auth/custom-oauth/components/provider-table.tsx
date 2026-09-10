@@ -26,6 +26,7 @@ import { StaticDataTable } from '@/components/data-table/static/static-data-tabl
 import { StaticRowActions } from '@/components/data-table/static/static-row-actions'
 import { StatusBadge } from '@/components/status-badge'
 import { Button } from '@/components/ui/button'
+import { getLobeIcon } from '@/lib/lobe-icon'
 
 import { useDeleteProvider } from '../hooks/use-custom-oauth-mutations'
 import type { CustomOAuthProvider } from '../types'
@@ -72,7 +73,9 @@ export function ProviderTable(props: ProviderTableProps) {
             header: t('Icon'),
             cell: (provider) =>
               provider.icon ? (
-                <span className='text-lg'>{provider.icon}</span>
+                <span className='flex size-6 items-center justify-center'>
+                  {getLobeIcon(provider.icon, 20)}
+                </span>
               ) : (
                 <span className='text-muted-foreground text-sm'>--</span>
               ),

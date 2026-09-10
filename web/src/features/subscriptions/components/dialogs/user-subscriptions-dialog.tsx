@@ -16,7 +16,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { Combobox } from '@/components/ui/combobox'
 import { Ban, Plus, RotateCcw, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -35,12 +34,12 @@ import {
 import { StatusBadge } from '@/components/status-badge'
 import { TableId } from '@/components/table-id'
 import { Button } from '@/components/ui/button'
+import { Combobox } from '@/components/ui/combobox'
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
 } from '@/components/ui/dropdown-menu'
-
 import {
   Sheet,
   SheetContent,
@@ -241,15 +240,15 @@ export function UserSubscriptionsDialog(props: Props) {
           <div className={sideDrawerFormClassName()}>
             <div className='flex gap-2'>
               <Combobox
-options={plans.map((p) => ({
+                options={plans.map((p) => ({
                   value: String(p.plan.id),
                   label: `${p.plan.title} ($${Number(p.plan.price_amount || 0).toFixed(2)})`,
                 }))}
-value={selectedPlanId}
-onValueChange={(v) => v !== null && setSelectedPlanId(v)}
-className='flex-1'
-placeholder={t('Select subscription plan')}
-/>
+                value={selectedPlanId}
+                onValueChange={(v) => v !== null && setSelectedPlanId(v)}
+                className='flex-1'
+                placeholder={t('Select subscription plan')}
+              />
               <Button
                 onClick={handleCreate}
                 disabled={creating || !selectedPlanId}

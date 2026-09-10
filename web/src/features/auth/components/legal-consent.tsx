@@ -7,7 +7,7 @@ published by the Free Software Foundation, either version 3 of the
 License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU Affero General Public License for more details.
 
@@ -29,6 +29,10 @@ interface LegalConsentProps {
   checked: boolean
   onCheckedChange: (nextValue: boolean) => void
   className?: string
+  alwaysShow?: boolean
+  termsHref?: string
+  privacyHref?: string
+  variant?: 'card' | 'plain'
 }
 
 export function LegalConsent({
@@ -36,10 +40,14 @@ export function LegalConsent({
   checked,
   onCheckedChange,
   className,
+  alwaysShow = false,
+  termsHref,
+  privacyHref,
+  variant = 'card',
 }: LegalConsentProps) {
   const { t } = useTranslation()
-  const hasUserAgreement = Boolean(status?.user_agreement_enabled)
-  const hasPrivacyPolicy = Boolean(status?.privacy_policy_enabled)
+  const hasUserAgreement = alwaysShow || Boolean(status?.user_agreement_enabled)
+  const hasPrivacyPolicy = alwaysShow || Boolean(status?.privacy_policy_enabled)
 
   if (!hasUserAgreement && !hasPrivacyPolicy) {
     return null
@@ -49,10 +57,15 @@ export function LegalConsent({
     onCheckedChange(value === true)
   }
 
+  const agreementHref = termsHref ?? '/user-agreement'
+  const policyHref = privacyHref ?? '/privacy-policy'
+
   return (
     <div
       className={cn(
-        'border-border/60 bg-muted/40 flex items-start gap-3 rounded-md border p-3',
+        'flex items-start gap-2.5',
+        variant === 'card' &&
+          'border-border/60 bg-muted/40 rounded-md border p-3',
         className
       )}
     >
@@ -60,36 +73,35 @@ export function LegalConsent({
         id='legal-consent'
         checked={checked}
         onCheckedChange={handleChange}
-        className='mt-0.5'
+        className='mt-0.5 rounded-[4px] border-[#D0D5DD] data-checked:border-[#248F78] data-checked:bg-[#248F78]'
       />
       <Label
         htmlFor='legal-consent'
-        className='text-muted-foreground items-start gap-1 text-left text-xs leading-5 font-normal'
+        className='items-start gap-1 text-left text-[13px] leading-5 font-normal text-[#667085]'
       >
         <span>
           {t('I have read and agree to the')}{' '}
           {hasUserAgreement && (
             <a
-              href='/user-agreement'
+              href={agreementHref}
               target='_blank'
               rel='noopener noreferrer'
-              className='text-primary hover:underline'
+              className='font-medium text-[#248F78] hover:underline'
             >
-              {t('User Agreement')}
+              《{t('User Agreement')}》
             </a>
           )}
-          {hasUserAgreement && hasPrivacyPolicy && ' and the '}
+          {hasUserAgreement && hasPrivacyPolicy && ` ${t('and')} `}
           {hasPrivacyPolicy && (
             <a
-              href='/privacy-policy'
+              href={policyHref}
               target='_blank'
               rel='noopener noreferrer'
-              className='text-primary hover:underline'
+              className='font-medium text-[#248F78] hover:underline'
             >
-              {t('Privacy Policy')}
+              《{t('Privacy Policy')}》
             </a>
           )}
-          .
         </span>
       </Label>
     </div>

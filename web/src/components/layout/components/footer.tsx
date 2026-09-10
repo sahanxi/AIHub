@@ -188,7 +188,7 @@ export function Footer(props: FooterProps) {
         links: [
           {
             text: t('footer.columns.docs.links.quickStart'),
-            href: 'https://docs.newapi.pro/getting-started/',
+            href: '/docs#quick-start',
           },
           {
             text: t('footer.columns.docs.links.installation'),
@@ -196,7 +196,7 @@ export function Footer(props: FooterProps) {
           },
           {
             text: t('footer.columns.docs.links.apiDocs'),
-            href: 'https://docs.newapi.pro/api/',
+            href: '/docs',
           },
         ],
       },
@@ -259,7 +259,7 @@ export function Footer(props: FooterProps) {
               <img
                 src={displayLogo}
                 alt={displayName}
-                className='size-7 rounded-lg object-contain'
+                className='size-9 rounded-lg object-contain'
               />
               <span className='text-sm font-semibold tracking-tight'>
                 {displayName}

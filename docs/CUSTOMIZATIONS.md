@@ -18,6 +18,7 @@ When merging upstream: re-read this file, prefer rebasing our UI on theirs, and 
 | API Key security copy | UI | `web/src/features/keys/index.tsx` | Keys are secrets | Additive only |
 | Pricing: CNY / 1M tokens from backend | UI + Config | pricing features + `general_setting.quota_display_type` | No hardcoded prices | If `/api/pricing` shape changes, update formatters only |
 | Wallet: Alipay-first, hide unconfigured gateways, balance disclaimer | UI | `web/src/features/wallet/**` | CNY + Alipay V1 | Keep Stripe/Creem code paths; gate on server flags |
+| Native Alipay Open Platform | Extension | `controller/topup_alipay.go`, `service/alipay.go`, `setting/payment_alipay.go` | RSA2 page/WAP pay + notify | Keep EPay as unused fallback; do not put keys in git |
 | Hide V1.1 ops modules in default user nav | UI | sidebar defaults | Playground/subscription/affiliate/coupon not V1 | Re-enable via `SidebarModulesAdmin` later |
 | Registration closed until Turnstile | Config | `common/constants.go` `RegisterEnabled` | Stop open signup | Upstream may default true; keep false for this product |
 | CNY display default | Config | `setting/operation_setting/general_setting.go` | Mainland market | Confirm admin can still switch USD |
@@ -40,7 +41,6 @@ When merging upstream: re-read this file, prefer rebasing our UI on theirs, and 
 ## Later (not V1)
 
 - Cost / latency / health router
-- Direct Alipay Open Platform
 - WeChat pay UI
 - Stripe / Creem / Waffo user UI
 - Subscription, invitation, coupon user surfaces

@@ -21,7 +21,15 @@ import userEvent from '@testing-library/user-event'
 import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { DateTimePicker } from '@/components/datetime-picker'
+
 import { Combobox } from '../combobox'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from '../dialog'
 import {
   Drawer,
   DrawerContent,
@@ -35,6 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../select'
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from '../sheet'
 
 const options = [
   { value: 'openai', label: 'OpenAI' },
@@ -84,6 +93,32 @@ function FilterDrawer(props: { children: ReactNode }) {
     </Drawer>
   )
 }
+
+function CreateKeySheet(props: { children: ReactNode }) {
+  return (
+    <Sheet open>
+      <SheetContent>
+        <SheetTitle>Create API Key</SheetTitle>
+        <SheetDescription>Add a new API key</SheetDescription>
+        {props.children}
+      </SheetContent>
+    </Sheet>
+  )
+}
+
+function FilterDialog(props: { children: ReactNode }) {
+  return (
+    <Dialog open>
+      <DialogContent>
+        <DialogTitle>Filters</DialogTitle>
+        <DialogDescription>Adjust the result filters</DialogDescription>
+        {props.children}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+const expirationDate = new Date(2026, 9, 9, 17, 50)
 
 // JSDOM does not implement the pointer-capture API used by the drawer.
 const pointerCapture = Object.getOwnPropertyDescriptor(
@@ -171,5 +206,81 @@ describe('popups outside a drawer', () => {
 
     expect(document.body).toContainElement(listbox)
     expect(view.container).not.toContainElement(listbox)
+  })
+})
+
+describe('popups inside a sheet', () => {
+  it('renders the date calendar inside the sheet and picking a day closes the picker without closing the sheet', async () => {
+    const change = vi.fn()
+    render(
+      <CreateKeySheet>
+        <DateTimePicker value={expirationDate} onChange={change} />
+      </CreateKeySheet>
+    )
+    const user = userEvent.setup()
+    const dialog = screen.getByRole('dialog', { name: 'Create API Key' })
+
+    await user.click(within(dialog).getByRole('button', { name: '2026-10-09' }))
+    const calendar = await within(dialog).findByRole('grid')
+    expect(dialog).toContainElement(calendar)
+
+    await user.click(
+      within(dialog).getByRole('button', { name: /October 15th, 2026/i })
+    )
+
+    expect(change).toHaveBeenCalled()
+    expect(within(dialog).queryByRole('grid')).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('dialog', { name: 'Create API Key' })
+    ).toBeInTheDocument()
+  })
+
+  it('lets month and year dropdowns change the visible calendar month inside the sheet', async () => {
+    render(
+      <CreateKeySheet>
+        <DateTimePicker value={expirationDate} onChange={vi.fn()} />
+      </CreateKeySheet>
+    )
+    const user = userEvent.setup()
+    const dialog = screen.getByRole('dialog', { name: 'Create API Key' })
+
+    await user.click(within(dialog).getByRole('button', { name: '2026-10-09' }))
+    await within(dialog).findByRole('grid')
+
+    const month = within(dialog).getByRole('combobox', { name: /month/i })
+    const year = within(dialog).getByRole('combobox', { name: /year/i })
+    await user.selectOptions(month, '11')
+    await user.selectOptions(year, '2027')
+
+    expect(month).toHaveValue('11')
+    expect(year).toHaveValue('2027')
+    expect(
+      screen.getByRole('dialog', { name: 'Create API Key' })
+    ).toBeInTheDocument()
+  })
+})
+
+describe('popups inside a dialog', () => {
+  it('renders the date calendar inside the dialog and picking a day closes the picker without closing the dialog', async () => {
+    const change = vi.fn()
+    render(
+      <FilterDialog>
+        <DateTimePicker value={expirationDate} onChange={change} />
+      </FilterDialog>
+    )
+    const user = userEvent.setup()
+    const dialog = screen.getByRole('dialog', { name: 'Filters' })
+
+    await user.click(within(dialog).getByRole('button', { name: '2026-10-09' }))
+    const calendar = await within(dialog).findByRole('grid')
+    expect(dialog).toContainElement(calendar)
+
+    await user.click(
+      within(dialog).getByRole('button', { name: /October 15th, 2026/i })
+    )
+
+    expect(change).toHaveBeenCalled()
+    expect(within(dialog).queryByRole('grid')).not.toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Filters' })).toBeInTheDocument()
   })
 })

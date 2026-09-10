@@ -24,6 +24,7 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import * as React from 'react'
 
 import { Button } from '@/components/ui/button'
+import { PortalContainerContext } from '@/components/ui/portal-container'
 import { cn } from '@/lib/utils'
 
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
@@ -60,6 +61,7 @@ function SheetContent({
   children,
   side = 'right',
   showCloseButton = true,
+  ref,
   ...props
 }: SheetPrimitive.Popup.Props & {
   side?: 'top' | 'right' | 'bottom' | 'left'
@@ -70,10 +72,18 @@ function SheetContent({
   // `sm:max-w-2xl` can be correctly merged by `tailwind-merge` and the CSS
   // cascade — the data-attribute variants would otherwise win on specificity
   // and trap the panel at the default `sm:max-w-sm` width.
+  // Popups rendered inside the sheet portal into this element so they stay
+  // within the modal layer that keeps pointer events and focus enabled.
+  const content = React.useRef<HTMLDivElement | null>(null)
   return (
     <SheetPortal>
       <SheetOverlay />
       <SheetPrimitive.Popup
+        ref={(node) => {
+          content.current = node
+          if (typeof ref === 'function') return ref(node)
+          if (ref) ref.current = node
+        }}
         data-slot='sheet-content'
         data-side={side}
         className={cn(
@@ -90,22 +100,24 @@ function SheetContent({
         )}
         {...props}
       >
-        {children}
-        {showCloseButton && (
-          <SheetPrimitive.Close
-            data-slot='sheet-close'
-            render={
-              <Button
-                variant='ghost'
-                className='absolute top-3 right-3'
-                size='icon-sm'
-              />
-            }
-          >
-            <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
-            <span className='sr-only'>Close</span>
-          </SheetPrimitive.Close>
-        )}
+        <PortalContainerContext.Provider value={content}>
+          {children}
+          {showCloseButton && (
+            <SheetPrimitive.Close
+              data-slot='sheet-close'
+              render={
+                <Button
+                  variant='ghost'
+                  className='absolute top-3 right-3'
+                  size='icon-sm'
+                />
+              }
+            >
+              <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
+              <span className='sr-only'>Close</span>
+            </SheetPrimitive.Close>
+          )}
+        </PortalContainerContext.Provider>
       </SheetPrimitive.Popup>
     </SheetPortal>
   )

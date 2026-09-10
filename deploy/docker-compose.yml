@@ -73,6 +73,8 @@ services:
     volumes:
       - ${DATA_ROOT}/new-api:/data
       - ${LOG_ROOT}/new-api:/app/logs
+      - /opt/ai-platform/secrets/alipay/app_private_key.pem:/run/secrets/alipay_app_private_key:ro
+      - /opt/ai-platform/secrets/alipay/alipay_public_key.pem:/run/secrets/alipay_alipay_public_key:ro
     environment:
       TZ: ${TZ:-Asia/Shanghai}
       SQL_DSN: ${SQL_DSN}
@@ -86,6 +88,11 @@ services:
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
       SESSION_COOKIE_TRUSTED_URL: ${SESSION_COOKIE_TRUSTED_URL:-}
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.1,172.16.0.0/12}
+      ALIPAY_APP_ID: ${ALIPAY_APP_ID:-}
+      ALIPAY_GATEWAY: ${ALIPAY_GATEWAY:-https://openapi.alipay.com/gateway.do}
+      ALIPAY_NOTIFY_URL: ${ALIPAY_NOTIFY_URL:-}
+      ALIPAY_PRIVATE_KEY_FILE: /run/secrets/alipay_app_private_key
+      ALIPAY_PUBLIC_KEY_FILE: /run/secrets/alipay_alipay_public_key
       SQL_MAX_IDLE_CONNS: "10"
       SQL_MAX_OPEN_CONNS: "30"
     depends_on:

@@ -23,7 +23,7 @@ Do not enable debug access dumps that print Bearer tokens.
 
 ## Payment
 
-Wallet credit happens only after EPay signature verify + order lookup + amount match + `RechargeEpay` row lock. The browser never increments balance.
+Wallet credit happens only after Alipay RSA2 notify verify + `app_id` match + order lookup + amount match + `RechargeAlipay` row lock. The browser never increments balance. EPay remains an unused fallback with the same credit invariants.
 
 ## SSH findings (audit, not changed)
 

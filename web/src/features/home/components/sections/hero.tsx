@@ -22,8 +22,10 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { useStatus } from '@/hooks/use-status'
-import { useSystemConfig } from '@/hooks/use-system-config'
+import { resolveDocsLink } from '@/lib/docs-link'
 
+import { HOME_LIVE_VENDORS } from '../../constants'
+import { BrandMark, LeadingModelMarks } from '../brand-mark'
 import { HeroTerminalDemo } from '../hero-terminal-demo'
 
 interface HeroProps {
@@ -34,19 +36,16 @@ interface HeroProps {
 export function Hero(props: HeroProps) {
   const { t } = useTranslation()
   const { status } = useStatus()
-  const { systemName } = useSystemConfig()
-  const docsUrl = (status?.docs_link as string | undefined) || ''
+  const docsLink = resolveDocsLink(status?.docs_link)
 
   const renderDocsButton = () => {
-    if (!docsUrl) return null
-    const isExternal = docsUrl.startsWith('http')
-    if (isExternal) {
+    if (docsLink.external) {
       return (
         <Button
           variant='outline'
           className='group border-border/50 hover:border-border hover:bg-muted/50 inline-flex h-11 items-center gap-1.5 rounded-lg px-5 text-sm font-medium'
           render={
-            <a href={docsUrl} target='_blank' rel='noopener noreferrer' />
+            <a href={docsLink.href} target='_blank' rel='noopener noreferrer' />
           }
         >
           <BookOpen className='text-muted-foreground/80 group-hover:text-foreground size-4 transition-colors duration-200' />
@@ -58,7 +57,7 @@ export function Hero(props: HeroProps) {
       <Button
         variant='outline'
         className='group border-border/50 hover:border-border hover:bg-muted/50 inline-flex h-11 items-center gap-1.5 rounded-lg px-5 text-sm font-medium'
-        render={<Link to={docsUrl} />}
+        render={<Link to={docsLink.href} />}
       >
         <BookOpen className='text-muted-foreground/80 group-hover:text-foreground size-4 transition-colors duration-200' />
         <span>{t('Docs')}</span>
@@ -89,31 +88,22 @@ export function Hero(props: HeroProps) {
       <div className='mx-auto grid max-w-6xl grid-cols-1 items-start gap-12 lg:grid-cols-12 lg:gap-8'>
         {/* Left Column: Title, description, action buttons and application support */}
         <div className='flex flex-col items-start text-left lg:col-span-6'>
-          {/* Top Pill Badge */}
-          <div
-            className='landing-animate-fade-up mb-5 inline-flex items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-500/5 px-3 py-1.5 text-[11px] font-medium text-blue-600 opacity-0 shadow-xs dark:border-blue-400/20 dark:bg-blue-400/5 dark:text-blue-400'
+          <h1
+            className='landing-animate-fade-up text-[clamp(1.85rem,4vw,3rem)] leading-[1.2] font-bold tracking-tight'
             style={{ animationDelay: '0ms' }}
           >
-            <span className='relative flex size-1.5'>
-              <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75' />
-              <span className='relative inline-flex size-1.5 rounded-full bg-blue-500 dark:bg-blue-400' />
-            </span>
-            <span>{t('For developers')}</span>
-          </div>
-
-          <h1
-            className='landing-animate-fade-up text-[clamp(2.25rem,4.5vw,3.25rem)] leading-[1.15] font-bold tracking-tight'
-            style={{ animationDelay: '60ms' }}
-          >
-            {t('One API for mainstream AI models')}
+            {t(
+              "Access the world's leading AI models through us, and enter the AGI era"
+            )}
           </h1>
           <p
-            className='landing-animate-fade-up text-muted-foreground/80 mt-5 max-w-xl text-base leading-relaxed opacity-0 md:text-[15px]'
+            className='landing-animate-fade-up text-muted-foreground/80 mt-5 max-w-xl text-base leading-[1.8] opacity-0 md:text-[15px]'
             style={{ animationDelay: '120ms' }}
           >
+            {t('Call leading AI models through one API, including')}{' '}
+            <LeadingModelMarks size={16} />{' '}
             {t(
-              'Call GPT, Claude, and Gemini with one key, one CNY balance, and one usage record. {{name}} is an OpenAI-compatible API platform.',
-              { name: systemName }
+              'Official source, global nodes, and centralized models. Compatible with the OpenAI API and Claude Messages so you can plug into existing apps.'
             )}
           </p>
 
@@ -122,60 +112,46 @@ export function Hero(props: HeroProps) {
             style={{ animationDelay: '180ms' }}
           >
             {props.isAuthenticated ? (
-              <>
-                <Button
-                  className='group h-11 rounded-lg px-5 text-sm font-medium'
-                  render={<Link to='/dashboard' />}
-                >
-                  {t('Go to Dashboard')}
-                  <ArrowRight className='ml-1.5 size-4 transition-transform duration-200 group-hover:translate-x-0.5' />
-                </Button>
-                {renderDocsButton()}
-              </>
+              <Button
+                className='group h-11 rounded-lg px-5 text-sm font-medium'
+                render={<Link to='/dashboard' />}
+              >
+                {t('Go to Dashboard')}
+                <ArrowRight className='ml-1.5 size-4 transition-transform duration-200 group-hover:translate-x-0.5' />
+              </Button>
             ) : (
-              <>
-                <Button
-                  className='group h-11 rounded-lg px-5 text-sm font-medium'
-                  render={<Link to='/sign-up' />}
-                >
-                  {t('Get Started')}
-                  <ArrowRight className='ml-1.5 size-4 transition-transform duration-200 group-hover:translate-x-0.5' />
-                </Button>
-                <Button
-                  variant='outline'
-                  className='border-border/50 hover:border-border hover:bg-muted/50 h-11 rounded-lg px-5 text-sm font-medium'
-                  render={<Link to='/pricing' />}
-                >
-                  {t('View Pricing')}
-                </Button>
-                {renderDocsButton()}
-              </>
+              <Button
+                className='group h-11 rounded-lg px-5 text-sm font-medium'
+                render={<Link to='/sign-up' />}
+              >
+                {t('Get Started')}
+                <ArrowRight className='ml-1.5 size-4 transition-transform duration-200 group-hover:translate-x-0.5' />
+              </Button>
             )}
+            {renderDocsButton()}
           </div>
 
           <div
             className='landing-animate-fade-up mt-10 w-full max-w-xl opacity-0'
             style={{ animationDelay: '240ms' }}
           >
-            <div className='mb-4 flex flex-col gap-1'>
+            <div className='mb-4'>
               <span className='text-muted-foreground/50 text-[10px] font-bold tracking-[0.15em] uppercase'>
                 {t('Supported Models')}
               </span>
-              <p className='text-muted-foreground/60 text-xs leading-relaxed'>
-                {t(
-                  'OpenAI-compatible Chat Completions. Model mapping is configured by the operator.'
-                )}
-              </p>
             </div>
             <div className='flex flex-wrap items-center gap-3'>
-              {['GPT', 'Claude', 'Gemini'].map((name) => (
+              {HOME_LIVE_VENDORS.map((vendor) => (
                 <div
-                  key={name}
-                  className='border-border/40 bg-muted/15 text-foreground/80 flex items-center gap-3 rounded-full border px-5 py-2.5 text-sm font-medium'
+                  key={vendor.name}
+                  className='border-border/40 bg-muted/15 text-foreground/80 flex items-center rounded-full border px-4 py-2 text-sm font-medium'
                 >
-                  <span>{name}</span>
+                  <BrandMark icon={vendor.icon} name={vendor.name} size={18} />
                 </div>
               ))}
+              <div className='border-border/40 bg-muted/15 text-foreground/80 flex items-center rounded-full border px-4 py-2 text-sm font-medium'>
+                {t('Continuing to expand...')}
+              </div>
             </div>
           </div>
         </div>

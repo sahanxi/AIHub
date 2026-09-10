@@ -16,7 +16,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import type { SystemStatus, OAuthProvider } from '../types'
+import type {
+  SystemStatus,
+  OAuthProvider,
+  CustomOAuthProviderInfo,
+} from '../types'
 
 export {
   buildGitHubOAuthUrl,
@@ -87,6 +91,26 @@ export function getAvailableOAuthProviders(
   return providers
 }
 
+export function findGoogleCustomOAuthProvider(
+  status: SystemStatus | null
+): CustomOAuthProviderInfo | undefined {
+  const providers = status?.custom_oauth_providers
+  if (!providers || providers.length === 0) return undefined
+
+  return providers.find((provider) => {
+    const slug = provider.slug.trim().toLowerCase()
+    const name = provider.name.trim().toLowerCase()
+    const icon = (provider.icon ?? '').trim().toLowerCase()
+    return (
+      slug === 'google' ||
+      name === 'google' ||
+      icon === 'google' ||
+      icon === 'google.color' ||
+      icon.startsWith('google.')
+    )
+  })
+}
+
 /**
  * Check if any OAuth provider is available
  */
@@ -98,6 +122,7 @@ export function hasOAuthProviders(status: SystemStatus | null): boolean {
     status.oidc_enabled ||
     status.linuxdo_oauth ||
     status.telegram_oauth ||
-    status.wechat_login
+    status.wechat_login ||
+    (status.custom_oauth_providers?.length ?? 0) > 0
   )
 }

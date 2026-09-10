@@ -81,7 +81,14 @@ import {
 } from '@/components/ui/form'
 import { IconBadge, type IconBadgeTone } from '@/components/ui/icon-badge'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import {
   Sheet,
@@ -1980,35 +1987,35 @@ export function ChannelMutateDrawer({
                                 <FormItem>
                                   <FormLabel>{t('Task plugin *')}</FormLabel>
                                   {canBindTaskPlugin ? (
-                                    <FormControl><Combobox
-value={field.value}
-onValueChange={(value) => {
-                                        field.onChange(value)
-                                        const plugin =
-                                          taskPluginOptionsQuery.data?.find(
-                                            (item) => item.key === value
-                                          )
-                                        if (plugin?.models?.length) {
-                                          form.setValue(
-                                            'models',
-                                            formatModelsArray(plugin.models),
-                                            {
-                                              shouldDirty: true,
-                                            }
-                                          )
-                                        }
-                                      }}
-options={(
-                                        taskPluginOptionsQuery.data ?? []
-                                      ).map((plugin) => ({
-                                        value: plugin.key,
-                                        label: `${plugin.name} (${plugin.key})`,
-                                      }))}
-className='w-full'
-placeholder={t(
-                                              'Select task plugin'
-                                            )}
-/></FormControl>
+                                    <FormControl>
+                                      <Combobox
+                                        value={field.value}
+                                        onValueChange={(value) => {
+                                          field.onChange(value)
+                                          const plugin =
+                                            taskPluginOptionsQuery.data?.find(
+                                              (item) => item.key === value
+                                            )
+                                          if (plugin?.models?.length) {
+                                            form.setValue(
+                                              'models',
+                                              formatModelsArray(plugin.models),
+                                              {
+                                                shouldDirty: true,
+                                              }
+                                            )
+                                          }
+                                        }}
+                                        options={(
+                                          taskPluginOptionsQuery.data ?? []
+                                        ).map((plugin) => ({
+                                          value: plugin.key,
+                                          label: `${plugin.name} (${plugin.key})`,
+                                        }))}
+                                        className='w-full'
+                                        placeholder={t('Select task plugin')}
+                                      />
+                                    </FormControl>
                                   ) : (
                                     <FormControl>
                                       <Input

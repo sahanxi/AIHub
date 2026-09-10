@@ -16,7 +16,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { Combobox } from '@/components/ui/combobox'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
@@ -41,6 +40,7 @@ import { LobeIconField } from '@/components/lobe-icon-field'
 import { TagInput } from '@/components/tag-input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Combobox } from '@/components/ui/combobox'
 import {
   Form,
   FormControl,
@@ -53,7 +53,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-
 import {
   Sheet,
   SheetContent,
@@ -347,20 +346,22 @@ export function ModelMutateDrawer(props: {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>{t('Vendor')}</FormLabel>
-                            <FormControl><Combobox
-options={vendors.map((vendor) => ({
-                                value: String(vendor.id),
-                                label: vendor.name,
-                              }))}
-onValueChange={(value) =>
-                                field.onChange(
-                                  value ? Number.parseInt(value) : undefined
-                                )
-                              }
-value={field.value ? String(field.value) : null}
-className='w-full'
-placeholder={t('Select vendor')}
-/></FormControl>
+                            <FormControl>
+                              <Combobox
+                                options={vendors.map((vendor) => ({
+                                  value: String(vendor.id),
+                                  label: vendor.name,
+                                }))}
+                                onValueChange={(value) =>
+                                  field.onChange(
+                                    value ? Number.parseInt(value) : undefined
+                                  )
+                                }
+                                value={field.value ? String(field.value) : null}
+                                className='w-full'
+                                placeholder={t('Select vendor')}
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -445,12 +446,16 @@ placeholder={t('Select vendor')}
                           {t('Endpoints')}
                         </h3>
                         <Combobox
- options={Object.keys(ENDPOINT_TEMPLATES).map((key) => ({ value: key, label: key }))}
- onValueChange={(value: string | null) => { if (value) handleFillEndpointTemplate(value) }}
- className='w-[200px]'
- placeholder={t('Load template...')}
- aria-label={t('Load template...')}
-/>
+                          options={Object.keys(ENDPOINT_TEMPLATES).map(
+                            (key) => ({ value: key, label: key })
+                          )}
+                          onValueChange={(value: string | null) => {
+                            if (value) handleFillEndpointTemplate(value)
+                          }}
+                          className='w-[200px]'
+                          placeholder={t('Load template...')}
+                          aria-label={t('Load template...')}
+                        />
                       </div>
 
                       <FormField
@@ -591,8 +596,8 @@ placeholder={t('Select vendor')}
                     )}
                   </p>
                   <Combobox
-value={pricingName}
-onValueChange={(value) => {
+                    value={pricingName}
+                    onValueChange={(value) => {
                       if (pricingDirty) {
                         setPendingPricingName(value ?? '')
                         setCloseConfirm(true)
@@ -600,14 +605,14 @@ onValueChange={(value) => {
                         setPricingName(value ?? '')
                       }
                     }}
-options={(savedModel.matched_models ?? []).map((name) => ({
+                    options={(savedModel.matched_models ?? []).map((name) => ({
                       value: name,
                       label: name,
                     }))}
-aria-label={t('Select model')}
-className='w-full'
-placeholder={t('Select model')}
-/>
+                    aria-label={t('Select model')}
+                    className='w-full'
+                    placeholder={t('Select model')}
+                  />
                 </div>
               )}
               {(savedModel.name_rule === 0 || pricingName) && (

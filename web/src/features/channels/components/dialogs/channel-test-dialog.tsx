@@ -16,7 +16,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { Combobox } from '@/components/ui/combobox'
 import { useQueryClient } from '@tanstack/react-query'
 import type {
   ColumnDef,
@@ -61,9 +60,9 @@ import {
 import { StatusBadge } from '@/components/status-badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Combobox } from '@/components/ui/combobox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-
 import {
   Sheet,
   SheetContent,
@@ -192,7 +191,6 @@ const endpointTypeOptions: Array<{ value: string; label: string }> = [
   },
   { value: 'embeddings', label: 'Embeddings (/v1/embeddings)' },
 ]
-
 
 const STREAM_INCOMPATIBLE_ENDPOINTS = new Set([
   'embeddings',
@@ -988,13 +986,14 @@ function ChannelTestDialogContent({
             <div className='grid gap-2'>
               <Label htmlFor='endpoint-type'>{t('Endpoint Type')}</Label>
               <Combobox
-options={endpointSelectItems}
-value={endpointType}
-onValueChange={handleEndpointTypeChange}
-id='endpoint-type'
-className='w-full min-w-0'
-placeholder={t('Auto detect (default)')}
-/>
+                options={endpointSelectItems}
+                value={endpointType}
+                onValueChange={handleEndpointTypeChange}
+                id='endpoint-type'
+                className='w-full min-w-0'
+                placeholder={t('Auto detect (default)')}
+                openOnFocus={false}
+              />
               <p className='text-muted-foreground text-xs'>
                 {t(
                   'Override the endpoint used for testing. Leave empty to auto detect.'

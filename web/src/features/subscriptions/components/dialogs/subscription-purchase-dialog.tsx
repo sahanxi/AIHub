@@ -16,7 +16,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { Combobox } from '@/components/ui/combobox'
 import { Crown, CalendarClock, Package } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -26,7 +25,7 @@ import { Dialog } from '@/components/dialog'
 import { GroupBadge } from '@/components/group-badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-
+import { Combobox } from '@/components/ui/combobox'
 import { Separator } from '@/components/ui/separator'
 import { useSystemConfig } from '@/hooks/use-system-config'
 import { formatQuota } from '@/lib/format'
@@ -394,17 +393,17 @@ export function SubscriptionPurchaseDialog(props: Props) {
             {hasEpay && (
               <div className='grid grid-cols-[minmax(0,1fr)_auto] gap-2'>
                 <Combobox
-options={[
+                  options={[
                     ...(props.epayMethods || []).map((m) => ({
                       value: m.type,
                       label: m.name || m.type,
                     })),
                   ]}
-value={selectedEpayMethod}
-onValueChange={(v) => v !== null && setSelectedEpayMethod(v)}
-disabled={limitReached}
-className='flex-1'
-/>
+                  value={selectedEpayMethod}
+                  onValueChange={(v) => v !== null && setSelectedEpayMethod(v)}
+                  disabled={limitReached}
+                  className='flex-1'
+                />
                 <Button
                   onClick={handlePayEpay}
                   disabled={paying || !selectedEpayMethod || limitReached}

@@ -146,13 +146,14 @@ export function About() {
   }
 
   if (isUrl) {
+    // Full-viewport embed only: hide AIHub chrome so the target page is not double-framed.
     return (
-      <PublicLayout showMainContainer={false}>
+      <PublicLayout showHeader={false} showMainContainer={false}>
         <iframe
           src={rawContent}
-          className='h-[calc(100vh-3.5rem)] w-full border-0'
+          className='h-svh w-full border-0'
           title={t('About')}
-          sandbox='allow-forms allow-popups allow-popups-to-escape-sandbox allow-scripts'
+          sandbox='allow-forms allow-popups allow-popups-to-escape-sandbox allow-scripts allow-top-navigation-by-user-activation'
         />
       </PublicLayout>
     )

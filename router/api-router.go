@@ -15,7 +15,7 @@ import (
 func SetApiRouter(router *gin.Engine) {
 	apiRouter := router.Group("/api")
 	apiRouter.Use(middleware.RouteTag("api"))
-	apiRouter.Use(gzip.Gzip(gzip.DefaultCompression))
+	apiRouter.Use(gzip.Gzip(gzip.DefaultCompression, gzip.WithExcludedPaths([]string{"/api/payment/alipay/notify", "/api/payment/business-seat/alipay/notify"})))
 	apiRouter.Use(middleware.AccessTokenAudit())
 	apiRouter.Use(middleware.BodyStorageCleanup()) // 清理请求体存储
 	apiRouter.Use(middleware.GlobalAPIRateLimit())
@@ -62,6 +62,7 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.POST("/stripe/webhook", anonymousRequestBodyLimit, controller.StripeWebhook)
 		apiRouter.POST("/creem/webhook", anonymousRequestBodyLimit, controller.CreemWebhook)
 		apiRouter.POST("/waffo/webhook", anonymousRequestBodyLimit, controller.WaffoWebhook)
+		apiRouter.POST("/payment/alipay/notify", anonymousRequestBodyLimit, controller.AlipayNotify)
 		// :env separates test vs prod URLs so the operator can register each
 		// in Pancake's matching webhook slot; handler enforces env match.
 		apiRouter.POST("/waffo-pancake/webhook/:env", anonymousRequestBodyLimit, controller.WaffoPancakeWebhook)
@@ -194,6 +195,42 @@ func SetApiRouter(router *gin.Engine) {
 			subscriptionAdminRoute.POST("/user_subscriptions/:id/invalidate", controller.AdminInvalidateUserSubscription)
 			subscriptionAdminRoute.DELETE("/user_subscriptions/:id", controller.AdminDeleteUserSubscription)
 		}
+
+		// ChatGPT Business Seat
+		businessSeatRoute := apiRouter.Group("/business-seat")
+		businessSeatRoute.Use(middleware.UserAuth())
+		{
+			businessSeatRoute.GET("/catalog", controller.GetBusinessSeatCatalog)
+			businessSeatRoute.GET("/self", controller.GetBusinessSeatSelf)
+			businessSeatRoute.POST("/quote", middleware.CriticalRateLimit(), controller.CreateBusinessSeatQuote)
+			businessSeatRoute.POST("/order", middleware.CriticalRateLimit(), controller.CreateBusinessSeatOrder)
+			businessSeatRoute.POST("/alipay/pay", middleware.CriticalRateLimit(), controller.BusinessSeatRequestAlipay)
+		}
+		businessSeatAdminRoute := apiRouter.Group("/business-seat/admin")
+		businessSeatAdminRoute.Use(middleware.AdminAuth())
+		{
+			businessSeatAdminRoute.GET("/overview", controller.AdminBusinessSeatOverview)
+			businessSeatAdminRoute.GET("/workspaces", controller.AdminListBusinessWorkspaces)
+			businessSeatAdminRoute.POST("/workspaces", controller.AdminCreateBusinessWorkspace)
+			businessSeatAdminRoute.PUT("/workspaces/:id", controller.AdminUpdateBusinessWorkspace)
+			businessSeatAdminRoute.POST("/workspaces/:id/seats", controller.AdminAddBusinessSeats)
+			businessSeatAdminRoute.GET("/pricing", controller.AdminListBusinessPriceVersions)
+			businessSeatAdminRoute.POST("/pricing", controller.AdminCreateBusinessPriceVersion)
+			businessSeatAdminRoute.GET("/subscriptions", controller.AdminListBusinessSubscriptions)
+			businessSeatAdminRoute.GET("/orders", controller.AdminListBusinessOrders)
+			businessSeatAdminRoute.GET("/orders/:id", controller.AdminGetBusinessOrder)
+			businessSeatAdminRoute.GET("/seats", controller.AdminListBusinessSeats)
+			businessSeatAdminRoute.POST("/seats/:id/disable", controller.AdminDisableBusinessSeat)
+			businessSeatAdminRoute.GET("/tasks", controller.AdminListBusinessTasks)
+			businessSeatAdminRoute.POST("/subscriptions/:id/invited", controller.AdminMarkBusinessInvited)
+			businessSeatAdminRoute.POST("/subscriptions/:id/activate", controller.AdminActivateBusinessSubscription)
+			businessSeatAdminRoute.POST("/subscriptions/:id/seat-added", controller.AdminConfirmBusinessSeatAdded)
+			businessSeatAdminRoute.POST("/subscriptions/:id/removed", controller.AdminConfirmBusinessRemoved)
+			businessSeatAdminRoute.GET("/audit", controller.AdminListBusinessAuditLogs)
+			businessSeatAdminRoute.GET("/reconciliation", controller.AdminBusinessReconciliation)
+		}
+		apiRouter.POST("/payment/business-seat/alipay/notify", anonymousRequestBodyLimit, controller.BusinessSeatAlipayNotify)
+		apiRouter.GET("/payment/business-seat/alipay/return", controller.BusinessSeatAlipayReturn)
 
 		// Subscription payment callbacks (no auth)
 		apiRouter.POST("/subscription/epay/notify", anonymousRequestBodyLimit, controller.SubscriptionEpayNotify)

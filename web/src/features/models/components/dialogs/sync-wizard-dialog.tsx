@@ -29,7 +29,14 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { handleServerError } from '@/lib/handle-server-error'
 
 import { previewUpstreamDiff, syncUpstream } from '../../api'
@@ -373,20 +380,31 @@ export function SyncWizardDialog(props: {
             <div className='space-y-1'>
               <Label>{t('Metadata language')}</Label>
               <Select
- value={locale}
- disabled={busy}
- items={getSyncLocaleOptions(t)}
- onValueChange={(value) => {
-   if (value) setLocale(value as SyncLocale)
-   setPreview(null)
-   setSelection({})
-   setPage(0)
-   load.reset()
- }}
->
- <SelectTrigger className='w-44' aria-label={t('Metadata language')}><SelectValue /></SelectTrigger>
- <SelectContent>{getSyncLocaleOptions(t).map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}</SelectContent>
-</Select>
+                value={locale}
+                disabled={busy}
+                items={getSyncLocaleOptions(t)}
+                onValueChange={(value) => {
+                  if (value) setLocale(value as SyncLocale)
+                  setPreview(null)
+                  setSelection({})
+                  setPage(0)
+                  load.reset()
+                }}
+              >
+                <SelectTrigger
+                  className='w-44'
+                  aria-label={t('Metadata language')}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {getSyncLocaleOptions(t).map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <Button
               variant='outline'

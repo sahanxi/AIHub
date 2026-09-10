@@ -68,6 +68,26 @@ export function submitPaymentForm(
   document.body.removeChild(form)
 }
 
+export function isRedirectCheckout(
+  params: Record<string, unknown> | undefined
+): boolean {
+  return params?.mode === 'redirect'
+}
+
+export function startGatewayCheckout(
+  url: string,
+  params: Record<string, unknown> | undefined
+): void {
+  if (!url) {
+    return
+  }
+  if (isRedirectCheckout(params)) {
+    window.location.assign(url)
+    return
+  }
+  submitPaymentForm(url, params ?? {})
+}
+
 /**
  * Check if payment method is Stripe
  */

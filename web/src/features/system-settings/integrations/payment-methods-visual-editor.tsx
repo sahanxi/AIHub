@@ -22,7 +22,6 @@ import { useTranslation } from 'react-i18next'
 
 import { StaticDataTable } from '@/components/data-table/static/static-data-table'
 import { StaticRowActions } from '@/components/data-table/static/static-row-actions'
-import { ReactIconByName } from '@/components/react-icon-by-name'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -30,6 +29,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { getPaymentIcon } from '@/features/wallet/lib'
 
 import { safeJsonParseWithValidation } from '../utils/json-parser'
 import { isArray } from '../utils/json-validators'
@@ -56,6 +56,31 @@ function getDefaultIconName(type: string) {
 
 function getEffectiveIconName(method: PaymentMethodData) {
   return method.icon || getDefaultIconName(method.type)
+}
+
+function PaymentMethodIconCell(props: { method: PaymentMethodData }) {
+  const iconName = getEffectiveIconName(props.method)
+  if (!iconName) {
+    return <span className='text-muted-foreground text-sm'>—</span>
+  }
+
+  const showIconName = iconName !== 'SiAlipay' && props.method.type !== 'alipay'
+
+  return (
+    <div className='flex items-center gap-2'>
+      {getPaymentIcon(
+        props.method.type,
+        'size-6 shrink-0 rounded-md',
+        iconName,
+        props.method.name
+      )}
+      {showIconName ? (
+        <span className='text-muted-foreground truncate font-mono text-sm'>
+          {iconName}
+        </span>
+      ) : null}
+    </div>
+  )
 }
 
 export function PaymentMethodsVisualEditor({
@@ -328,24 +353,7 @@ export function PaymentMethodsVisualEditor({
               {
                 id: 'icon',
                 header: t('Icon'),
-                cell: (method) => {
-                  const iconName = getEffectiveIconName(method)
-
-                  return iconName ? (
-                    <div className='flex items-center gap-2'>
-                      <ReactIconByName
-                        name={iconName}
-                        className='text-muted-foreground size-5 shrink-0'
-                        title={iconName}
-                      />
-                      <span className='text-muted-foreground truncate font-mono text-sm'>
-                        {iconName}
-                      </span>
-                    </div>
-                  ) : (
-                    <span className='text-muted-foreground text-sm'>—</span>
-                  )
-                },
+                cell: (method) => <PaymentMethodIconCell method={method} />,
               },
               {
                 id: 'min-top-up',
@@ -433,16 +441,7 @@ export function PaymentMethodsVisualEditor({
                         {t('Icon')}
                       </span>
                       {iconName ? (
-                        <div className='flex min-w-0 items-center gap-2'>
-                          <ReactIconByName
-                            name={iconName}
-                            className='text-muted-foreground size-5 shrink-0'
-                            title={iconName}
-                          />
-                          <span className='text-muted-foreground truncate font-mono text-xs'>
-                            {iconName}
-                          </span>
-                        </div>
+                        <PaymentMethodIconCell method={method} />
                       ) : (
                         <span className='text-muted-foreground text-xs'>—</span>
                       )}

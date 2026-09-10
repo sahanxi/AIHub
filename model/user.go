@@ -636,6 +636,9 @@ func (user *User) prepareForInsert(tx *gorm.DB) error {
 	if err := ensureEmailAvailableWithTx(tx, user.Email, 0); err != nil {
 		return err
 	}
+	if strings.TrimSpace(user.Group) == "" {
+		user.Group = common.EffectiveDefaultUserGroup()
+	}
 	if user.Password == "" {
 		return nil
 	}

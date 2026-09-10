@@ -58,6 +58,12 @@ func TestTopUpQuotaValidation(t *testing.T) {
 			amount:      4_294_500_000,
 			wantQuota:   4_294_500_000,
 		},
+		{
+			name:        "CNY amount converts through USD exchange rate",
+			displayType: operation_setting.QuotaDisplayTypeCNY,
+			amount:      1,
+			wantQuota:   68493,
+		},
 	}
 
 	for _, tc := range testCases {

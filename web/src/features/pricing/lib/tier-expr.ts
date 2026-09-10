@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { BILLING_CACHE_VAR_MAP } from './billing-expr'
+import { evaluateBillingExpr } from './eval-billing-expr'
 
 export const CACHE_MODE_TIMED = 'timed'
 export const CACHE_MODE_GENERIC = 'generic'
@@ -160,6 +161,18 @@ export function generateExprFromVisualConfig(
   return parts.join(' : ')
 }
 
+function canonicalizeExprForVisualCompare(expr: string): string {
+  return expr
+    .replaceAll(/\s+/g, '')
+    .replaceAll(
+      /(?<![A-Za-z_])(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?(?![A-Za-z_])/g,
+      (literal) => {
+        const n = Number(literal)
+        return Number.isFinite(n) ? String(n) : literal
+      }
+    )
+}
+
 export function tryParseVisualConfig(
   exprStr: string | null | undefined
 ): VisualConfig | null {
@@ -234,7 +247,10 @@ export function tryParseVisualConfig(
 
     const cfg = normalizeVisualConfig({ tiers })
     const regenerated = generateExprFromVisualConfig(cfg)
-    if (regenerated.replace(/\s+/g, '') !== body.replace(/\s+/g, '')) {
+    if (
+      canonicalizeExprForVisualCompare(regenerated) !==
+      canonicalizeExprForVisualCompare(body)
+    ) {
       return null
     }
     return cfg
@@ -245,6 +261,7 @@ export function tryParseVisualConfig(
 
 // ---------------------------------------------------------------------------
 // Local cost evaluator (for the estimator preview)
+// Must stay CSP-safe: never eval() or new Function().
 // ---------------------------------------------------------------------------
 
 const ESTIMATOR_VARS = [
@@ -279,35 +296,25 @@ export function evalExprLocally(
       return { cost: 0, matchedTier: '', error: null }
     }
     let matchedTier = ''
-    const tierFn = (name: string, value: number) => {
-      matchedTier = name
-      return value
-    }
     const cacheReadTokens = extraTokenValues.cacheReadTokens || 0
     const cacheCreateTokens = extraTokenValues.cacheCreateTokens || 0
     const cacheCreate1hTokens = extraTokenValues.cacheCreate1hTokens || 0
-    const len =
-      promptTokens + cacheReadTokens + cacheCreateTokens + cacheCreate1hTokens
-    const env: Record<string, unknown> = {
+    const vars: Record<string, number> = {
       p: promptTokens,
       c: completionTokens,
-      len,
-      tier: tierFn,
-      max: Math.max,
-      min: Math.min,
-      abs: Math.abs,
-      ceil: Math.ceil,
-      floor: Math.floor,
+      len:
+        promptTokens +
+        cacheReadTokens +
+        cacheCreateTokens +
+        cacheCreate1hTokens,
     }
     for (const field of ESTIMATOR_VARS) {
-      env[field.var] = extraTokenValues[field.stateKey] || 0
+      vars[field.var] = extraTokenValues[field.stateKey] || 0
     }
-    const fn = new Function(
-      ...Object.keys(env),
-      `"use strict"; return (${exprStr});`
-    )
-    const cost = Number(fn(...Object.values(env))) || 0
-    return { cost, matchedTier, error: null }
+    const cost = evaluateBillingExpr(exprStr, vars, (name) => {
+      matchedTier = name
+    })
+    return { cost: Number(cost) || 0, matchedTier, error: null }
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
     return { cost: 0, matchedTier: '', error: message }

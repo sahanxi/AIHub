@@ -16,7 +16,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { Combobox } from '@/components/ui/combobox'
 import { ChevronDown, Copy, Plus, Trash2 } from 'lucide-react'
 import {
   memo,
@@ -41,10 +40,18 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import { Combobox } from '@/components/ui/combobox'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -1011,18 +1018,18 @@ function RuleConditionRow({
         </SelectContent>
       </Select>
       <Combobox
-options={[
+        options={[
           ...COMMON_TIMEZONES.map((tz) => ({
             value: tz.value,
             label: tz.label,
           })),
         ]}
-value={timeCond.timezone}
-onValueChange={(value) =>
+        value={timeCond.timezone}
+        onValueChange={(value) =>
           value !== null && onChange({ ...timeCond, timezone: value })
         }
-className='w-56'
-/>
+        className='w-56'
+      />
       <Select
         items={[
           ...matchOptions.map((option) => ({

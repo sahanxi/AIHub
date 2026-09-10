@@ -16,16 +16,15 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { Combobox } from '@/components/ui/combobox'
 import * as React from 'react'
 import type { SetStateAction } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { Combobox } from '@/components/ui/combobox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-
 import { Textarea } from '@/components/ui/textarea'
 
 import { removeTrailingSlash } from './utils'
@@ -537,35 +536,35 @@ export function WaffoPancakeSettingsSection({
                 <div className='grid gap-1.5'>
                   <Label>{t('Store')}</Label>
                   <Combobox
-options={storeSelectItems}
-value={chosenStoreID}
-onValueChange={(value) => {
+                    options={storeSelectItems}
+                    value={chosenStoreID}
+                    onValueChange={(value) => {
                       // Base UI Select can deliver null on deselect.
                       onSelectedBindingChange({
                         storeID: value ?? '',
                         productID: '',
                       })
                     }}
-className='w-full'
-placeholder={t('Select a store')}
-/>
+                    className='w-full'
+                    placeholder={t('Select a store')}
+                  />
                 </div>
 
                 <div className='grid gap-1.5'>
                   <Label>{t('Product')}</Label>
                   <Combobox
-options={productSelectItems}
-value={chosenProductID}
-onValueChange={(value) =>
+                    options={productSelectItems}
+                    value={chosenProductID}
+                    onValueChange={(value) =>
                       onSelectedBindingChange((previous) => ({
                         ...previous,
                         productID: value ?? '',
                       }))
                     }
-disabled={!chosenStoreID || productSelectItems.length === 0}
-className='w-full'
-placeholder={t('Select a product')}
-/>
+                    disabled={!chosenStoreID || productSelectItems.length === 0}
+                    className='w-full'
+                    placeholder={t('Select a product')}
+                  />
                 </div>
               </div>
             </>

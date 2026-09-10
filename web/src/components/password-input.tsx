@@ -40,9 +40,10 @@ export function PasswordInput({
   const [showPassword, setShowPassword] = React.useState(false)
 
   return (
-    <div className={cn('relative rounded-md', className)}>
+    <div className='relative rounded-md'>
       <Input
         type={showPassword ? 'text' : 'password'}
+        className={cn('pr-9', className)}
         ref={ref}
         disabled={disabled}
         {...props}

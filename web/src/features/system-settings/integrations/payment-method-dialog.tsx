@@ -23,7 +23,6 @@ import { useTranslation } from 'react-i18next'
 import * as z from 'zod'
 
 import { Dialog } from '@/components/dialog'
-import { ReactIconByName } from '@/components/react-icon-by-name'
 import { Button } from '@/components/ui/button'
 import { Combobox } from '@/components/ui/combobox'
 import {
@@ -36,6 +35,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { getPaymentIcon } from '@/features/wallet/lib'
 
 const createPaymentMethodDialogSchema = (t: (key: string) => string) =>
   z.object({
@@ -124,6 +124,8 @@ export function PaymentMethodDialog({
   })
 
   const iconValue = form.watch('icon')
+  const typeValue = form.watch('type')
+  const nameValue = form.watch('name')
 
   useEffect(() => {
     if (editData) {
@@ -270,13 +272,14 @@ export function PaymentMethodDialog({
                       {...field}
                       className='flex-1'
                     />
-                    {iconValue && (
-                      <ReactIconByName
-                        name={iconValue}
-                        className='text-muted-foreground size-5 shrink-0'
-                        title={iconValue}
-                      />
-                    )}
+                    {iconValue || typeValue === 'alipay'
+                      ? getPaymentIcon(
+                          typeValue,
+                          'size-6 shrink-0 rounded-md',
+                          iconValue,
+                          nameValue
+                        )
+                      : null}
                   </div>
                 </FormControl>
                 <FormDescription>

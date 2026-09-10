@@ -21,6 +21,8 @@ import { useTranslation } from 'react-i18next'
 
 import { AnimateInView } from '@/components/animate-in-view'
 
+import { LeadingModelMarks } from '../brand-mark'
+
 export function HowItWorks() {
   const { t } = useTranslation()
 
@@ -34,14 +36,19 @@ export function HowItWorks() {
     {
       num: '2',
       title: t('Add balance'),
-      desc: t('Top up the wallet in CNY. Alipay is the default payment method.'),
+      desc: t(
+        'Top up the wallet in CNY. Alipay is the default payment method.'
+      ),
       icon: <Zap className='size-6' strokeWidth={1.5} />,
     },
     {
       num: '3',
       title: t('Call the API'),
-      desc: t(
-        'Use the OpenAI-compatible /v1 endpoint for GPT, Claude, and Gemini.'
+      desc: (
+        <>
+          {t('Use the OpenAI-compatible /v1 endpoint for')}{' '}
+          <LeadingModelMarks size={14} />.
+        </>
       ),
       icon: <BarChart3 className='size-6' strokeWidth={1.5} />,
     },

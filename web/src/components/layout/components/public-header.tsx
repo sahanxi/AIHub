@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Dialog } from '@/components/dialog'
@@ -47,14 +47,14 @@ type AuthPromptTarget = {
 export interface PublicHeaderProps {
   navLinks?: TopNavLink[]
   mobileLinks?: TopNavLink[]
-  navContent?: React.ReactNode
+  navContent?: ReactNode
   showThemeSwitch?: boolean
   showLanguageSwitcher?: boolean
-  logo?: React.ReactNode
+  logo?: ReactNode
   siteName?: string
   homeUrl?: string
-  leftContent?: React.ReactNode
-  rightContent?: React.ReactNode
+  leftContent?: ReactNode
+  rightContent?: ReactNode
   showNavigation?: boolean
   showAuthButtons?: boolean
   showNotifications?: boolean
@@ -97,6 +97,7 @@ export function PublicHeader(props: PublicHeaderProps) {
   const isAuthenticated = !!user
   const displaySiteName = customSiteName || systemName
   const links = dynamicLinks.length > 0 ? dynamicLinks : navLinks
+  const isHome = pathname === '/'
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -173,6 +174,35 @@ export function PublicHeader(props: PublicHeaderProps) {
     [t]
   )
 
+  let brandMark: ReactNode = customLogo
+  if (loading) {
+    brandMark = <Skeleton className='size-full rounded-lg' />
+  } else if (!customLogo) {
+    brandMark = (
+      <HeaderLogo
+        src={systemLogo}
+        loading={loading}
+        logoLoaded={logoLoaded}
+        className='size-full rounded-lg object-contain'
+      />
+    )
+  }
+
+  let authAction: ReactNode = (
+    <Button
+      size='sm'
+      className='h-8 rounded-lg px-3.5 text-xs font-medium'
+      render={<Link to='/sign-in' />}
+    >
+      {t('Sign in')}
+    </Button>
+  )
+  if (loading) {
+    authAction = <Skeleton className='h-8 w-20 rounded-lg' />
+  } else if (isAuthenticated) {
+    authAction = <ProfileDropdown />
+  }
+
   return (
     <>
       <header className='pointer-events-none fixed inset-x-0 top-0 z-50'>
@@ -195,19 +225,15 @@ export function PublicHeader(props: PublicHeaderProps) {
               to={homeUrl}
               className='group flex shrink-0 items-center gap-2.5'
             >
-              <div className='flex size-7 shrink-0 items-center justify-center transition-all duration-300 group-hover:scale-105'>
-                {loading ? (
-                  <Skeleton className='size-full rounded-lg' />
-                ) : customLogo ? (
-                  customLogo
-                ) : (
-                  <HeaderLogo
-                    src={systemLogo}
-                    loading={loading}
-                    logoLoaded={logoLoaded}
-                    className='size-full rounded-lg object-contain'
-                  />
+              <div
+                className={cn(
+                  'flex shrink-0 items-center justify-center overflow-hidden rounded-lg transition-all duration-300 group-hover:scale-105',
+                  scrolled && 'size-7',
+                  !scrolled && isHome && 'size-11',
+                  !scrolled && !isHome && 'size-8'
                 )}
+              >
+                {brandMark}
               </div>
               <span className='text-sm font-semibold tracking-tight'>
                 {loading ? <Skeleton className='h-4 w-16' /> : displaySiteName}
@@ -280,19 +306,7 @@ export function PublicHeader(props: PublicHeaderProps) {
               {showAuthButtons && (
                 <>
                   <div className='bg-border/40 mx-1 h-4 w-px' />
-                  {loading ? (
-                    <Skeleton className='h-8 w-20 rounded-lg' />
-                  ) : isAuthenticated ? (
-                    <ProfileDropdown />
-                  ) : (
-                    <Button
-                      size='sm'
-                      className='h-8 rounded-lg px-3.5 text-xs font-medium'
-                      render={<Link to='/sign-in' />}
-                    >
-                      {t('Sign in')}
-                    </Button>
-                  )}
+                  {authAction}
                 </>
               )}
             </div>

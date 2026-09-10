@@ -33,7 +33,7 @@ import {
   isStripePayment,
   isWaffoPayment,
   isWaffoPancakePayment,
-  submitPaymentForm,
+  startGatewayCheckout,
 } from '../lib'
 import type { AmountRequest, AmountResponse } from '../types'
 
@@ -136,11 +136,13 @@ export function usePayment() {
           return true
         }
 
-        // Handle non-Stripe payment
-        if (!isStripe && response.data) {
+        if (!isStripe) {
           const url = (response as unknown as { url?: string }).url
           if (url) {
-            submitPaymentForm(url, response.data)
+            startGatewayCheckout(
+              url,
+              (response.data as Record<string, unknown> | undefined) ?? {}
+            )
             toast.success(i18next.t('Redirecting to payment page...'))
             return true
           }

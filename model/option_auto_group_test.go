@@ -15,3 +15,12 @@ func TestValidateOptionValueRejectsInvalidMaxTokenAutoGroups(t *testing.T) {
 	}
 	require.NoError(t, validateOptionValue("MaxTokenAutoGroups", "999999"))
 }
+
+func TestValidateOptionValueRejectsInvalidDefaultUserGroup(t *testing.T) {
+	assert.Error(t, validateOptionValue("DefaultUserGroup", ""))
+	assert.Error(t, validateOptionValue("DefaultUserGroup", "   "))
+	assert.Error(t, validateOptionValue("DefaultUserGroup", "default,standard"))
+	assert.Error(t, validateOptionValue("DefaultUserGroup", "std ard"))
+	require.NoError(t, validateOptionValue("DefaultUserGroup", "standard"))
+	require.NoError(t, validateOptionValue("DefaultUserGroup", "  vip  "))
+}

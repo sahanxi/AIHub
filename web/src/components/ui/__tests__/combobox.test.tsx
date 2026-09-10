@@ -31,7 +31,18 @@ const options = [
 
 function Fixture() {
   const [value, setValue] = useState('openai')
-  return <><Combobox options={options} value={value} onValueChange={(next) => setValue(next ?? '')} aria-label='Provider' emptyText='No matching provider' /><output>{value}</output></>
+  return (
+    <>
+      <Combobox
+        options={options}
+        value={value}
+        onValueChange={(next) => setValue(next ?? '')}
+        aria-label='Provider'
+        emptyText='No matching provider'
+      />
+      <output>{value}</output>
+    </>
+  )
 }
 
 describe('searchable single selection', () => {
@@ -54,15 +65,52 @@ describe('searchable single selection', () => {
     expect(screen.getByText('gemini')).toHaveTextContent('gemini')
   })
 
+  it('does not open on focus when openOnFocus is false', async () => {
+    render(
+      <Combobox
+        options={options}
+        value='openai'
+        onValueChange={vi.fn()}
+        aria-label='Provider'
+        openOnFocus={false}
+      />
+    )
+    const input = screen.getByRole('combobox', { name: 'Provider' })
+    input.focus()
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('option', { name: 'OpenAI' })
+    ).not.toBeInTheDocument()
+  })
+
   it('respects disabled controls and options', async () => {
     const change = vi.fn()
-    const view = render(<Combobox options={options} value='openai' onValueChange={change} aria-label='Provider' disabled />)
+    const view = render(
+      <Combobox
+        options={options}
+        value='openai'
+        onValueChange={change}
+        aria-label='Provider'
+        disabled
+      />
+    )
     const user = userEvent.setup()
     expect(screen.getByRole('combobox', { name: 'Provider' })).toBeDisabled()
-    view.rerender(<Combobox options={options} value='openai' onValueChange={change} aria-label='Provider' />)
+    view.rerender(
+      <Combobox
+        options={options}
+        value='openai'
+        onValueChange={change}
+        aria-label='Provider'
+      />
+    )
     await user.click(screen.getByRole('combobox', { name: 'Provider' }))
-    expect(screen.getByRole('option', { name: 'Unavailable provider' })).toHaveAttribute('aria-disabled', 'true')
-    await user.click(screen.getByRole('option', { name: 'Unavailable provider' }))
+    expect(
+      screen.getByRole('option', { name: 'Unavailable provider' })
+    ).toHaveAttribute('aria-disabled', 'true')
+    await user.click(
+      screen.getByRole('option', { name: 'Unavailable provider' })
+    )
     expect(change).not.toHaveBeenCalled()
   })
 })

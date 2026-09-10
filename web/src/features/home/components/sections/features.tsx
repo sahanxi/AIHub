@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { Code, Wallet, DollarSign, BarChart3 } from 'lucide-react'
+import { Globe, Layers, Plug, ShieldCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { AnimateInView } from '@/components/animate-in-view'
@@ -30,32 +30,36 @@ export function Features(_props: FeaturesProps) {
 
   const features = [
     {
-      id: 'api',
-      title: t('Unified API'),
+      id: 'models',
+      title: t('One API, many models'),
       desc: t(
-        'Call GPT, Claude, and Gemini through one OpenAI-compatible endpoint.'
+        'Call GPT, Claude, Gemini, Grok, and other leading AI models through one interface.'
       ),
-      icon: <Code className='size-4' />,
+      icon: <Layers className='size-4' />,
     },
     {
-      id: 'wallet',
-      title: t('Unified balance'),
+      id: 'official',
+      title: t('Official channels, stable and reliable'),
       desc: t(
-        'One wallet covers every model. Recharge once, use across providers.'
+        'Connect to official model services to protect capability, output quality, and call stability.'
       ),
-      icon: <Wallet className='size-4' />,
+      icon: <ShieldCheck className='size-4' />,
     },
     {
-      id: 'billing',
-      title: t('Pay as you go'),
-      desc: t('Usage is billed by tokens. Check prices before you call.'),
-      icon: <DollarSign className='size-4' />,
+      id: 'compat',
+      title: t('Compatible with leading APIs'),
+      desc: t(
+        'Compatible with the OpenAI API and Claude Messages, so existing apps can migrate quickly at low cost.'
+      ),
+      icon: <Plug className='size-4' />,
     },
     {
-      id: 'usage',
-      title: t('Clear usage'),
-      desc: t('See requests, tokens, and CNY spend per key and model.'),
-      icon: <BarChart3 className='size-4' />,
+      id: 'nodes',
+      title: t('Global multi-node acceleration'),
+      desc: t(
+        'Intelligent routing across regions for secure connections, stable service, and fast responses.'
+      ),
+      icon: <Globe className='size-4' />,
     },
   ]
 
@@ -64,11 +68,18 @@ export function Features(_props: FeaturesProps) {
       <div className='mx-auto max-w-6xl'>
         <AnimateInView className='mb-12 text-center'>
           <p className='text-muted-foreground mb-3 text-xs font-medium tracking-widest uppercase'>
-            {t('Why')}
+            {t('Core values')}
           </p>
           <h2 className='text-2xl font-bold tracking-tight md:text-3xl'>
-            {t('One API for mainstream models')}
+            {t(
+              'Unified multi-model access | Official channels | Leading API compatibility | Global node acceleration'
+            )}
           </h2>
+          <p className='text-muted-foreground mx-auto mt-4 max-w-3xl text-sm leading-relaxed'>
+            {t(
+              'Call ChatGPT, Claude, Gemini, and other leading AI models through one API. Official channels protect quality and stability; global nodes accelerate for security and speed. Compatible with the OpenAI API and Claude Messages so existing apps can connect quickly.'
+            )}
+          </p>
         </AnimateInView>
         <div className='grid gap-4 sm:grid-cols-2'>
           {features.map((feature, index) => (

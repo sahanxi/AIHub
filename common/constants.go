@@ -2,8 +2,8 @@ package common
 
 import (
 	"crypto/tls"
-	//"os"
-	//"strconv"
+	"errors"
+	"strings"
 	"sync"
 	"time"
 
@@ -125,6 +125,34 @@ var TelegramBotName = ""
 var QuotaForNewUser = 0
 var QuotaForInviter = 0
 var QuotaForInvitee = 0
+
+// DefaultUserGroup is assigned on registration when the account has no group.
+const fallbackUserGroup = "default"
+
+var DefaultUserGroup = fallbackUserGroup
+
+func NormalizeDefaultUserGroup(value string) (string, error) {
+	group := strings.TrimSpace(value)
+	if group == "" {
+		return "", errors.New("default user group is required")
+	}
+	if strings.ContainsAny(group, ", \t\n\r") {
+		return "", errors.New("default user group must be a single group name")
+	}
+	if len(group) > 64 {
+		return "", errors.New("default user group is too long")
+	}
+	return group, nil
+}
+
+func EffectiveDefaultUserGroup() string {
+	group := strings.TrimSpace(DefaultUserGroup)
+	if group == "" {
+		return fallbackUserGroup
+	}
+	return group
+}
+
 var ChannelDisableThreshold = 5.0
 var AutomaticDisableChannelEnabled = false
 var AutomaticEnableChannelEnabled = false

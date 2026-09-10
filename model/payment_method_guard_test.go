@@ -5,9 +5,19 @@ import (
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func useUSDTopUpDisplay(t *testing.T) {
+	t.Helper()
+	oldDisplayType := operation_setting.GetGeneralSetting().QuotaDisplayType
+	operation_setting.GetGeneralSetting().QuotaDisplayType = operation_setting.QuotaDisplayTypeUSD
+	t.Cleanup(func() {
+		operation_setting.GetGeneralSetting().QuotaDisplayType = oldDisplayType
+	})
+}
 
 func insertUserForPaymentGuardTest(t *testing.T, id int, quota int) *User {
 	t.Helper()
@@ -192,6 +202,7 @@ func createEpayTestOrder(t *testing.T, userId int, tradeNo string, provider stri
 
 func TestRechargeEpayCreditsQuotaExactlyOnce(t *testing.T) {
 	truncateTables(t)
+	useUSDTopUpDisplay(t)
 
 	oldQuotaPerUnit := common.QuotaPerUnit
 	common.QuotaPerUnit = 500000
@@ -216,8 +227,36 @@ func TestRechargeEpayCreditsQuotaExactlyOnce(t *testing.T) {
 	assert.Equal(t, 2*500000, getUserQuotaForPaymentGuardTest(t, user.Id))
 }
 
+func TestRechargeAlipayCreditsQuotaExactlyOnceAndRejectsEpayOrders(t *testing.T) {
+	truncateTables(t)
+	useUSDTopUpDisplay(t)
+
+	oldQuotaPerUnit := common.QuotaPerUnit
+	common.QuotaPerUnit = 500000
+	t.Cleanup(func() { common.QuotaPerUnit = oldQuotaPerUnit })
+
+	user := insertUserForPaymentGuardTest(t, 511, 0)
+	order := createEpayTestOrder(t, user.Id, "ALIPAYTESTONCE", PaymentProviderAlipay, common.TopUpStatusPending)
+
+	alreadyDone, err := RechargeAlipay(order.TradeNo, "alipay", "127.0.0.1")
+	require.NoError(t, err)
+	assert.False(t, alreadyDone)
+	assert.Equal(t, 2*500000, getUserQuotaForPaymentGuardTest(t, user.Id))
+
+	alreadyDone, err = RechargeAlipay(order.TradeNo, "alipay", "127.0.0.1")
+	require.NoError(t, err)
+	assert.True(t, alreadyDone)
+	assert.Equal(t, 2*500000, getUserQuotaForPaymentGuardTest(t, user.Id))
+
+	foreign := createEpayTestOrder(t, user.Id, "ALIPAYTESTEPAY", PaymentProviderEpay, common.TopUpStatusPending)
+	_, err = RechargeAlipay(foreign.TradeNo, "alipay", "127.0.0.1")
+	assert.ErrorIs(t, err, ErrPaymentMethodMismatch)
+	assert.Equal(t, 2*500000, getUserQuotaForPaymentGuardTest(t, user.Id))
+}
+
 func TestRechargeEpayKeepsRedisAndDatabaseCreditInSync(t *testing.T) {
 	truncateTables(t)
+	useUSDTopUpDisplay(t)
 	useUserCacheMiniRedis(t)
 
 	oldQuotaPerUnit := common.QuotaPerUnit
@@ -246,6 +285,7 @@ func TestRechargeEpayKeepsRedisAndDatabaseCreditInSync(t *testing.T) {
 
 func TestRechargeEpayUpdatesPaymentMethodToActual(t *testing.T) {
 	truncateTables(t)
+	useUSDTopUpDisplay(t)
 
 	oldQuotaPerUnit := common.QuotaPerUnit
 	common.QuotaPerUnit = 500000
@@ -266,6 +306,7 @@ func TestRechargeEpayUpdatesPaymentMethodToActual(t *testing.T) {
 
 func TestRechargeEpayRejectsForeignAndNonPendingOrders(t *testing.T) {
 	truncateTables(t)
+	useUSDTopUpDisplay(t)
 
 	oldQuotaPerUnit := common.QuotaPerUnit
 	common.QuotaPerUnit = 500000
@@ -295,6 +336,7 @@ func TestRechargeEpayRejectsForeignAndNonPendingOrders(t *testing.T) {
 
 func TestRechargeEpayRejectsQuotaOverflowBeforeCompletingOrder(t *testing.T) {
 	truncateTables(t)
+	useUSDTopUpDisplay(t)
 
 	oldQuotaPerUnit := common.QuotaPerUnit
 	common.QuotaPerUnit = float64(common.MaxWalletQuota + 1)
@@ -310,6 +352,7 @@ func TestRechargeEpayRejectsQuotaOverflowBeforeCompletingOrder(t *testing.T) {
 }
 
 func TestRechargeEpayEnforcesFinalWalletQuotaLimit(t *testing.T) {
+	useUSDTopUpDisplay(t)
 	oldQuotaPerUnit := common.QuotaPerUnit
 	common.QuotaPerUnit = 500000
 	t.Cleanup(func() { common.QuotaPerUnit = oldQuotaPerUnit })

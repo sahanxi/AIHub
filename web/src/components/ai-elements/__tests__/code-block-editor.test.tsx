@@ -19,7 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import { cleanup, render } from '@testing-library/react'
 import { afterEach, describe, expect, test } from 'vitest'
 
-import { CodeBlockEditor } from '../code-block'
+import { CodeBlock, CodeBlockEditor } from '../code-block'
 
 afterEach(() => {
   cleanup()
@@ -54,5 +54,13 @@ describe('CodeBlockEditor', () => {
     // characters pile up at the beginning (text appears right-to-left).
     expect(contentAfter).toBe(contentBefore)
     expect(contentAfter?.textContent).toContain('hi')
+  })
+
+  test('keeps read-only code away from the card edge when line numbers are hidden', () => {
+    render(<CodeBlock code='const answer = 42' language='javascript' />)
+
+    const content = document.querySelector('.cm-content')
+    expect(content).not.toBeNull()
+    expect(getComputedStyle(content as Element).paddingLeft).toBe('1rem')
   })
 })

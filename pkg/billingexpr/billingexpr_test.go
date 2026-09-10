@@ -1030,6 +1030,20 @@ func TestLen_BoundaryPlusOne(t *testing.T) {
 	}
 }
 
+func TestLen_GPT56LunaBoundary(t *testing.T) {
+	exprStr := `len <= 272000 ? tier("base", p * 0.20 + c * 1.20 + cr * 0.02 + cc * 0.25) : tier("long_context", p * 0.40 + c * 1.80 + cr * 0.04 + cc * 0.50)`
+
+	atBoundary, trace, err := billingexpr.RunExpr(exprStr, billingexpr.TokenParams{P: 272000, C: 0, Len: 272000})
+	require.NoError(t, err)
+	assert.Equal(t, "base", trace.MatchedTier)
+	assert.InDelta(t, 272000*0.20, atBoundary, 1e-6)
+
+	pastBoundary, trace, err := billingexpr.RunExpr(exprStr, billingexpr.TokenParams{P: 272001, C: 0, Len: 272001})
+	require.NoError(t, err)
+	assert.Equal(t, "long_context", trace.MatchedTier)
+	assert.InDelta(t, 272001*0.40, pastBoundary, 1e-6)
+}
+
 func TestLen_ZeroDefaultsToZero(t *testing.T) {
 	// len defaults to 0 when not set
 	params := billingexpr.TokenParams{P: 1000, C: 500}

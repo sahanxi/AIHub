@@ -19,7 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 /**
  * Home page constants
  */
-import { type TFunction } from 'i18next'
+import type { TFunction } from 'i18next'
 
 export const MAIN_BASE_CLASSES = 'bg-background text-foreground w-full'
 
@@ -31,6 +31,33 @@ export const AI_APPLICATIONS = [
 ] as const
 
 export const AI_MODELS = ['OpenAI', 'Claude.Color', 'Gemini.Color'] as const
+
+/** Official vendor marks from @lobehub/icons (do not replace with custom SVGs). */
+export const HOME_LIVE_VENDORS = [
+  { name: 'ChatGPT', hint: 'OpenAI', icon: 'OpenAI.Color' },
+  { name: 'Claude', hint: 'Anthropic', icon: 'Claude.Color' },
+  { name: 'Gemini', hint: 'Google', icon: 'Gemini.Color' },
+  { name: 'Grok', hint: 'xAI', icon: 'Grok.Color' },
+] as const
+
+/** Public catalog currently enabled on AIHub, newest first per vendor. */
+export const HOME_LIVE_MODELS = [
+  'GPT-6 Astra',
+  'GPT-5.6 Sol',
+  'GPT-5.6 Terra',
+  'GPT-5.6 Luna',
+  'GPT-5.5',
+  'GPT-5.4 Mini',
+  'GPT-5',
+  'GPT-4o',
+  'Gemini 3.8 Flash',
+  'Gemini 3.7 Flash',
+  'Gemini 3.6 Flash',
+  'Gemini 3.1 Pro',
+  'Nano Banana Pro',
+  'Grok 4.6',
+  'Grok 4.3',
+] as const
 
 export const GATEWAY_FEATURES = [
   'Unified API',
@@ -71,7 +98,8 @@ export const DEFAULT_FEATURES = [
   },
   {
     title: 'Unified balance',
-    description: 'One wallet covers every model. Recharge once, use across providers.',
+    description:
+      'One wallet covers every model. Recharge once, use across providers.',
     iconName: 'Wallet',
   },
   {

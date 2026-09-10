@@ -22,6 +22,7 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import * as React from 'react'
 
 import { Button } from '@/components/ui/button'
+import { PortalContainerContext } from '@/components/ui/portal-container'
 import { cn } from '@/lib/utils'
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
@@ -60,14 +61,23 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  ref,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
 }) {
+  // Popups rendered inside the dialog portal into this element so they stay
+  // within the modal layer that keeps pointer events and focus enabled.
+  const content = React.useRef<HTMLDivElement | null>(null)
   return (
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Popup
+        ref={(node) => {
+          content.current = node
+          if (typeof ref === 'function') return ref(node)
+          if (ref) ref.current = node
+        }}
         data-slot='dialog-content'
         className={cn(
           'bg-popover text-popover-foreground ring-foreground/10 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl p-4 text-sm ring-1 duration-100 outline-none sm:max-w-sm',
@@ -75,22 +85,24 @@ function DialogContent({
         )}
         {...props}
       >
-        {children}
-        {showCloseButton && (
-          <DialogPrimitive.Close
-            data-slot='dialog-close'
-            render={
-              <Button
-                variant='ghost'
-                className='absolute top-2 right-2'
-                size='icon-sm'
-              />
-            }
-          >
-            <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
-            <span className='sr-only'>Close</span>
-          </DialogPrimitive.Close>
-        )}
+        <PortalContainerContext.Provider value={content}>
+          {children}
+          {showCloseButton && (
+            <DialogPrimitive.Close
+              data-slot='dialog-close'
+              render={
+                <Button
+                  variant='ghost'
+                  className='absolute top-2 right-2'
+                  size='icon-sm'
+                />
+              }
+            >
+              <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
+              <span className='sr-only'>Close</span>
+            </DialogPrimitive.Close>
+          )}
+        </PortalContainerContext.Provider>
       </DialogPrimitive.Popup>
     </DialogPortal>
   )

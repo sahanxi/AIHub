@@ -19,6 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import { Popover as PopoverPrimitive } from '@base-ui/react/popover'
 import * as React from 'react'
 
+import { usePortalContainer } from '@/components/ui/portal-container'
 import { cn } from '@/lib/utils'
 
 function Popover({ ...props }: PopoverPrimitive.Root.Props) {
@@ -38,6 +39,7 @@ function PopoverContent({
   collisionPadding,
   collisionBoundary,
   collisionAvoidance,
+  positionMethod,
   ...props
 }: PopoverPrimitive.Popup.Props &
   Pick<
@@ -49,9 +51,11 @@ function PopoverContent({
     | 'collisionPadding'
     | 'collisionBoundary'
     | 'collisionAvoidance'
+    | 'positionMethod'
   >) {
+  const container = usePortalContainer()
   return (
-    <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Portal container={container}>
       <PopoverPrimitive.Positioner
         align={align}
         alignOffset={alignOffset}
@@ -60,6 +64,7 @@ function PopoverContent({
         collisionPadding={collisionPadding}
         collisionBoundary={collisionBoundary}
         collisionAvoidance={collisionAvoidance}
+        positionMethod={positionMethod}
         className='isolate z-50'
       >
         <PopoverPrimitive.Popup
