@@ -1,6 +1,6 @@
 # AI API Platform V1 Architecture
 
-Product branch: `product/v1`  
+Product branch: `main`  
 Upstream: `QuantumNous/new-api` (`upstream/main`)  
 Engine: New API  
 Product: configurable brand (fallback name: **AIHub**; runtime `SystemName`)
@@ -55,7 +55,7 @@ Upgrade path:
 
 ```
 git fetch upstream
-git merge upstream/main   # into product/v1
+git merge upstream/main   # into main
 review docs/CUSTOMIZATIONS.md
 test → build image tagged with git SHA → deploy
 ```
@@ -189,7 +189,7 @@ Git must not contain `.env`, `*.pem`, or live credentials. `deploy/.env.example`
 
 No Watchtower. No unattended engine updates.
 
-`scripts/update.sh`: fetch upstream → review → DB backup → merge into `product/v1` → test → build `ai-platform-newapi:v1-<sha>` → deploy → healthcheck.
+`scripts/update.sh`: fetch upstream → review → DB backup → merge into `main` → test → build `ai-platform-newapi:v1-<sha>` → deploy → healthcheck.
 
 `scripts/rollback.sh` switches image tag + compose; it must **not** drop volumes.
 

@@ -4,7 +4,7 @@ Host layout:
 
 ```
 /opt/ai-platform/
-  src/new-api/     # this git checkout, branch product/v1
+  src/new-api/     # this git checkout, branch main
   secrets/.env     # chmod 600; never inside the git tree
   deploy/          # compose, nginx template; .env is a symlink to secrets/.env
   data/            # mysql, redis, new-api

@@ -9,8 +9,8 @@ STATE="${ROOT}/backups/deploy-state"
 
 cd "${SRC}"
 git fetch origin
-git checkout product/v1
-git pull origin product/v1
+git checkout main
+git pull origin main
 
 SHA="$(git rev-parse --short HEAD)"
 IMAGE="ai-platform-newapi:v1-${SHA}"

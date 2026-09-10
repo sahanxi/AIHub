@@ -1,6 +1,6 @@
-# Product customizations (`product/v1`)
+# Product customizations (`main`)
 
-This file is the audit trail for `git diff upstream/main...product/v1`.
+This file is the audit trail for `git diff upstream/main...main`.
 
 Layer legend: **UI** / **Config** / **Extension** / **Core**
 

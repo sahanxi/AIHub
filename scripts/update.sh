@@ -8,8 +8,10 @@ DEPLOY="${ROOT}/deploy"
 STATE="${ROOT}/backups/deploy-state"
 
 cd "${SRC}"
-git fetch upstream
-echo "Review upstream/main before merging into product/v1."
+git fetch origin upstream
+git checkout main
+git pull origin main
+echo "Review upstream/main before merging into main."
 echo "Then: backup, merge, test, build, deploy."
 
 read -r -p "Type MERGE to merge upstream/main into the current branch: " confirm
