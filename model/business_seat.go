@@ -288,7 +288,7 @@ type BusinessSeatTask struct {
 	SubscriptionId *int   `json:"subscription_id" gorm:"index"`
 	SeatId         *int   `json:"seat_id" gorm:"index"`
 	UserId         *int   `json:"user_id" gorm:"index"`
-	Payload        string `json:"payload" gorm:"type:text;default:''"`
+	Payload        string `json:"payload" gorm:"type:text"`
 	CompletedAt    *int64 `json:"completed_at" gorm:"type:bigint"`
 	CreatedAt      int64  `json:"created_at" gorm:"type:bigint;autoCreateTime"`
 	UpdatedAt      int64  `json:"updated_at" gorm:"type:bigint;autoUpdateTime"`
@@ -300,7 +300,7 @@ type BusinessSeatAuditLog struct {
 	Action     string `json:"action" gorm:"type:varchar(64);not null;index"`
 	EntityType string `json:"entity_type" gorm:"type:varchar(64);not null"`
 	EntityId   int    `json:"entity_id" gorm:"index;not null"`
-	Detail     string `json:"detail" gorm:"type:text;default:''"`
+	Detail     string `json:"detail" gorm:"type:text"`
 	CreatedAt  int64  `json:"created_at" gorm:"type:bigint;autoCreateTime;index"`
 }
 
