@@ -1,6 +1,8 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
+import { homeComparisonKeys } from './home-comparison-keys.mjs'
+
 const LOCALES_DIR = path.resolve('src/i18n/locales')
 
 function stableStringify(obj) {
@@ -713,6 +715,7 @@ for (const [locale, [available, subscribed]] of Object.entries(workspaceListTran
 }
 for (const [locale, values] of Object.entries(overviewKeys)) Object.assign(newKeys[locale], values)
 for (const [locale, values] of Object.entries(requestedKeys)) Object.assign(newKeys[locale], values)
+for (const [locale, values] of Object.entries(homeComparisonKeys)) Object.assign(newKeys[locale], values)
 
 async function main() {
   let totalAdded = 0
