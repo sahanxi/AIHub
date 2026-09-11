@@ -31,6 +31,7 @@ type businessSeatOrderRequest struct {
 
 type businessSeatPriceRequest struct {
 	ProductId      int    `json:"product_id"`
+	WorkspaceId    int    `json:"workspace_id"`
 	PriceAmount    string `json:"price_amount"`
 	Currency       string `json:"currency"`
 	BillingCadence string `json:"billing_cadence"`
@@ -63,25 +64,60 @@ func GetBusinessSeatCatalog(c *gin.Context) {
 			"product":             nil,
 			"price":               nil,
 			"workspace":           nil,
+			"workspaces":          []gin.H{},
 			"pricing_required":    true,
 			"currently_available": false,
 		})
 		return
 	}
-	ws, wsErr := model.GetDefaultBusinessWorkspace()
-	var price *model.BusinessPriceVersion
-	if wsErr == nil {
-		price, _ = model.GetEffectiveBusinessPriceVersion(product.Id, time.Now().Unix())
+	at := time.Now().Unix()
+	wsList, _ := model.ListBusinessWorkspaces()
+	type catalogWorkspace struct {
+		Workspace           model.BusinessWorkspace  `json:"workspace"`
+		Price               *model.BusinessPriceVersion `json:"price"`
+		PricingRequired     bool                     `json:"pricing_required"`
+		CurrentlyAvailable  bool                     `json:"currently_available"`
+	}
+	catalogRows := make([]catalogWorkspace, 0, len(wsList))
+	var defaultWs *model.BusinessWorkspace
+	var defaultPrice *model.BusinessPriceVersion
+	salesEnabled := setting.IsBusinessSeatSalesEnabled()
+	for i := range wsList {
+		ws := wsList[i]
+		if ws.Status != model.BusinessWorkspaceStatusActive {
+			continue
+		}
+		price, priceErr := model.GetEffectiveBusinessPriceVersion(product.Id, ws.Id, at)
+		row := catalogWorkspace{
+			Workspace:          ws,
+			Price:               price,
+			PricingRequired:     priceErr != nil,
+			CurrentlyAvailable:  salesEnabled && priceErr == nil,
+		}
+		catalogRows = append(catalogRows, row)
+		if defaultWs == nil {
+			defaultWs = &ws
+			if priceErr == nil {
+				defaultPrice = price
+			}
+		}
+	}
+	if defaultWs == nil {
+		if ws, wsErr := model.GetDefaultBusinessWorkspace(); wsErr == nil {
+			defaultWs = ws
+			defaultPrice, _ = model.GetEffectiveBusinessPriceVersion(product.Id, ws.Id, at)
+		}
 	}
 	resp := gin.H{
-		"enabled":             setting.IsBusinessSeatSalesEnabled(),
+		"enabled":             salesEnabled,
 		"product":             product,
-		"workspace":           ws,
-		"pricing_required":    price == nil,
-		"currently_available": setting.IsBusinessSeatSalesEnabled() && price != nil && wsErr == nil,
+		"workspace":           defaultWs,
+		"workspaces":          catalogRows,
+		"pricing_required":    defaultPrice == nil,
+		"currently_available": salesEnabled && defaultPrice != nil && defaultWs != nil,
 	}
-	if price != nil {
-		resp["price"] = price
+	if defaultPrice != nil {
+		resp["price"] = defaultPrice
 	}
 	common.ApiSuccess(c, resp)
 }
@@ -247,14 +283,16 @@ func AdminBusinessSeatOverview(c *gin.Context) {
 	wsList, _ := model.ListBusinessWorkspaces()
 	var activeCount int64
 	_ = model.DB.Model(&model.BusinessSeatSubscription{}).Where("status = ?", model.BusinessSubscriptionStatusActive).Count(&activeCount).Error
-	stats := gin.H{}
-	if len(wsList) > 0 {
-		pool, _ := model.GetBusinessSeatPoolStats(wsList[0].Id)
-		stats = gin.H{
-			"total_seats":     pool.Total,
-			"available_seats": pool.Available,
-			"active_seats":    pool.Active,
-		}
+	stats := gin.H{
+		"total_seats":     0,
+		"available_seats": 0,
+		"active_seats":    0,
+	}
+	for _, ws := range wsList {
+		pool, _ := model.GetBusinessSeatPoolStats(ws.Id)
+		stats["total_seats"] = stats["total_seats"].(int) + pool.Total
+		stats["available_seats"] = stats["available_seats"].(int) + pool.Available
+		stats["active_seats"] = stats["active_seats"].(int) + pool.Active
 	}
 	var pendingCapacity, pendingActivation, pendingRemoval int64
 	_ = model.DB.Model(&model.BusinessSeatSubscription{}).Where("status = ?", model.BusinessSubscriptionStatusPendingCapacity).Count(&pendingCapacity).Error
@@ -442,12 +480,17 @@ func AdminListBusinessPriceVersions(c *gin.Context) {
 		}
 		productId = product.Id
 	}
-	list, err := model.ListBusinessPriceVersions(productId)
+	workspaceId, _ := strconv.Atoi(c.DefaultQuery("workspace_id", "-1"))
+	list, err := model.ListBusinessPriceVersions(productId, workspaceId)
 	if err != nil {
 		common.ApiErrorMsg(c, err.Error())
 		return
 	}
-	current, _ := model.GetEffectiveBusinessPriceVersion(productId, time.Now().Unix())
+	currentWorkspaceId := workspaceId
+	if currentWorkspaceId < 0 {
+		currentWorkspaceId = 0
+	}
+	current, _ := model.GetEffectiveBusinessPriceVersion(productId, currentWorkspaceId, time.Now().Unix())
 	common.ApiSuccess(c, gin.H{"versions": list, "current": current})
 }
 
@@ -476,6 +519,7 @@ func AdminCreateBusinessPriceVersion(c *gin.Context) {
 	}
 	pv := model.BusinessPriceVersion{
 		ProductId:      req.ProductId,
+		WorkspaceId:    req.WorkspaceId,
 		PriceAmount:    amount,
 		Currency:       strings.ToUpper(req.Currency),
 		BillingCadence: req.BillingCadence,
@@ -611,6 +655,15 @@ func AdminDisableBusinessSeat(c *gin.Context) {
 		return
 	}
 	model.RecordBusinessSeatAudit(c.GetInt("id"), "SEAT_DISABLED", "seat", seat.Id, "")
+	common.ApiSuccess(c, gin.H{"success": true})
+}
+
+func AdminRemoveBusinessSeat(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	if err := businessseat.NewSubscriptionService().RequestSeatRemoval(c.GetInt("id"), id); err != nil {
+		common.ApiErrorMsg(c, err.Error())
+		return
+	}
 	common.ApiSuccess(c, gin.H{"success": true})
 }
 

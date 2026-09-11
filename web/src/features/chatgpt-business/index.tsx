@@ -19,6 +19,15 @@ import { startGatewayCheckout } from '@/features/wallet/lib/payment'
 import { useSystemConfigStore } from '@/stores/system-config-store'
 
 import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+
+import {
   createBusinessOrder,
   createBusinessQuote,
   deleteBusinessPendingOrder,
@@ -28,8 +37,10 @@ import {
   isApiSuccess,
   payBusinessOrderAlipay,
 } from './api'
+import { BusinessSubscriptionStatusBadge } from './status-display'
 import type {
   BusinessCatalog,
+  BusinessCatalogWorkspace,
   BusinessQuote,
   BusinessSeatOrder,
   BusinessSubscription,
@@ -229,6 +240,9 @@ export function ChatGPTBusinessPage() {
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [payConfirmOpen, setPayConfirmOpen] = useState(false)
   const [pendingPayOrderId, setPendingPayOrderId] = useState<number | undefined>()
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<number | null>(
+    null,
+  )
   const usdToCnyRate =
     useSystemConfigStore((s) => s.config.currency.usdExchangeRate) || 1
 
@@ -271,6 +285,14 @@ export function ChatGPTBusinessPage() {
       ])
       if (isApiSuccess(catalogRes)) {
         setCatalog(catalogRes.data)
+        const rows = catalogRes.data.workspaces ?? []
+        if (rows.length > 0) {
+          const preferred =
+            rows.find((row) => row.currently_available) ?? rows[0]
+          setSelectedWorkspaceId(preferred.workspace.id)
+        } else if (catalogRes.data.workspace) {
+          setSelectedWorkspaceId(catalogRes.data.workspace.id)
+        }
       }
       if (isApiSuccess(selfRes)) {
         setSubscription(selfRes.data.subscription)
@@ -348,7 +370,14 @@ export function ChatGPTBusinessPage() {
     }
     setCheckoutLoading(true)
     try {
-      const res = await createBusinessQuote({ chatgpt_email: email.trim() })
+      if (!selectedWorkspaceId) {
+        toast.error(t('Select a workspace'))
+        return
+      }
+      const res = await createBusinessQuote({
+        chatgpt_email: email.trim(),
+        workspace_id: selectedWorkspaceId,
+      })
       if (!isApiSuccess(res)) {
         toast.error(res.message || t('Unable to create quote'))
         return
@@ -421,12 +450,22 @@ export function ChatGPTBusinessPage() {
     return <LoadingState />
   }
 
-  const displayWorkspace = workspace ?? catalog?.workspace ?? null
+  const catalogWorkspaces = catalog?.workspaces ?? []
+  const selectedCatalogWorkspace = catalogWorkspaces.find(
+    (row) => row.workspace.id === selectedWorkspaceId,
+  )
+  const displayWorkspace =
+    workspace ??
+    selectedCatalogWorkspace?.workspace ??
+    catalog?.workspace ??
+    null
   const subscriptionDescription =
     displayWorkspace?.subscription_description?.trim() ?? ''
-  const price = catalog?.price
+  const price = selectedCatalogWorkspace?.price ?? catalog?.price ?? null
+  const workspaceAvailable =
+    selectedCatalogWorkspace?.currently_available ?? catalog?.currently_available
   const priceLabel =
-    price && catalog?.currently_available
+    price && workspaceAvailable
       ? `${formatMoney(price.price_amount, price.currency)} ${price.display_unit || ''}`.trim()
       : t('Currently unavailable')
 
@@ -455,7 +494,9 @@ export function ChatGPTBusinessPage() {
                     {subscriptionDescription}
                   </p>
                 ) : null}
-                <CardDescription>{subscription.status}</CardDescription>
+                <div className='mt-1'>
+                  <BusinessSubscriptionStatusBadge status={subscription.status} t={t} />
+                </div>
               </CardHeader>
               <CardContent className='space-y-3 text-sm'>
                 <div>
@@ -517,9 +558,48 @@ export function ChatGPTBusinessPage() {
                 <CardDescription>{priceLabel}</CardDescription>
               </CardHeader>
               <CardContent className='space-y-4'>
-                {!catalog?.currently_available ? (
+                {catalogWorkspaces.length > 1 ? (
+                  <div className='space-y-2'>
+                    <Label>{t('Workspace')}</Label>
+                    <Select
+                      value={
+                        selectedWorkspaceId != null
+                          ? String(selectedWorkspaceId)
+                          : undefined
+                      }
+                      onValueChange={(value) =>
+                        value && setSelectedWorkspaceId(Number(value))
+                      }
+                    >
+                      <SelectTrigger className='w-full'>
+                        <SelectValue placeholder={t('Select workspace')} />
+                      </SelectTrigger>
+                      <SelectContent alignItemWithTrigger={false}>
+                        <SelectGroup>
+                          {catalogWorkspaces.map(
+                            (row: BusinessCatalogWorkspace) => (
+                              <SelectItem
+                                key={row.workspace.id}
+                                value={String(row.workspace.id)}
+                              >
+                                {row.workspace.name}
+                                {!row.currently_available
+                                  ? ` (${t('Currently unavailable')})`
+                                  : row.price
+                                    ? ` · ${formatMoney(row.price.price_amount, row.price.currency)}`
+                                    : ''}
+                              </SelectItem>
+                            ),
+                          )}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : null}
+                {!workspaceAvailable ? (
                   <p className='text-muted-foreground'>
-                    {catalog?.pricing_required
+                    {selectedCatalogWorkspace?.pricing_required ||
+                    catalog?.pricing_required
                       ? t('Pricing configuration required')
                       : t('Currently unavailable')}
                   </p>

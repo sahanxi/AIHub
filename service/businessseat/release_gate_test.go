@@ -468,3 +468,37 @@ func TestTaskIdempotencyDuplicateAddSeat(t *testing.T) {
 		Count(&openTasks).Error)
 	assert.EqualValues(t, 1, openTasks)
 }
+
+func TestMarkInvitedAfterActivateCompletesInviteTask(t *testing.T) {
+	setupBusinessSeatTestDB(t)
+	loc, _ := time.LoadLocation("Asia/Shanghai")
+	ws, product, pv := seedWorkspaceWithSeats(t, 1, time.Date(2026, 10, 1, 0, 0, 0, 0, loc))
+	order := createPayingOrder(t, 3001, ws, product, pv, decimal.RequireFromString("30.00"), time.Date(2026, 11, 1, 0, 0, 0, 0, loc).Unix())
+	_, err := NewProvisioningService().ProcessPayment(PaymentConfirmInput{
+		OrderNo: order.OrderNo, ProviderTradeNo: "mark-after-activate", PaidAmount: order.TotalAmount,
+		Currency: "CNY", PaymentChannel: "alipay",
+	})
+	require.NoError(t, err)
+
+	var sub model.BusinessSeatSubscription
+	require.NoError(t, model.DB.Where("user_id = ?", 3001).First(&sub).Error)
+	require.NoError(t, NewSubscriptionService().Activate(1, sub.Id))
+
+	task := model.BusinessSeatTask{
+		TaskType:       model.BusinessTaskTypeInviteMember,
+		Status:         model.BusinessTaskStatusOpen,
+		WorkspaceId:    ws.Id,
+		SubscriptionId: &sub.Id,
+		Payload:        sub.ChatgptEmail,
+	}
+	require.NoError(t, model.DB.Create(&task).Error)
+
+	require.NoError(t, NewSubscriptionService().MarkInvited(1, sub.Id))
+
+	var storedTask model.BusinessSeatTask
+	require.NoError(t, model.DB.First(&storedTask, task.Id).Error)
+	assert.Equal(t, model.BusinessTaskStatusDone, storedTask.Status)
+
+	require.NoError(t, model.DB.First(&sub, sub.Id).Error)
+	assert.Equal(t, model.BusinessSubscriptionStatusActive, sub.Status)
+}

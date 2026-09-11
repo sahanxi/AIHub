@@ -39,6 +39,7 @@ export async function getBusinessSelf(): Promise<
 export async function createBusinessQuote(body: {
   chatgpt_email: string
   order_type?: string
+  workspace_id?: number
 }): Promise<ApiResponse<BusinessQuote>> {
   const res = await api.post('/api/business-seat/quote', body, {
     skipBusinessError: true,
@@ -173,6 +174,13 @@ export async function enableAdminBusinessSeat(
   return res.data
 }
 
+export async function removeAdminBusinessSeat(
+  seatId: number
+): Promise<ApiResponse<{ success: boolean }>> {
+  const res = await api.post(`/api/business-seat/admin/seats/${seatId}/remove`)
+  return res.data
+}
+
 export async function getAdminBusinessTasks(): Promise<
   ApiResponse<BusinessSeatTask[]>
 > {
@@ -209,17 +217,21 @@ export async function getAdminBusinessOrder(orderId: number): Promise<
   return res.data
 }
 
-export async function getAdminBusinessPricing(): Promise<
+export async function getAdminBusinessPricing(workspaceId?: number): Promise<
   ApiResponse<{
     versions: BusinessPriceVersion[]
     current: BusinessPriceVersion | null
   }>
 > {
-  const res = await api.get('/api/business-seat/admin/pricing')
+  const res = await api.get('/api/business-seat/admin/pricing', {
+    params:
+      workspaceId != null ? { workspace_id: workspaceId } : undefined,
+  })
   return res.data
 }
 
 export async function createAdminBusinessPrice(body: {
+  workspace_id?: number
   price_amount: string
   currency: string
   billing_cadence: string

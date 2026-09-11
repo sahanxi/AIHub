@@ -170,6 +170,7 @@ type BusinessProduct struct {
 type BusinessPriceVersion struct {
 	Id             int             `json:"id"`
 	ProductId      int             `json:"product_id" gorm:"index;not null"`
+	WorkspaceId    int             `json:"workspace_id" gorm:"index;not null;default:0"`
 	PriceAmount    decimal.Decimal `json:"price_amount" gorm:"type:decimal(20,6);not null"`
 	Currency       string          `json:"currency" gorm:"type:varchar(8);not null"`
 	BillingCadence string          `json:"billing_cadence" gorm:"type:varchar(16);not null"`
@@ -477,15 +478,16 @@ func ListBusinessProducts() ([]BusinessProduct, error) {
 	return list, err
 }
 
-func effectiveBusinessPriceVersionQuery(db *gorm.DB, productId int, at int64) *gorm.DB {
-	return db.Where("product_id = ? AND enabled = ? AND effective_from <= ?", productId, true, at).
+func effectiveBusinessPriceVersionQuery(db *gorm.DB, productId, workspaceId int, at int64) *gorm.DB {
+	return db.Model(&BusinessPriceVersion{}).
+		Where("product_id = ? AND workspace_id = ? AND enabled = ? AND effective_from <= ?", productId, workspaceId, true, at).
 		Where("effective_to IS NULL OR effective_to > ?", at).
 		Order("effective_from desc, id desc")
 }
 
-func GetEffectiveBusinessPriceVersion(productId int, at int64) (*BusinessPriceVersion, error) {
+func lookupEffectiveBusinessPriceVersion(db *gorm.DB, productId, workspaceId int, at int64) (*BusinessPriceVersion, error) {
 	var pv BusinessPriceVersion
-	err := effectiveBusinessPriceVersionQuery(DB, productId, at).First(&pv).Error
+	err := effectiveBusinessPriceVersionQuery(db, productId, workspaceId, at).First(&pv).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrBusinessPriceVersionNotFound
@@ -495,21 +497,35 @@ func GetEffectiveBusinessPriceVersion(productId int, at int64) (*BusinessPriceVe
 	return &pv, nil
 }
 
-func GetEffectiveBusinessPriceVersionTx(tx *gorm.DB, productId int, at int64) (*BusinessPriceVersion, error) {
-	var pv BusinessPriceVersion
-	err := effectiveBusinessPriceVersionQuery(tx, productId, at).First(&pv).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrBusinessPriceVersionNotFound
+func GetEffectiveBusinessPriceVersion(productId, workspaceId int, at int64) (*BusinessPriceVersion, error) {
+	if workspaceId > 0 {
+		if pv, err := lookupEffectiveBusinessPriceVersion(DB, productId, workspaceId, at); err == nil {
+			return pv, nil
+		} else if !errors.Is(err, ErrBusinessPriceVersionNotFound) {
+			return nil, err
 		}
-		return nil, err
 	}
-	return &pv, nil
+	return lookupEffectiveBusinessPriceVersion(DB, productId, 0, at)
 }
 
-func ListBusinessPriceVersions(productId int) ([]BusinessPriceVersion, error) {
+func GetEffectiveBusinessPriceVersionTx(tx *gorm.DB, productId, workspaceId int, at int64) (*BusinessPriceVersion, error) {
+	if workspaceId > 0 {
+		if pv, err := lookupEffectiveBusinessPriceVersion(tx, productId, workspaceId, at); err == nil {
+			return pv, nil
+		} else if !errors.Is(err, ErrBusinessPriceVersionNotFound) {
+			return nil, err
+		}
+	}
+	return lookupEffectiveBusinessPriceVersion(tx, productId, 0, at)
+}
+
+func ListBusinessPriceVersions(productId, workspaceId int) ([]BusinessPriceVersion, error) {
 	var list []BusinessPriceVersion
-	err := DB.Where("product_id = ?", productId).Order("effective_from desc, id desc").Find(&list).Error
+	query := DB.Where("product_id = ?", productId)
+	if workspaceId >= 0 {
+		query = query.Where("workspace_id = ?", workspaceId)
+	}
+	err := query.Order("effective_from desc, id desc").Find(&list).Error
 	return list, err
 }
 
@@ -517,7 +533,7 @@ func CreateBusinessPriceVersion(pv *BusinessPriceVersion) error {
 	return DB.Transaction(func(tx *gorm.DB) error {
 		now := common.GetTimestamp()
 		var current BusinessPriceVersion
-		err := tx.Where("product_id = ? AND enabled = ? AND effective_to IS NULL", pv.ProductId, true).
+		err := tx.Where("product_id = ? AND workspace_id = ? AND enabled = ? AND effective_to IS NULL", pv.ProductId, pv.WorkspaceId, true).
 			Order("effective_from desc, id desc").
 			First(&current).Error
 		if err == nil {

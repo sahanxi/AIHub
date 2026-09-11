@@ -6,9 +6,14 @@ import { ConfirmDialog } from '@/components/confirm-dialog'
 import { CopyButton } from '@/components/copy-button'
 import { SectionPageLayout } from '@/components/layout'
 import { LoadingState } from '@/components/loading-state'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -60,8 +65,16 @@ import {
   getAdminBusinessWorkspaces,
   isApiSuccess,
   markAdminBusinessInvited,
+  removeAdminBusinessSeat,
   updateAdminBusinessWorkspace,
 } from '../api'
+import {
+  BusinessSeatStatusBadge,
+  BusinessSubscriptionStatusBadge,
+  BusinessTaskStatusBadge,
+  BusinessTaskTypeBadge,
+  ImportantTimestamp,
+} from '../status-display'
 import type {
   BusinessPriceVersion,
   BusinessSeat,
@@ -76,15 +89,17 @@ function formatTs(ts?: number | null) {
   return dayjs.unix(ts).format('YYYY-MM-DD HH:mm')
 }
 
-function StatusBadge(props: { status: string }) {
-  const variant =
-    props.status === 'ACTIVE' || props.status === 'COMPLETED'
-      ? 'default'
-      : props.status === 'PENDING' || props.status.includes('PENDING')
-        ? 'secondary'
-        : 'outline'
-  return <Badge variant={variant}>{props.status}</Badge>
+function maskEmail(email: string) {
+  const at = email.indexOf('@')
+  if (at <= 1) return email
+  return `${email.slice(0, 1)}***${email.slice(at)}`
 }
+
+type OverviewDetailKey =
+  | 'active_users'
+  | 'available_seats'
+  | 'pending_activation'
+  | 'cash_collected'
 
 export function ChatGPTBusinessAdminPage() {
   const { t } = useTranslation()
@@ -102,6 +117,13 @@ export function ChatGPTBusinessAdminPage() {
   const [currency, setCurrency] = useState('CNY')
   const [billingCadence, setBillingCadence] = useState('MONTHLY')
   const [displayUnit, setDisplayUnit] = useState('/ month')
+  const [pricingWorkspaceId, setPricingWorkspaceId] = useState<number | null>(null)
+  const [overviewDetail, setOverviewDetail] = useState<OverviewDetailKey | null>(
+    null,
+  )
+  const [removeSeatTarget, setRemoveSeatTarget] = useState<BusinessSeat | null>(
+    null,
+  )
 
   const [createOpen, setCreateOpen] = useState(false)
   const [wsName, setWsName] = useState('')
@@ -133,13 +155,17 @@ export function ChatGPTBusinessAdminPage() {
     [workspaces, selectedWorkspaceId],
   )
 
+  const loadPricing = useCallback(async (workspaceId: number | null) => {
+    const pricingRes = await getAdminBusinessPricing(workspaceId ?? undefined)
+    if (isApiSuccess(pricingRes)) setCurrentPrice(pricingRes.data.current)
+  }, [])
+
   const loadCore = useCallback(async () => {
-    const [overviewRes, wsRes, subsRes, ordersRes, pricingRes, tasksRes] = await Promise.all([
+    const [overviewRes, wsRes, subsRes, ordersRes, tasksRes] = await Promise.all([
       getAdminBusinessOverview(),
       getAdminBusinessWorkspaces(),
       getAdminBusinessSubscriptions(),
       getAdminBusinessOrders(),
-      getAdminBusinessPricing(),
       getAdminBusinessTasks(),
     ])
     if (isApiSuccess(overviewRes)) setOverview(overviewRes.data)
@@ -148,12 +174,14 @@ export function ChatGPTBusinessAdminPage() {
       if (wsRes.data.length > 0 && selectedWorkspaceId == null) {
         setSelectedWorkspaceId(wsRes.data[0].id)
       }
+      if (wsRes.data.length > 0 && pricingWorkspaceId == null) {
+        setPricingWorkspaceId(wsRes.data[0].id)
+      }
     }
     if (isApiSuccess(subsRes)) setSubscriptions(subsRes.data.items)
     if (isApiSuccess(ordersRes)) setOrders(ordersRes.data.items)
-    if (isApiSuccess(pricingRes)) setCurrentPrice(pricingRes.data.current)
     if (isApiSuccess(tasksRes)) setTasks(tasksRes.data)
-  }, [selectedWorkspaceId])
+  }, [pricingWorkspaceId, selectedWorkspaceId])
 
   const loadSeats = useCallback(async (workspaceId: number) => {
     const res = await getAdminBusinessSeats(workspaceId)
@@ -179,13 +207,24 @@ export function ChatGPTBusinessAdminPage() {
     }
   }, [selectedWorkspace?.id, loadSeats])
 
+  useEffect(() => {
+    if (pricingWorkspaceId != null) {
+      void loadPricing(pricingWorkspaceId)
+    }
+  }, [loadPricing, pricingWorkspaceId])
+
   const refresh = async () => {
     await loadCore()
     if (selectedWorkspace?.id) await loadSeats(selectedWorkspace.id)
   }
 
   const savePrice = async () => {
+    if (pricingWorkspaceId == null) {
+      toast.error(t('Select a workspace for pricing'))
+      return
+    }
     const res = await createAdminBusinessPrice({
+      workspace_id: pricingWorkspaceId,
       price_amount: priceAmount,
       currency,
       billing_cadence: billingCadence,
@@ -324,6 +363,58 @@ export function ChatGPTBusinessAdminPage() {
 
   const pool = overview?.pool as { available_seats?: number } | undefined
 
+  const activeSubscriptions = subscriptions.filter((sub) => sub.status === 'ACTIVE')
+  const pendingActivationSubscriptions = subscriptions.filter((sub) =>
+    ['PENDING_ACTIVATION', 'INVITED', 'PENDING_CAPACITY'].includes(sub.status),
+  )
+  const availableSeats = seats.filter((seat) => seat.status === 'AVAILABLE')
+  const paidOrders = orders.filter((order) => order.status === 'PAID')
+
+  const overviewDetailTitle: Record<OverviewDetailKey, string> = {
+    active_users: t('Active Users'),
+    available_seats: t('Available Seats'),
+    pending_activation: t('Pending Activation'),
+    cash_collected: t('Cash Collected'),
+  }
+
+  const overviewCards: Array<{
+    key: OverviewDetailKey
+    label: string
+    value: string
+  }> = [
+    {
+      key: 'active_users',
+      label: t('Active Users'),
+      value: String(overview?.active_users ?? activeSubscriptions.length),
+    },
+    {
+      key: 'available_seats',
+      label: t('Available Seats'),
+      value: String(pool?.available_seats ?? availableSeats.length),
+    },
+    {
+      key: 'pending_activation',
+      label: t('Pending Activation'),
+      value: String(
+        overview?.pending_activation ?? pendingActivationSubscriptions.length,
+      ),
+    },
+    {
+      key: 'cash_collected',
+      label: t('Cash Collected'),
+      value: String(overview?.cash_collected ?? 0),
+    },
+  ]
+
+  const confirmRemoveSeat = async () => {
+    if (!removeSeatTarget) return
+    await runAction(
+      () => removeAdminBusinessSeat(removeSeatTarget.id),
+      'Seat removal requested',
+    )
+    setRemoveSeatTarget(null)
+  }
+
   return (
     <SectionPageLayout>
       <SectionPageLayout.Title>
@@ -345,30 +436,20 @@ export function ChatGPTBusinessAdminPage() {
 
           <TabsContent value="overview" className="mt-4">
             <div className="grid gap-4 md:grid-cols-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">{t('Active Users')}</CardTitle>
-                </CardHeader>
-                <CardContent>{String(overview?.active_users ?? 0)}</CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">{t('Available Seats')}</CardTitle>
-                </CardHeader>
-                <CardContent>{String(pool?.available_seats ?? 0)}</CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">{t('Pending Activation')}</CardTitle>
-                </CardHeader>
-                <CardContent>{String(overview?.pending_activation ?? 0)}</CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">{t('Cash Collected')}</CardTitle>
-                </CardHeader>
-                <CardContent>{String(overview?.cash_collected ?? 0)}</CardContent>
-              </Card>
+              {overviewCards.map((card) => (
+                <Card
+                  key={card.key}
+                  className="cursor-pointer transition-colors hover:border-primary/40 hover:bg-muted/20"
+                  onClick={() => setOverviewDetail(card.key)}
+                >
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">{card.label}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-2xl font-semibold tabular-nums">
+                    {card.value}
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </TabsContent>
 
@@ -393,7 +474,9 @@ export function ChatGPTBusinessAdminPage() {
                         {formatWorkspaceSubscriptionSummaryFromWorkspace(ws, t, formatTs)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {t('Status')}: {ws.status} · {t('Active Subscriptions')}: {ws.active_subscriptions ?? 0}
+                        {t('Status')}:{' '}
+                        <BusinessSeatStatusBadge status={ws.status} t={t} /> ·{' '}
+                        {t('Active Subscriptions')}: {ws.active_subscriptions ?? 0}
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -414,7 +497,12 @@ export function ChatGPTBusinessAdminPage() {
                   </CardHeader>
                   <CardContent className="grid gap-2 text-sm md:grid-cols-3">
                     <div>
-                      {t('Billing Anchor')}: {formatTs(ws.billing_anchor_at)}
+                      {t('Billing Anchor')}:{' '}
+                      <ImportantTimestamp
+                        ts={ws.billing_anchor_at}
+                        format={formatTs}
+                        emphasis="warning"
+                      />
                     </div>
                     <div>
                       {t('Timezone')}: {ws.billing_timezone}
@@ -476,41 +564,61 @@ export function ChatGPTBusinessAdminPage() {
                     <tr key={seat.id} className="border-t">
                       <td className="p-2">#{String(seat.seat_number).padStart(3, '0')}</td>
                       <td className="p-2">
-                        <StatusBadge status={seat.status} />
+                        <BusinessSeatStatusBadge status={seat.status} t={t} />
                       </td>
                       <td className="p-2">{seat.user_id ?? '—'}</td>
                       <td className="p-2">{seat.assigned_email || '—'}</td>
                       <td className="p-2">{seat.subscription_id ?? '—'}</td>
-                      <td className="p-2">{formatTs(seat.activated_at)}</td>
                       <td className="p-2">
-                        {seat.status === 'AVAILABLE' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() =>
-                              void runAction(
-                                () => disableAdminBusinessSeat(seat.id),
-                                'Seat disabled',
-                              )
-                            }
-                          >
-                            {t('Disable')}
-                          </Button>
-                        )}
-                        {seat.status === 'DISABLED' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() =>
-                              void runAction(
-                                () => enableAdminBusinessSeat(seat.id),
-                                'Seat enabled',
-                              )
-                            }
-                          >
-                            {t('Enable')}
-                          </Button>
-                        )}
+                        <ImportantTimestamp
+                          ts={seat.activated_at}
+                          format={formatTs}
+                          emphasis={seat.activated_at ? 'default' : undefined}
+                        />
+                      </td>
+                      <td className="p-2">
+                        <div className="flex flex-wrap gap-2">
+                          {seat.status === 'AVAILABLE' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                void runAction(
+                                  () => disableAdminBusinessSeat(seat.id),
+                                  'Seat disabled',
+                                )
+                              }
+                            >
+                              {t('Disable')}
+                            </Button>
+                          )}
+                          {seat.status === 'DISABLED' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                void runAction(
+                                  () => enableAdminBusinessSeat(seat.id),
+                                  'Seat enabled',
+                                )
+                              }
+                            >
+                              {t('Enable')}
+                            </Button>
+                          )}
+                          {seat.subscription_id &&
+                            ['ACTIVE', 'INVITED', 'RESERVED', 'PENDING_RELEASE'].includes(
+                              seat.status,
+                            ) && (
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => setRemoveSeatTarget(seat)}
+                              >
+                                {t('Remove')}
+                              </Button>
+                            )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -528,14 +636,20 @@ export function ChatGPTBusinessAdminPage() {
                   <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
                     <div className="space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <StatusBadge status={task.task_type} />
-                        <StatusBadge status={task.status} />
+                        <BusinessTaskTypeBadge taskType={task.task_type} t={t} />
+                        <BusinessTaskStatusBadge status={task.status} t={t} />
                       </div>
                       <div>
                         {task.workspace_name} · {t('Seat Number')} #{task.seat_number || '—'}
                       </div>
                       <div>{task.chatgpt_email || '—'}</div>
-                      <div className="text-muted-foreground">{formatTs(task.created_at)}</div>
+                      <div>
+                        <ImportantTimestamp
+                          ts={task.created_at}
+                          format={formatTs}
+                          emphasis="warning"
+                        />
+                      </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {task.chatgpt_email && (
@@ -616,9 +730,16 @@ export function ChatGPTBusinessAdminPage() {
                   >
                     <div>
                       <div>{sub.chatgpt_email}</div>
-                      <div className="text-muted-foreground">
-                        <StatusBadge status={sub.status} /> · {t('Paid Through')}:{' '}
-                        {formatTs(sub.prepaid_through)}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <BusinessSubscriptionStatusBadge status={sub.status} t={t} />
+                        <span className="text-muted-foreground">
+                          {t('Paid Through')}:{' '}
+                          <ImportantTimestamp
+                            ts={sub.prepaid_through}
+                            format={formatTs}
+                            emphasis="warning"
+                          />
+                        </span>
                       </div>
                       {order && (
                         <div className="text-muted-foreground">
@@ -688,6 +809,28 @@ export function ChatGPTBusinessAdminPage() {
                 <CardTitle>{t('Pricing')}</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2 md:col-span-2">
+                  <Label>{t('Workspace')}</Label>
+                  <Select
+                    value={pricingWorkspaceId != null ? String(pricingWorkspaceId) : undefined}
+                    onValueChange={(value) =>
+                      value && setPricingWorkspaceId(Number(value))
+                    }
+                  >
+                    <SelectTrigger className="w-full max-w-md">
+                      <SelectValue placeholder={t('Select workspace')} />
+                    </SelectTrigger>
+                    <SelectContent alignItemWithTrigger={false}>
+                      <SelectGroup>
+                        {workspaces.map((ws) => (
+                          <SelectItem key={ws.id} value={String(ws.id)}>
+                            {ws.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
                 {currentPrice ? (
                   <p className="text-sm text-muted-foreground md:col-span-2">
                     {t('Current Price')}: {currentPrice.price_amount} {currentPrice.currency}{' '}
@@ -818,6 +961,136 @@ export function ChatGPTBusinessAdminPage() {
             <WorkspaceRenewalLeadDaysField t={t} value={editRenewalLead} onChange={setEditRenewalLead} />
           </div>
         </ConfirmDialog>
+
+        <Dialog
+          open={overviewDetail != null}
+          onOpenChange={(open) => {
+            if (!open) setOverviewDetail(null)
+          }}
+        >
+          <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>
+                {overviewDetail ? overviewDetailTitle[overviewDetail] : ''}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 text-sm">
+              {overviewDetail === 'active_users' &&
+                (activeSubscriptions.length === 0 ? (
+                  <p className="text-muted-foreground">{t('No subscriptions yet')}</p>
+                ) : (
+                  activeSubscriptions.map((sub) => (
+                    <div key={sub.id} className="rounded-lg border p-3">
+                      <div>{sub.chatgpt_email}</div>
+                      <div className="mt-1 flex flex-wrap items-center gap-2">
+                        <BusinessSubscriptionStatusBadge status={sub.status} t={t} />
+                        <span className="text-muted-foreground">
+                          {t('Activated At')}:{' '}
+                          <ImportantTimestamp
+                            ts={sub.activated_at}
+                            format={formatTs}
+                          />
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ))}
+              {overviewDetail === 'available_seats' &&
+                (workspaces.every((ws) => (ws.pool?.available ?? 0) === 0) &&
+                availableSeats.length === 0 ? (
+                  <p className="text-muted-foreground">{t('No available seats')}</p>
+                ) : (
+                  <>
+                    {workspaces
+                      .filter((ws) => (ws.pool?.available ?? 0) > 0)
+                      .map((ws) => (
+                        <div key={ws.id} className="rounded-lg border p-3">
+                          <div className="font-medium">{ws.name}</div>
+                          <div className="mt-1 text-muted-foreground">
+                            {t('Available Seats')}: {ws.pool?.available ?? 0}
+                          </div>
+                        </div>
+                      ))}
+                    {availableSeats.map((seat) => (
+                      <div key={seat.id} className="rounded-lg border p-3">
+                        <div>
+                          {t('Seat Number')} #{String(seat.seat_number).padStart(3, '0')}
+                        </div>
+                        <div className="mt-1">
+                          <BusinessSeatStatusBadge status={seat.status} t={t} />
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                ))}
+              {overviewDetail === 'pending_activation' &&
+                (pendingActivationSubscriptions.length === 0 && tasks.length === 0 ? (
+                  <p className="text-muted-foreground">{t('No pending tasks')}</p>
+                ) : (
+                  <>
+                    {pendingActivationSubscriptions.map((sub) => (
+                      <div key={sub.id} className="rounded-lg border p-3">
+                        <div>{sub.chatgpt_email}</div>
+                        <div className="mt-1 flex flex-wrap items-center gap-2">
+                          <BusinessSubscriptionStatusBadge status={sub.status} t={t} />
+                          <span className="text-muted-foreground">
+                            {t('Created At')}:{' '}
+                            <ImportantTimestamp ts={sub.created_at} format={formatTs} />
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    {tasks.map((task) => (
+                      <div key={task.id} className="rounded-lg border p-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <BusinessTaskTypeBadge taskType={task.task_type} t={t} />
+                          <BusinessTaskStatusBadge status={task.status} t={t} />
+                        </div>
+                        <div className="mt-1">{task.chatgpt_email || '—'}</div>
+                        <div className="mt-1 text-muted-foreground">
+                          {task.workspace_name} · {t('Seat Number')} #
+                          {task.seat_number || '—'}
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                ))}
+              {overviewDetail === 'cash_collected' &&
+                (paidOrders.length === 0 ? (
+                  <p className="text-muted-foreground">{t('No paid orders yet')}</p>
+                ) : (
+                  paidOrders.map((order) => (
+                    <div key={order.id} className="rounded-lg border p-3">
+                      <div>
+                        {order.total_amount} {order.currency}
+                      </div>
+                      <div className="mt-1 text-muted-foreground">
+                        {maskEmail(order.chatgpt_email ?? '')} · {order.order_no}
+                      </div>
+                      <div className="mt-1">
+                        {t('Created At')}:{' '}
+                        <ImportantTimestamp ts={order.created_at} format={formatTs} />
+                      </div>
+                    </div>
+                  ))
+                ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <ConfirmDialog
+          open={removeSeatTarget != null}
+          onOpenChange={(open) => {
+            if (!open) setRemoveSeatTarget(null)
+          }}
+          title={t('Remove seat assignment?')}
+          desc={t(
+            'This starts removal for the assigned member and releases the seat after confirmation.',
+          )}
+          confirmText={t('Remove')}
+          destructive
+          handleConfirm={() => void confirmRemoveSeat()}
+        />
 
         <ConfirmDialog
           open={addSeatOpen}

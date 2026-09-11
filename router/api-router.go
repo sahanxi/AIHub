@@ -224,6 +224,7 @@ func SetApiRouter(router *gin.Engine) {
 			businessSeatAdminRoute.GET("/seats", controller.AdminListBusinessSeats)
 			businessSeatAdminRoute.POST("/seats/:id/disable", controller.AdminDisableBusinessSeat)
 			businessSeatAdminRoute.POST("/seats/:id/enable", controller.AdminEnableBusinessSeat)
+			businessSeatAdminRoute.POST("/seats/:id/remove", controller.AdminRemoveBusinessSeat)
 			businessSeatAdminRoute.GET("/tasks", controller.AdminListBusinessTasks)
 			businessSeatAdminRoute.POST("/subscriptions/:id/invited", controller.AdminMarkBusinessInvited)
 			businessSeatAdminRoute.POST("/subscriptions/:id/activate", controller.AdminActivateBusinessSubscription)

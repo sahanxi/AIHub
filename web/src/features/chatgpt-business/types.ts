@@ -7,6 +7,7 @@ export interface ApiResponse<T> {
 export interface BusinessPriceVersion {
   id: number
   product_id: number
+  workspace_id?: number
   price_amount: string
   currency: string
   billing_cadence: string
@@ -39,11 +40,19 @@ export interface BusinessWorkspace {
   active_subscriptions?: number
 }
 
+export interface BusinessCatalogWorkspace {
+  workspace: BusinessWorkspace
+  price: BusinessPriceVersion | null
+  pricing_required: boolean
+  currently_available: boolean
+}
+
 export interface BusinessCatalog {
   enabled: boolean
   product: BusinessProduct | null
   price: BusinessPriceVersion | null
   workspace: BusinessWorkspace | null
+  workspaces?: BusinessCatalogWorkspace[]
   pricing_required: boolean
   currently_available: boolean
 }
@@ -87,6 +96,7 @@ export interface BusinessSubscription {
   chatgpt_email: string
   prepaid_through: number
   activated_at?: number | null
+  created_at?: number
   workspace_id: number
   seat_id?: number | null
   last_order_id?: number | null

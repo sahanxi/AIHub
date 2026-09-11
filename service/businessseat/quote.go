@@ -77,7 +77,7 @@ func (s *QuoteService) CreateQuote(input QuoteInput) (*model.BusinessQuote, erro
 	}
 
 	atUnix := input.QuoteAt.Unix()
-	pv, err := model.GetEffectiveBusinessPriceVersion(product.Id, atUnix)
+	pv, err := model.GetEffectiveBusinessPriceVersion(product.Id, ws.Id, atUnix)
 	if err != nil {
 		return nil, model.ErrBusinessPricingNotConfigured
 	}
@@ -232,7 +232,7 @@ func (s *QuoteService) validateRenewalQuoteRequest(sub *model.BusinessSeatSubscr
 		return errors.New("subscription not renewable in current status")
 	}
 	atUnix := at.Unix()
-	pv, err := model.GetEffectiveBusinessPriceVersion(sub.ProductId, atUnix)
+	pv, err := model.GetEffectiveBusinessPriceVersion(sub.ProductId, sub.WorkspaceId, atUnix)
 	if err != nil {
 		return model.ErrBusinessPricingNotConfigured
 	}
@@ -262,7 +262,7 @@ func (s *QuoteService) validateRenewalQuoteRequest(sub *model.BusinessSeatSubscr
 
 func (s *QuoteService) createRenewalQuoteInTx(tx *gorm.DB, userId int, sub *model.BusinessSeatSubscription, ws *model.BusinessWorkspace, at time.Time) (*model.BusinessQuote, error) {
 	atUnix := at.Unix()
-	pv, err := model.GetEffectiveBusinessPriceVersionTx(tx, sub.ProductId, atUnix)
+	pv, err := model.GetEffectiveBusinessPriceVersionTx(tx, sub.ProductId, sub.WorkspaceId, atUnix)
 	if err != nil {
 		return nil, model.ErrBusinessPricingNotConfigured
 	}
