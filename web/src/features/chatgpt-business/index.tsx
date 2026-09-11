@@ -454,6 +454,8 @@ export function ChatGPTBusinessPage() {
   const selectedCatalogWorkspace = catalogWorkspaces.find(
     (row) => row.workspace.id === selectedWorkspaceId,
   )
+  const selectedCatalogWorkspaceName =
+    selectedCatalogWorkspace?.workspace.name ?? null
   const displayWorkspace =
     workspace ??
     selectedCatalogWorkspace?.workspace ??
@@ -572,7 +574,9 @@ export function ChatGPTBusinessPage() {
                       }
                     >
                       <SelectTrigger className='w-full'>
-                        <SelectValue placeholder={t('Select workspace')} />
+                        <span className='truncate'>
+                          {selectedCatalogWorkspaceName ?? t('Select workspace')}
+                        </span>
                       </SelectTrigger>
                       <SelectContent alignItemWithTrigger={false}>
                         <SelectGroup>

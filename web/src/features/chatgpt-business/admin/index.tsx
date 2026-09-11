@@ -8,12 +8,6 @@ import { SectionPageLayout } from '@/components/layout'
 import { LoadingState } from '@/components/loading-state'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -121,6 +115,9 @@ export function ChatGPTBusinessAdminPage() {
   const [overviewDetail, setOverviewDetail] = useState<OverviewDetailKey | null>(
     null,
   )
+  const [overviewAvailableSeats, setOverviewAvailableSeats] = useState<
+    BusinessSeat[]
+  >([])
   const [removeSeatTarget, setRemoveSeatTarget] = useState<BusinessSeat | null>(
     null,
   )
@@ -155,6 +152,16 @@ export function ChatGPTBusinessAdminPage() {
     [workspaces, selectedWorkspaceId],
   )
 
+  const pricingWorkspace = useMemo(
+    () => workspaces.find((w) => w.id === pricingWorkspaceId) ?? null,
+    [workspaces, pricingWorkspaceId],
+  )
+
+  const workspaceNameById = useMemo(
+    () => new Map(workspaces.map((ws) => [ws.id, ws.name])),
+    [workspaces],
+  )
+
   const loadPricing = useCallback(async (workspaceId: number | null) => {
     const pricingRes = await getAdminBusinessPricing(workspaceId ?? undefined)
     if (isApiSuccess(pricingRes)) setCurrentPrice(pricingRes.data.current)
@@ -171,17 +178,15 @@ export function ChatGPTBusinessAdminPage() {
     if (isApiSuccess(overviewRes)) setOverview(overviewRes.data)
     if (isApiSuccess(wsRes)) {
       setWorkspaces(wsRes.data)
-      if (wsRes.data.length > 0 && selectedWorkspaceId == null) {
-        setSelectedWorkspaceId(wsRes.data[0].id)
-      }
-      if (wsRes.data.length > 0 && pricingWorkspaceId == null) {
-        setPricingWorkspaceId(wsRes.data[0].id)
+      if (wsRes.data.length > 0) {
+        setSelectedWorkspaceId((prev) => prev ?? wsRes.data[0].id)
+        setPricingWorkspaceId((prev) => prev ?? wsRes.data[0].id)
       }
     }
     if (isApiSuccess(subsRes)) setSubscriptions(subsRes.data.items)
     if (isApiSuccess(ordersRes)) setOrders(ordersRes.data.items)
     if (isApiSuccess(tasksRes)) setTasks(tasksRes.data)
-  }, [pricingWorkspaceId, selectedWorkspaceId])
+  }, [])
 
   const loadSeats = useCallback(async (workspaceId: number) => {
     const res = await getAdminBusinessSeats(workspaceId)
@@ -212,6 +217,33 @@ export function ChatGPTBusinessAdminPage() {
       void loadPricing(pricingWorkspaceId)
     }
   }, [loadPricing, pricingWorkspaceId])
+
+  useEffect(() => {
+    if (overviewDetail !== 'available_seats' || workspaces.length === 0) {
+      if (overviewDetail !== 'available_seats') {
+        setOverviewAvailableSeats([])
+      }
+      return
+    }
+    let cancelled = false
+    void (async () => {
+      const merged: BusinessSeat[] = []
+      for (const ws of workspaces) {
+        const res = await getAdminBusinessSeats(ws.id)
+        if (isApiSuccess(res)) {
+          merged.push(
+            ...res.data.seats.filter((seat) => seat.status === 'AVAILABLE'),
+          )
+        }
+      }
+      if (!cancelled) {
+        setOverviewAvailableSeats(merged)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [overviewDetail, workspaces])
 
   const refresh = async () => {
     await loadCore()
@@ -434,23 +466,203 @@ export function ChatGPTBusinessAdminPage() {
             <TabsTrigger value="pricing">{t('Pricing')}</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="mt-4">
-            <div className="grid gap-4 md:grid-cols-4">
-              {overviewCards.map((card) => (
-                <Card
-                  key={card.key}
-                  className="cursor-pointer transition-colors hover:border-primary/40 hover:bg-muted/20"
-                  onClick={() => setOverviewDetail(card.key)}
-                >
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">{card.label}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-2xl font-semibold tabular-nums">
-                    {card.value}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+          <TabsContent value="overview" className="mt-4 space-y-4">
+            {overviewDetail == null ? (
+              <div className="grid gap-4 md:grid-cols-4">
+                {overviewCards.map((card) => (
+                  <Card
+                    key={card.key}
+                    className="cursor-pointer transition-colors hover:border-primary/40 hover:bg-muted/20"
+                    onClick={() => setOverviewDetail(card.key)}
+                  >
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium">{card.label}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-2xl font-semibold tabular-nums">
+                      {card.value}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setOverviewDetail(null)}
+                  >
+                    {t('Back')}
+                  </Button>
+                  <h2 className="text-lg font-semibold">
+                    {overviewDetailTitle[overviewDetail]}
+                  </h2>
+                </div>
+                {overviewDetail === 'active_users' && (
+                  <div className="overflow-x-auto rounded-lg border">
+                    <table className="w-full min-w-[640px] text-sm">
+                      <thead className="bg-muted/50 text-left">
+                        <tr>
+                          <th className="p-2">{t('ChatGPT Email')}</th>
+                          <th className="p-2">{t('Status')}</th>
+                          <th className="p-2">{t('Activated At')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {activeSubscriptions.length === 0 ? (
+                          <tr>
+                            <td colSpan={3} className="text-muted-foreground p-4">
+                              {t('No subscriptions yet')}
+                            </td>
+                          </tr>
+                        ) : (
+                          activeSubscriptions.map((sub) => (
+                            <tr key={sub.id} className="border-t">
+                              <td className="p-2">{sub.chatgpt_email}</td>
+                              <td className="p-2">
+                                <BusinessSubscriptionStatusBadge status={sub.status} t={t} />
+                              </td>
+                              <td className="p-2">
+                                <ImportantTimestamp ts={sub.activated_at} format={formatTs} />
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {overviewDetail === 'available_seats' && (
+                  <div className="overflow-x-auto rounded-lg border">
+                    <table className="w-full min-w-[640px] text-sm">
+                      <thead className="bg-muted/50 text-left">
+                        <tr>
+                          <th className="p-2">{t('Workspace')}</th>
+                          <th className="p-2">{t('Seat Number')}</th>
+                          <th className="p-2">{t('Status')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {overviewAvailableSeats.length === 0 ? (
+                          <tr>
+                            <td colSpan={3} className="text-muted-foreground p-4">
+                              {t('No available seats')}
+                            </td>
+                          </tr>
+                        ) : (
+                          overviewAvailableSeats.map((seat) => (
+                            <tr key={seat.id} className="border-t">
+                              <td className="p-2">
+                                {workspaceNameById.get(seat.workspace_id) ?? '—'}
+                              </td>
+                              <td className="p-2">
+                                #{String(seat.seat_number).padStart(3, '0')}
+                              </td>
+                              <td className="p-2">
+                                <BusinessSeatStatusBadge status={seat.status} t={t} />
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {overviewDetail === 'pending_activation' && (
+                  <div className="overflow-x-auto rounded-lg border">
+                    <table className="w-full min-w-[720px] text-sm">
+                      <thead className="bg-muted/50 text-left">
+                        <tr>
+                          <th className="p-2">{t('ChatGPT Email')}</th>
+                          <th className="p-2">{t('Status')}</th>
+                          <th className="p-2">{t('Created At')}</th>
+                          <th className="p-2">{t('Tasks')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pendingActivationSubscriptions.length === 0 &&
+                        tasks.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="text-muted-foreground p-4">
+                              {t('No pending tasks')}
+                            </td>
+                          </tr>
+                        ) : (
+                          <>
+                            {pendingActivationSubscriptions.map((sub) => (
+                              <tr key={`sub-${sub.id}`} className="border-t">
+                                <td className="p-2">{sub.chatgpt_email}</td>
+                                <td className="p-2">
+                                  <BusinessSubscriptionStatusBadge status={sub.status} t={t} />
+                                </td>
+                                <td className="p-2">
+                                  <ImportantTimestamp ts={sub.created_at} format={formatTs} />
+                                </td>
+                                <td className="p-2 text-muted-foreground">—</td>
+                              </tr>
+                            ))}
+                            {tasks.map((task) => (
+                              <tr key={`task-${task.id}`} className="border-t">
+                                <td className="p-2">{task.chatgpt_email || '—'}</td>
+                                <td className="p-2">
+                                  <div className="flex flex-wrap gap-1">
+                                    <BusinessTaskTypeBadge taskType={task.task_type} t={t} />
+                                    <BusinessTaskStatusBadge status={task.status} t={t} />
+                                  </div>
+                                </td>
+                                <td className="p-2">
+                                  <ImportantTimestamp ts={task.created_at} format={formatTs} />
+                                </td>
+                                <td className="p-2 text-muted-foreground">
+                                  {task.workspace_name} · {t('Seat Number')} #
+                                  {task.seat_number || '—'}
+                                </td>
+                              </tr>
+                            ))}
+                          </>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {overviewDetail === 'cash_collected' && (
+                  <div className="overflow-x-auto rounded-lg border">
+                    <table className="w-full min-w-[640px] text-sm">
+                      <thead className="bg-muted/50 text-left">
+                        <tr>
+                          <th className="p-2">{t('Order')}</th>
+                          <th className="p-2">{t('ChatGPT Email')}</th>
+                          <th className="p-2">{t('Amount')}</th>
+                          <th className="p-2">{t('Created At')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paidOrders.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="text-muted-foreground p-4">
+                              {t('No paid orders yet')}
+                            </td>
+                          </tr>
+                        ) : (
+                          paidOrders.map((order) => (
+                            <tr key={order.id} className="border-t">
+                              <td className="p-2">{order.order_no}</td>
+                              <td className="p-2">{maskEmail(order.chatgpt_email ?? '')}</td>
+                              <td className="p-2">
+                                {order.total_amount} {order.currency}
+                              </td>
+                              <td className="p-2">
+                                <ImportantTimestamp ts={order.created_at} format={formatTs} />
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="workspaces" className="mt-4 space-y-4">
@@ -813,12 +1025,16 @@ export function ChatGPTBusinessAdminPage() {
                   <Label>{t('Workspace')}</Label>
                   <Select
                     value={pricingWorkspaceId != null ? String(pricingWorkspaceId) : undefined}
-                    onValueChange={(value) =>
-                      value && setPricingWorkspaceId(Number(value))
-                    }
+                    onValueChange={(value) => {
+                      if (value) {
+                        setPricingWorkspaceId(Number(value))
+                      }
+                    }}
                   >
                     <SelectTrigger className="w-full max-w-md">
-                      <SelectValue placeholder={t('Select workspace')} />
+                      <span className="truncate">
+                        {pricingWorkspace?.name ?? t('Select workspace')}
+                      </span>
                     </SelectTrigger>
                     <SelectContent alignItemWithTrigger={false}>
                       <SelectGroup>
@@ -961,122 +1177,6 @@ export function ChatGPTBusinessAdminPage() {
             <WorkspaceRenewalLeadDaysField t={t} value={editRenewalLead} onChange={setEditRenewalLead} />
           </div>
         </ConfirmDialog>
-
-        <Dialog
-          open={overviewDetail != null}
-          onOpenChange={(open) => {
-            if (!open) setOverviewDetail(null)
-          }}
-        >
-          <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>
-                {overviewDetail ? overviewDetailTitle[overviewDetail] : ''}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3 text-sm">
-              {overviewDetail === 'active_users' &&
-                (activeSubscriptions.length === 0 ? (
-                  <p className="text-muted-foreground">{t('No subscriptions yet')}</p>
-                ) : (
-                  activeSubscriptions.map((sub) => (
-                    <div key={sub.id} className="rounded-lg border p-3">
-                      <div>{sub.chatgpt_email}</div>
-                      <div className="mt-1 flex flex-wrap items-center gap-2">
-                        <BusinessSubscriptionStatusBadge status={sub.status} t={t} />
-                        <span className="text-muted-foreground">
-                          {t('Activated At')}:{' '}
-                          <ImportantTimestamp
-                            ts={sub.activated_at}
-                            format={formatTs}
-                          />
-                        </span>
-                      </div>
-                    </div>
-                  ))
-                ))}
-              {overviewDetail === 'available_seats' &&
-                (workspaces.every((ws) => (ws.pool?.available ?? 0) === 0) &&
-                availableSeats.length === 0 ? (
-                  <p className="text-muted-foreground">{t('No available seats')}</p>
-                ) : (
-                  <>
-                    {workspaces
-                      .filter((ws) => (ws.pool?.available ?? 0) > 0)
-                      .map((ws) => (
-                        <div key={ws.id} className="rounded-lg border p-3">
-                          <div className="font-medium">{ws.name}</div>
-                          <div className="mt-1 text-muted-foreground">
-                            {t('Available Seats')}: {ws.pool?.available ?? 0}
-                          </div>
-                        </div>
-                      ))}
-                    {availableSeats.map((seat) => (
-                      <div key={seat.id} className="rounded-lg border p-3">
-                        <div>
-                          {t('Seat Number')} #{String(seat.seat_number).padStart(3, '0')}
-                        </div>
-                        <div className="mt-1">
-                          <BusinessSeatStatusBadge status={seat.status} t={t} />
-                        </div>
-                      </div>
-                    ))}
-                  </>
-                ))}
-              {overviewDetail === 'pending_activation' &&
-                (pendingActivationSubscriptions.length === 0 && tasks.length === 0 ? (
-                  <p className="text-muted-foreground">{t('No pending tasks')}</p>
-                ) : (
-                  <>
-                    {pendingActivationSubscriptions.map((sub) => (
-                      <div key={sub.id} className="rounded-lg border p-3">
-                        <div>{sub.chatgpt_email}</div>
-                        <div className="mt-1 flex flex-wrap items-center gap-2">
-                          <BusinessSubscriptionStatusBadge status={sub.status} t={t} />
-                          <span className="text-muted-foreground">
-                            {t('Created At')}:{' '}
-                            <ImportantTimestamp ts={sub.created_at} format={formatTs} />
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                    {tasks.map((task) => (
-                      <div key={task.id} className="rounded-lg border p-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <BusinessTaskTypeBadge taskType={task.task_type} t={t} />
-                          <BusinessTaskStatusBadge status={task.status} t={t} />
-                        </div>
-                        <div className="mt-1">{task.chatgpt_email || '—'}</div>
-                        <div className="mt-1 text-muted-foreground">
-                          {task.workspace_name} · {t('Seat Number')} #
-                          {task.seat_number || '—'}
-                        </div>
-                      </div>
-                    ))}
-                  </>
-                ))}
-              {overviewDetail === 'cash_collected' &&
-                (paidOrders.length === 0 ? (
-                  <p className="text-muted-foreground">{t('No paid orders yet')}</p>
-                ) : (
-                  paidOrders.map((order) => (
-                    <div key={order.id} className="rounded-lg border p-3">
-                      <div>
-                        {order.total_amount} {order.currency}
-                      </div>
-                      <div className="mt-1 text-muted-foreground">
-                        {maskEmail(order.chatgpt_email ?? '')} · {order.order_no}
-                      </div>
-                      <div className="mt-1">
-                        {t('Created At')}:{' '}
-                        <ImportantTimestamp ts={order.created_at} format={formatTs} />
-                      </div>
-                    </div>
-                  ))
-                ))}
-            </div>
-          </DialogContent>
-        </Dialog>
 
         <ConfirmDialog
           open={removeSeatTarget != null}
