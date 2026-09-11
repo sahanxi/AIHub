@@ -21,7 +21,8 @@ EPay remains in the engine. If Alipay direct is not configured and EPay credenti
 - `ALIPAY_PRIVATE_KEY_FILE` (应用私钥, PKCS8)
 - `ALIPAY_PUBLIC_KEY_FILE` (支付宝公钥 from the console — not 应用公钥)
 - `ALIPAY_GATEWAY` (default `https://openapi.alipay.com/gateway.do`)
-- `ALIPAY_NOTIFY_URL` (default `{ServerAddress}/api/payment/alipay/notify`)
+- `ALIPAY_NOTIFY_URL` — wallet / top-up async callback only (default `{CallbackAddress}/api/payment/alipay/notify`)
+- `ALIPAY_BUSINESS_SEAT_NOTIFY_URL` — ChatGPT Business Seat async callback only (default `{CallbackAddress}/api/payment/business-seat/alipay/notify`)
 
 Host files:
 

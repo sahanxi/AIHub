@@ -139,13 +139,13 @@ export function usePayment() {
         if (!isStripe) {
           const url = (response as unknown as { url?: string }).url
           if (url) {
-            startGatewayCheckout(
+            toast.success(i18next.t('Redirecting to payment page...'))
+            return startGatewayCheckout(
               url,
               (response.data as Record<string, unknown> | undefined) ?? {}
             )
-            toast.success(i18next.t('Redirecting to payment page...'))
-            return true
           }
+          toast.error(i18next.t('Payment request failed'))
         }
 
         return false

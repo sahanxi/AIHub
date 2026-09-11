@@ -55,6 +55,7 @@ func seedWorkspaceWithSeats(t *testing.T, seatCount int, anchor time.Time) (*mod
 		BillingAnchorAt:        anchor.Unix(),
 		BillingTimezone:        "Asia/Shanghai",
 		CycleStartGraceMinutes: 60,
+		RenewalLeadDays:        DefaultRenewalLeadDays,
 		TotalStandardSeats:     seatCount,
 	}
 	require.NoError(t, model.CreateBusinessWorkspace(ws))
@@ -285,8 +286,8 @@ func TestLifecycleMidCycleFullSeats(t *testing.T) {
 	at := time.Date(2026, 10, 20, 12, 0, 0, 0, loc)
 	result, err := quoteSvc.calculateInitialQuote(ws, pv, at)
 	require.NoError(t, err)
-	assert.Equal(t, model.BusinessQuoteTypeMidCycleProratedPlusNext, result.QuoteType)
-	assert.Equal(t, time.Date(2026, 12, 1, 0, 0, 0, 0, loc).Unix(), result.PrepaidThrough)
+	assert.Equal(t, model.BusinessQuoteTypeMidCycleProratedOnly, result.QuoteType)
+	assert.Equal(t, time.Date(2026, 11, 1, 0, 0, 0, 0, loc).Unix(), result.PrepaidThrough)
 
 	order := createPayingOrder(t, 5001, ws, product, pv, result.TotalAmount, result.PrepaidThrough)
 	_, err = NewProvisioningService().ProcessPayment(PaymentConfirmInput{
@@ -315,9 +316,10 @@ func TestLifecycleMidCycleFullSeats(t *testing.T) {
 	assert.Equal(t, model.BusinessSubscriptionStatusActive, sub.Status)
 	assert.Equal(t, result.PrepaidThrough, sub.PrepaidThrough)
 
-	renewal, err := quoteSvc.CreateRenewalQuote(5001, sub.Id)
+	cycle, err := NewBillingCycleService().RenewalCycleWindow(ws, sub.PrepaidThrough)
 	require.NoError(t, err)
-	assert.Equal(t, time.Date(2027, 1, 1, 0, 0, 0, 0, loc).Unix(), renewal.PrepaidThrough)
+	assert.Equal(t, time.Date(2026, 11, 1, 0, 0, 0, 0, loc).Unix(), cycle.Start.Unix())
+	assert.Equal(t, time.Date(2026, 12, 1, 0, 0, 0, 0, loc).Unix(), cycle.End.Unix())
 
 	require.NoError(t, NewSubscriptionService().ExpireSubscription(sub.Id))
 	require.NoError(t, NewSubscriptionService().ConfirmRemoved(1, sub.Id))
@@ -362,7 +364,7 @@ func TestLifecycleCycleStartGrace(t *testing.T) {
 	result, err := NewQuoteService().calculateInitialQuote(ws, pv, at)
 	require.NoError(t, err)
 	assert.Equal(t, model.BusinessQuoteTypeCycleStartFull, result.QuoteType)
-	assert.True(t, result.NextCycleAmount.IsZero())
+	assert.True(t, result.NextCycleAmount.Equal(decimal.RequireFromString("199.00")))
 }
 
 func TestPriceVersionSnapshotOnRenewal(t *testing.T) {
@@ -385,7 +387,7 @@ func TestPriceVersionSnapshotOnRenewal(t *testing.T) {
 		CurrentPriceVersionId: pv1.Id,
 	}
 	require.NoError(t, model.DB.Create(&sub).Error)
-	renewalQuote, err := NewQuoteService().CreateRenewalQuote(7001, sub.Id)
+	renewalQuote, err := NewQuoteService().createRenewalQuoteAt(7001, sub.Id, time.Date(2026, 10, 29, 12, 0, 0, 0, loc))
 	require.NoError(t, err)
 	assert.Equal(t, pv2.Id, renewalQuote.PriceVersionId)
 	assert.True(t, renewalQuote.TotalAmount.Equal(decimal.RequireFromString("229.00")))

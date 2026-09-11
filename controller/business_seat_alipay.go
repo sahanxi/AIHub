@@ -42,15 +42,12 @@ func BusinessSeatRequestAlipay(c *gin.Context) {
 		common.ApiErrorMsg(c, "Order not owned by user")
 		return
 	}
-	if order.Status != model.BusinessOrderStatusCreated {
+	if order.Status != model.BusinessOrderStatusCreated && order.Status != model.BusinessOrderStatusPaying {
 		common.ApiErrorMsg(c, "Order not payable")
 		return
 	}
 
-	notifyURL := strings.TrimSpace(setting.AlipayNotifyURL)
-	if notifyURL == "" {
-		notifyURL = strings.TrimRight(service.GetCallbackAddress(), "/") + "/api/payment/business-seat/alipay/notify"
-	}
+	notifyURL := setting.ResolveAlipayBusinessSeatNotifyURL(service.GetCallbackAddress())
 	returnURL := paymentReturnPath("/chatgpt-business?pay=success")
 	tradeNo := order.OrderNo
 	totalAmount := businessseat.AlipayAmountString(order.TotalAmount, order.Currency)
@@ -60,20 +57,20 @@ func BusinessSeatRequestAlipay(c *gin.Context) {
 	}
 	subject += " ChatGPT Business Seat"
 
+	wap := isAlipayMobileRequest(c.Request.UserAgent())
 	checkoutURL, err := service.BuildAlipayCheckoutURL(service.AlipayPagePayArgs{
 		OutTradeNo:  tradeNo,
 		Subject:     subject,
 		TotalAmount: totalAmount,
 		NotifyURL:   notifyURL,
 		ReturnURL:   returnURL,
-		Wap:         isAlipayMobileRequest(c.Request.UserAgent()),
+		Wap:         wap,
 	})
 	if err != nil {
 		logger.LogError(c.Request.Context(), fmt.Sprintf("business seat alipay checkout failed order=%s error=%q", tradeNo, err.Error()))
 		common.ApiErrorMsg(c, "Failed to start payment")
 		return
 	}
-
 	_ = model.DB.Model(order).Updates(map[string]interface{}{
 		"status":           model.BusinessOrderStatusPaying,
 		"payment_channel":  model.PaymentProviderAlipay,
@@ -124,10 +121,7 @@ func BusinessSeatAlipayNotify(c *gin.Context) {
 
 	order, err := model.GetBusinessSeatOrderByOrderNo(tradeNo)
 	if err != nil {
-		if topUp := model.GetTopUpByTradeNo(tradeNo); topUp != nil {
-			writeAlipayNotify(c, "success")
-			return
-		}
+		logger.LogWarn(c.Request.Context(), fmt.Sprintf("business seat alipay order not found trade_no=%s client_ip=%s", tradeNo, c.ClientIP()))
 		writeAlipayNotify(c, "fail")
 		return
 	}

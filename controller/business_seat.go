@@ -2,12 +2,15 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/logger"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/service/businessseat"
 	"github.com/QuantumNous/new-api/setting"
 	"github.com/gin-gonic/gin"
@@ -36,14 +39,16 @@ type businessSeatPriceRequest struct {
 }
 
 type businessSeatWorkspaceRequest struct {
-	Name                   string `json:"name"`
-	Provider               string `json:"provider"`
-	WorkspaceType          string `json:"workspace_type"`
-	BillingCadence         string `json:"billing_cadence"`
-	BillingAnchorAt        int64  `json:"billing_anchor_at"`
-	BillingTimezone        string `json:"billing_timezone"`
-	CycleStartGraceMinutes int    `json:"cycle_start_grace_minutes"`
-	TotalStandardSeats     int    `json:"total_standard_seats"`
+	Name                    string `json:"name"`
+	SubscriptionDescription string `json:"subscription_description"`
+	Provider                string `json:"provider"`
+	WorkspaceType           string `json:"workspace_type"`
+	BillingCadence          string `json:"billing_cadence"`
+	BillingAnchorAt         int64  `json:"billing_anchor_at"`
+	BillingTimezone         string `json:"billing_timezone"`
+	CycleStartGraceMinutes  int    `json:"cycle_start_grace_minutes"`
+	RenewalLeadDays         *int   `json:"renewal_lead_days"`
+	TotalStandardSeats      int    `json:"total_standard_seats"`
 }
 
 type businessSeatAddSeatsRequest struct {
@@ -54,11 +59,11 @@ func GetBusinessSeatCatalog(c *gin.Context) {
 	product, err := model.GetBusinessProductByCode(model.BusinessProductCodeStandard)
 	if err != nil {
 		common.ApiSuccess(c, gin.H{
-			"enabled":            setting.IsBusinessSeatSalesEnabled(),
-			"product":            nil,
-			"price":              nil,
-			"workspace":          nil,
-			"pricing_required":   true,
+			"enabled":             setting.IsBusinessSeatSalesEnabled(),
+			"product":             nil,
+			"price":               nil,
+			"workspace":           nil,
+			"pricing_required":    true,
 			"currently_available": false,
 		})
 		return
@@ -70,10 +75,10 @@ func GetBusinessSeatCatalog(c *gin.Context) {
 	}
 	resp := gin.H{
 		"enabled":             setting.IsBusinessSeatSalesEnabled(),
-		"product":               product,
-		"workspace":             ws,
-		"pricing_required":      price == nil,
-		"currently_available":   setting.IsBusinessSeatSalesEnabled() && price != nil && wsErr == nil,
+		"product":             product,
+		"workspace":           ws,
+		"pricing_required":    price == nil,
+		"currently_available": setting.IsBusinessSeatSalesEnabled() && price != nil && wsErr == nil,
 	}
 	if price != nil {
 		resp["price"] = price
@@ -161,6 +166,51 @@ func CreateBusinessSeatQuote(c *gin.Context) {
 		return
 	}
 	common.ApiSuccess(c, quote)
+}
+
+func GetBusinessSeatPendingOrders(c *gin.Context) {
+	userId := c.GetInt("id")
+	orders, err := model.ListPayableBusinessSeatOrdersForUser(userId)
+	if err != nil {
+		common.ApiErrorMsg(c, err.Error())
+		return
+	}
+	common.ApiSuccess(c, orders)
+}
+
+func DeleteBusinessSeatPendingOrder(c *gin.Context) {
+	userId := c.GetInt("id")
+	orderId, err := strconv.Atoi(c.Param("id"))
+	if err != nil || orderId <= 0 {
+		common.ApiErrorMsg(c, "Invalid request")
+		return
+	}
+	order, err := model.GetBusinessSeatOrderById(orderId)
+	if err != nil || order.UserId != userId {
+		common.ApiErrorMsg(c, "Order not found")
+		return
+	}
+	if order.Status != model.BusinessOrderStatusCreated && order.Status != model.BusinessOrderStatusPaying {
+		common.ApiErrorMsg(c, "Order cannot be deleted")
+		return
+	}
+	if order.Status == model.BusinessOrderStatusPaying {
+		if err := service.CloseAlipayTrade(c.Request.Context(), order.OrderNo); err != nil {
+			logger.LogWarn(c.Request.Context(), fmt.Sprintf("business seat order close failed order=%s user_id=%d error=%q", order.OrderNo, userId, err.Error()))
+			common.ApiErrorMsg(c, "Order cannot be deleted while payment status is changing")
+			return
+		}
+	}
+	if err := model.CancelPayableBusinessSeatOrderForUser(orderId, userId); err != nil {
+		if errors.Is(err, model.ErrBusinessOrderNotFound) {
+			common.ApiErrorMsg(c, "Order cannot be deleted")
+			return
+		}
+		common.ApiErrorMsg(c, err.Error())
+		return
+	}
+	model.RecordBusinessSeatAudit(userId, "ORDER_CANCELLED", "order", orderId, "cancelled by user")
+	common.ApiSuccess(c, gin.H{"success": true})
 }
 
 func CreateBusinessSeatOrder(c *gin.Context) {
@@ -278,16 +328,31 @@ func AdminCreateBusinessWorkspace(c *gin.Context) {
 	if req.CycleStartGraceMinutes <= 0 {
 		req.CycleStartGraceMinutes = setting.BusinessSeatDefaultGraceMinutesValue()
 	}
+	subscriptionDescription := strings.TrimSpace(req.SubscriptionDescription)
+	if len(subscriptionDescription) > model.MaxBusinessWorkspaceSubscriptionDescLen {
+		common.ApiErrorMsg(c, "Subscription description too long")
+		return
+	}
+	renewalLeadDays := businessseat.DefaultRenewalLeadDays
+	if req.RenewalLeadDays != nil {
+		if err := businessseat.ValidateRenewalLeadDays(*req.RenewalLeadDays); err != nil {
+			common.ApiErrorMsg(c, err.Error())
+			return
+		}
+		renewalLeadDays = *req.RenewalLeadDays
+	}
 	ws := model.BusinessWorkspace{
-		Name:                   req.Name,
-		Provider:               req.Provider,
-		WorkspaceType:          req.WorkspaceType,
-		Status:                 model.BusinessWorkspaceStatusActive,
-		BillingCadence:         req.BillingCadence,
-		BillingAnchorAt:        req.BillingAnchorAt,
-		BillingTimezone:        req.BillingTimezone,
-		CycleStartGraceMinutes: req.CycleStartGraceMinutes,
-		TotalStandardSeats:     req.TotalStandardSeats,
+		Name:                    req.Name,
+		SubscriptionDescription: subscriptionDescription,
+		Provider:                req.Provider,
+		WorkspaceType:           req.WorkspaceType,
+		Status:                  model.BusinessWorkspaceStatusActive,
+		BillingCadence:          req.BillingCadence,
+		BillingAnchorAt:         req.BillingAnchorAt,
+		BillingTimezone:         req.BillingTimezone,
+		CycleStartGraceMinutes:  req.CycleStartGraceMinutes,
+		RenewalLeadDays:         renewalLeadDays,
+		TotalStandardSeats:      req.TotalStandardSeats,
 	}
 	if err := model.CreateBusinessWorkspace(&ws); err != nil {
 		common.ApiErrorMsg(c, err.Error())
@@ -335,6 +400,19 @@ func AdminUpdateBusinessWorkspace(c *gin.Context) {
 	if req.CycleStartGraceMinutes > 0 {
 		updates["cycle_start_grace_minutes"] = req.CycleStartGraceMinutes
 	}
+	if req.RenewalLeadDays != nil {
+		if err := businessseat.ValidateRenewalLeadDays(*req.RenewalLeadDays); err != nil {
+			common.ApiErrorMsg(c, err.Error())
+			return
+		}
+		updates["renewal_lead_days"] = *req.RenewalLeadDays
+	}
+	subscriptionDescription := strings.TrimSpace(req.SubscriptionDescription)
+	if len(subscriptionDescription) > model.MaxBusinessWorkspaceSubscriptionDescLen {
+		common.ApiErrorMsg(c, "Subscription description too long")
+		return
+	}
+	updates["subscription_description"] = subscriptionDescription
 	if req.BillingAnchorAt > 0 {
 		if activeCount > 0 && req.BillingAnchorAt != ws.BillingAnchorAt {
 			common.ApiErrorMsg(c, "Billing anchor locked while active subscriptions exist")
@@ -491,9 +569,9 @@ func AdminListBusinessTasks(c *gin.Context) {
 	}
 	type taskRow struct {
 		model.BusinessSeatTask
-		ChatgptEmail string `json:"chatgpt_email"`
+		ChatgptEmail  string `json:"chatgpt_email"`
 		WorkspaceName string `json:"workspace_name"`
-		SeatNumber   int    `json:"seat_number"`
+		SeatNumber    int    `json:"seat_number"`
 	}
 	rows := make([]taskRow, 0, len(tasks))
 	for _, task := range tasks {
@@ -533,6 +611,25 @@ func AdminDisableBusinessSeat(c *gin.Context) {
 		return
 	}
 	model.RecordBusinessSeatAudit(c.GetInt("id"), "SEAT_DISABLED", "seat", seat.Id, "")
+	common.ApiSuccess(c, gin.H{"success": true})
+}
+
+func AdminEnableBusinessSeat(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	var seat model.BusinessSeat
+	if err := model.DB.First(&seat, id).Error; err != nil {
+		common.ApiErrorMsg(c, "Seat not found")
+		return
+	}
+	if seat.Status != model.BusinessSeatStatusDisabled {
+		common.ApiErrorMsg(c, "Only disabled seats can be enabled")
+		return
+	}
+	if err := model.DB.Model(&seat).Update("status", model.BusinessSeatStatusAvailable).Error; err != nil {
+		common.ApiErrorMsg(c, err.Error())
+		return
+	}
+	model.RecordBusinessSeatAudit(c.GetInt("id"), "SEAT_ENABLED", "seat", seat.Id, "")
 	common.ApiSuccess(c, gin.H{"success": true})
 }
 

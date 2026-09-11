@@ -4,7 +4,6 @@ import { toast } from 'sonner'
 
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { CopyButton } from '@/components/copy-button'
-import { DateTimePicker } from '@/components/datetime-picker'
 import { SectionPageLayout } from '@/components/layout'
 import { LoadingState } from '@/components/loading-state'
 import { Badge } from '@/components/ui/badge'
@@ -13,8 +12,35 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import dayjs from '@/lib/dayjs'
+
+import {
+  BUSINESS_BILLING_CADENCES,
+  BUSINESS_PRICE_CURRENCIES,
+  getBillingCadenceLabelKey,
+} from '../constants'
+import { formatWorkspaceSubscriptionSummaryFromWorkspace } from '../workspace-summary'
+import {
+  WorkspaceBillingAnchorField,
+  WorkspaceBillingCadenceField,
+  WorkspaceGraceMinutesField,
+  WorkspaceRenewalLeadDaysField,
+  WorkspaceNameField,
+  WorkspaceSubscriptionAlignmentPreview,
+  WorkspaceSubscriptionDescriptionField,
+  WorkspaceProviderField,
+  WorkspaceSeatCountField,
+  WorkspaceTimezoneField,
+} from './workspace-form-fields'
 
 import {
   activateAdminBusinessSubscription,
@@ -24,6 +50,7 @@ import {
   createAdminBusinessPrice,
   createAdminBusinessWorkspace,
   disableAdminBusinessSeat,
+  enableAdminBusinessSeat,
   getAdminBusinessOrders,
   getAdminBusinessOverview,
   getAdminBusinessPricing,
@@ -78,12 +105,14 @@ export function ChatGPTBusinessAdminPage() {
 
   const [createOpen, setCreateOpen] = useState(false)
   const [wsName, setWsName] = useState('')
+  const [wsDescription, setWsDescription] = useState('')
   const [wsProvider, setWsProvider] = useState('OPENAI')
   const [wsCadence, setWsCadence] = useState('MONTHLY')
   const [wsAnchor, setWsAnchor] = useState<Date | undefined>()
   const [wsTimezone, setWsTimezone] = useState('Asia/Shanghai')
   const [wsSeats, setWsSeats] = useState('3')
   const [wsGrace, setWsGrace] = useState('60')
+  const [wsRenewalLead, setWsRenewalLead] = useState('3')
 
   const [addSeatOpen, setAddSeatOpen] = useState(false)
   const [addSeatCount, setAddSeatCount] = useState('1')
@@ -93,8 +122,10 @@ export function ChatGPTBusinessAdminPage() {
   const [editOpen, setEditOpen] = useState(false)
   const [editWorkspace, setEditWorkspace] = useState<BusinessWorkspace | null>(null)
   const [editName, setEditName] = useState('')
+  const [editDescription, setEditDescription] = useState('')
   const [editTimezone, setEditTimezone] = useState('')
   const [editGrace, setEditGrace] = useState('')
+  const [editRenewalLead, setEditRenewalLead] = useState('3')
   const [editAnchor, setEditAnchor] = useState<Date | undefined>()
 
   const selectedWorkspace = useMemo(
@@ -175,17 +206,20 @@ export function ChatGPTBusinessAdminPage() {
     }
     const res = await createAdminBusinessWorkspace({
       name: wsName.trim(),
+      subscription_description: wsDescription.trim(),
       provider: wsProvider,
       billing_cadence: wsCadence,
       billing_anchor_at: Math.floor(wsAnchor.getTime() / 1000),
       billing_timezone: wsTimezone,
       cycle_start_grace_minutes: Number(wsGrace) || 60,
+      renewal_lead_days: Number(wsRenewalLead) || 3,
       total_standard_seats: Number(wsSeats) || 1,
     })
     if (isApiSuccess(res)) {
       toast.success(t('Workspace created'))
       setCreateOpen(false)
       setWsName('')
+      setWsDescription('')
       void refresh()
     } else {
       toast.error(res.message || t('Unable to create workspace'))
@@ -195,8 +229,10 @@ export function ChatGPTBusinessAdminPage() {
   const openEditWorkspace = (ws: BusinessWorkspace) => {
     setEditWorkspace(ws)
     setEditName(ws.name)
+    setEditDescription(ws.subscription_description ?? '')
     setEditTimezone(ws.billing_timezone)
     setEditGrace(String(ws.cycle_start_grace_minutes))
+    setEditRenewalLead(String(ws.renewal_lead_days ?? 3))
     setEditAnchor(new Date(ws.billing_anchor_at * 1000))
     setEditOpen(true)
   }
@@ -205,13 +241,17 @@ export function ChatGPTBusinessAdminPage() {
     if (!editWorkspace) return
     const body: {
       name?: string
+      subscription_description?: string
       billing_timezone?: string
       cycle_start_grace_minutes?: number
+      renewal_lead_days?: number
       billing_anchor_at?: number
     } = {
       name: editName.trim(),
+      subscription_description: editDescription.trim(),
       billing_timezone: editTimezone.trim(),
       cycle_start_grace_minutes: Number(editGrace) || editWorkspace.cycle_start_grace_minutes,
+      renewal_lead_days: Number(editRenewalLead),
     }
     if ((editWorkspace.active_subscriptions ?? 0) === 0 && editAnchor) {
       body.billing_anchor_at = Math.floor(editAnchor.getTime() / 1000)
@@ -253,6 +293,32 @@ export function ChatGPTBusinessAdminPage() {
       toast.error(res.message || t('Action failed'))
     }
   }
+
+  const createWorkspaceSummaryInput = useMemo(
+    () => ({
+      provider: wsProvider,
+      billingCadence: wsCadence,
+      billingAnchorAt: wsAnchor ? Math.floor(wsAnchor.getTime() / 1000) : undefined,
+      billingTimezone: wsTimezone,
+      seatCount: Number(wsSeats) || 0,
+      graceMinutes: Number(wsGrace) || 0,
+    }),
+    [wsAnchor, wsCadence, wsGrace, wsProvider, wsSeats, wsTimezone],
+  )
+
+  const editWorkspaceSummaryInput = useMemo(() => {
+    if (!editWorkspace) {
+      return createWorkspaceSummaryInput
+    }
+    return {
+      provider: editWorkspace.provider,
+      billingCadence: editWorkspace.billing_cadence,
+      billingAnchorAt: editAnchor ? Math.floor(editAnchor.getTime() / 1000) : editWorkspace.billing_anchor_at,
+      billingTimezone: editTimezone || editWorkspace.billing_timezone,
+      seatCount: editWorkspace.pool?.total ?? editWorkspace.total_standard_seats,
+      graceMinutes: Number(editGrace) || editWorkspace.cycle_start_grace_minutes,
+    }
+  }, [createWorkspaceSummaryInput, editAnchor, editGrace, editTimezone, editWorkspace])
 
   if (loading) return <LoadingState />
 
@@ -316,10 +382,18 @@ export function ChatGPTBusinessAdminPage() {
               workspaces.map((ws) => (
                 <Card key={ws.id}>
                   <CardHeader className="flex flex-row items-start justify-between gap-4">
-                    <div>
+                    <div className="space-y-1">
                       <CardTitle>{ws.name}</CardTitle>
+                      {ws.subscription_description ? (
+                        <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                          {ws.subscription_description}
+                        </p>
+                      ) : null}
                       <p className="text-sm text-muted-foreground">
-                        {ws.provider} · {ws.status} · {ws.billing_cadence}
+                        {formatWorkspaceSubscriptionSummaryFromWorkspace(ws, t, formatTs)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {t('Status')}: {ws.status} · {t('Active Subscriptions')}: {ws.active_subscriptions ?? 0}
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -347,6 +421,9 @@ export function ChatGPTBusinessAdminPage() {
                     </div>
                     <div>
                       {t('Grace Minutes')}: {ws.cycle_start_grace_minutes}
+                    </div>
+                    <div>
+                      {t('Renewal lead time')}: {ws.renewal_lead_days ?? 3} {t('days')}
                     </div>
                     <div>
                       {t('Total Seats')}: {ws.pool?.total ?? ws.total_standard_seats}
@@ -418,6 +495,20 @@ export function ChatGPTBusinessAdminPage() {
                             }
                           >
                             {t('Disable')}
+                          </Button>
+                        )}
+                        {seat.status === 'DISABLED' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              void runAction(
+                                () => enableAdminBusinessSeat(seat.id),
+                                'Seat enabled',
+                              )
+                            }
+                          >
+                            {t('Enable')}
                           </Button>
                         )}
                       </td>
@@ -607,20 +698,53 @@ export function ChatGPTBusinessAdminPage() {
                     {t('Pricing configuration required')}
                   </p>
                 )}
+                <div className="space-y-2 md:col-span-2">
+                  <p className="text-xs text-muted-foreground">{t('Pricing helper')}</p>
+                </div>
                 <div className="space-y-2">
                   <Label>{t('Amount')}</Label>
+                  <p className="text-xs text-muted-foreground">{t('Price amount helper')}</p>
                   <Input value={priceAmount} onChange={(e) => setPriceAmount(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label>{t('Currency')}</Label>
-                  <Input value={currency} onChange={(e) => setCurrency(e.target.value)} />
+                  <p className="text-xs text-muted-foreground">{t('Price currency helper')}</p>
+                  <Select value={currency} onValueChange={(value) => value && setCurrency(value)}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent alignItemWithTrigger={false}>
+                      <SelectGroup>
+                        {BUSINESS_PRICE_CURRENCIES.map((item) => (
+                          <SelectItem key={item} value={item}>
+                            {item}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>{t('Billing')}</Label>
-                  <Input value={billingCadence} onChange={(e) => setBillingCadence(e.target.value)} />
+                  <p className="text-xs text-muted-foreground">{t('Billing cadence helper')}</p>
+                  <Select value={billingCadence} onValueChange={(value) => value && setBillingCadence(value)}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent alignItemWithTrigger={false}>
+                      <SelectGroup>
+                        {BUSINESS_BILLING_CADENCES.map((item) => (
+                          <SelectItem key={item} value={item}>
+                            {t(getBillingCadenceLabelKey(item))}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>{t('Display')}</Label>
+                  <p className="text-xs text-muted-foreground">{t('Price display helper')}</p>
                   <Input value={displayUnit} onChange={(e) => setDisplayUnit(e.target.value)} />
                 </div>
                 <Button onClick={() => void savePrice()}>{t('Save')}</Button>
@@ -638,34 +762,24 @@ export function ChatGPTBusinessAdminPage() {
           handleConfirm={() => void createWorkspace()}
         >
           <div className="grid gap-3 py-2">
-            <div className="space-y-2">
-              <Label>{t('Workspace Name')}</Label>
-              <Input value={wsName} onChange={(e) => setWsName(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Provider')}</Label>
-              <Input value={wsProvider} onChange={(e) => setWsProvider(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Billing')}</Label>
-              <Input value={wsCadence} onChange={(e) => setWsCadence(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Billing Anchor')}</Label>
-              <DateTimePicker value={wsAnchor} onChange={setWsAnchor} />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Timezone')}</Label>
-              <Input value={wsTimezone} onChange={(e) => setWsTimezone(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Seat Count')}</Label>
-              <Input value={wsSeats} onChange={(e) => setWsSeats(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Grace Minutes')}</Label>
-              <Input value={wsGrace} onChange={(e) => setWsGrace(e.target.value)} />
-            </div>
+            <WorkspaceNameField t={t} value={wsName} onChange={setWsName} />
+            <WorkspaceSubscriptionDescriptionField
+              t={t}
+              value={wsDescription}
+              onChange={setWsDescription}
+            />
+            <WorkspaceSubscriptionAlignmentPreview
+              t={t}
+              summaryInput={createWorkspaceSummaryInput}
+              formatTimestamp={formatTs}
+            />
+            <WorkspaceProviderField t={t} value={wsProvider} onChange={setWsProvider} />
+            <WorkspaceBillingCadenceField t={t} value={wsCadence} onChange={setWsCadence} />
+            <WorkspaceBillingAnchorField t={t} value={wsAnchor} onChange={setWsAnchor} />
+            <WorkspaceTimezoneField t={t} value={wsTimezone} onChange={setWsTimezone} />
+            <WorkspaceSeatCountField t={t} value={wsSeats} onChange={setWsSeats} />
+            <WorkspaceGraceMinutesField t={t} value={wsGrace} onChange={setWsGrace} />
+            <WorkspaceRenewalLeadDaysField t={t} value={wsRenewalLead} onChange={setWsRenewalLead} />
           </div>
         </ConfirmDialog>
 
@@ -682,26 +796,26 @@ export function ChatGPTBusinessAdminPage() {
           handleConfirm={() => void saveWorkspaceEdit()}
         >
           <div className="grid gap-3 py-2">
-            <div className="space-y-2">
-              <Label>{t('Workspace Name')}</Label>
-              <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Billing Anchor')}</Label>
-              <DateTimePicker
-                value={editAnchor}
-                onChange={setEditAnchor}
-                className={(editWorkspace?.active_subscriptions ?? 0) > 0 ? 'pointer-events-none opacity-50' : undefined}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Timezone')}</Label>
-              <Input value={editTimezone} onChange={(e) => setEditTimezone(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Grace Minutes')}</Label>
-              <Input value={editGrace} onChange={(e) => setEditGrace(e.target.value)} />
-            </div>
+            <WorkspaceNameField t={t} value={editName} onChange={setEditName} />
+            <WorkspaceSubscriptionDescriptionField
+              t={t}
+              value={editDescription}
+              onChange={setEditDescription}
+            />
+            <WorkspaceSubscriptionAlignmentPreview
+              t={t}
+              summaryInput={editWorkspaceSummaryInput}
+              formatTimestamp={formatTs}
+            />
+            <WorkspaceBillingAnchorField
+              t={t}
+              value={editAnchor}
+              onChange={setEditAnchor}
+              disabled={(editWorkspace?.active_subscriptions ?? 0) > 0}
+            />
+            <WorkspaceTimezoneField t={t} value={editTimezone} onChange={setEditTimezone} />
+            <WorkspaceGraceMinutesField t={t} value={editGrace} onChange={setEditGrace} />
+            <WorkspaceRenewalLeadDaysField t={t} value={editRenewalLead} onChange={setEditRenewalLead} />
           </div>
         </ConfirmDialog>
 

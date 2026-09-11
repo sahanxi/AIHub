@@ -19,6 +19,7 @@ func testWorkspaceOct1() *model.BusinessWorkspace {
 		BillingAnchorAt:        anchor.Unix(),
 		BillingTimezone:        "Asia/Shanghai",
 		CycleStartGraceMinutes: 60,
+		RenewalLeadDays:        DefaultRenewalLeadDays,
 	}
 }
 
@@ -72,11 +73,12 @@ func TestInitialQuoteMidCycle(t *testing.T) {
 
 	result, err := svc.calculateInitialQuote(ws, pv, at)
 	require.NoError(t, err)
-	assert.Equal(t, model.BusinessQuoteTypeMidCycleProratedPlusNext, result.QuoteType)
+	assert.Equal(t, model.BusinessQuoteTypeMidCycleProratedOnly, result.QuoteType)
 	assert.True(t, result.CurrentCycleAmount.GreaterThan(decimal.Zero))
 	assert.True(t, result.NextCycleAmount.Equal(decimal.RequireFromString("199.00")))
-	assert.True(t, result.TotalAmount.Equal(result.CurrentCycleAmount.Add(result.NextCycleAmount)))
-	assert.Equal(t, time.Date(2026, 12, 1, 0, 0, 0, 0, loc).Unix(), result.PrepaidThrough)
+	assert.True(t, result.TotalAmount.Equal(result.CurrentCycleAmount))
+	assert.Equal(t, time.Date(2026, 11, 1, 0, 0, 0, 0, loc).Unix(), result.PrepaidThrough)
+	assert.Equal(t, time.Date(2026, 10, 29, 0, 0, 0, 0, loc).Unix(), result.RenewalWindowOpensAt)
 }
 
 func TestInitialQuoteCycleStart(t *testing.T) {
@@ -95,7 +97,7 @@ func TestInitialQuoteCycleStart(t *testing.T) {
 	result, err := svc.calculateInitialQuote(ws, pv, at)
 	require.NoError(t, err)
 	assert.Equal(t, model.BusinessQuoteTypeCycleStartFull, result.QuoteType)
-	assert.True(t, result.NextCycleAmount.IsZero())
+	assert.True(t, result.NextCycleAmount.Equal(decimal.RequireFromString("199.00")))
 	assert.True(t, result.TotalAmount.Equal(decimal.RequireFromString("199.00")))
 	assert.Equal(t, time.Date(2026, 11, 1, 0, 0, 0, 0, loc).Unix(), result.PrepaidThrough)
 }

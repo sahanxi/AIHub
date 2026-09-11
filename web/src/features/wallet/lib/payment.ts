@@ -65,7 +65,6 @@ export function submitPaymentForm(
 
   document.body.appendChild(form)
   form.submit()
-  document.body.removeChild(form)
 }
 
 export function isRedirectCheckout(
@@ -74,18 +73,29 @@ export function isRedirectCheckout(
   return params?.mode === 'redirect'
 }
 
+export function isAlipayGatewayURL(url: string): boolean {
+  try {
+    return new URL(url).hostname.includes('alipay.com')
+  } catch {
+    return false
+  }
+}
+
 export function startGatewayCheckout(
   url: string,
   params: Record<string, unknown> | undefined
-): void {
+): boolean {
   if (!url) {
-    return
+    return false
   }
-  if (isRedirectCheckout(params)) {
+  // Alipay's page-pay gateway answers a plain GET with the cashier redirect,
+  // so re-posting its query as a form would corrupt the base64 `sign`.
+  if (isAlipayGatewayURL(url) || isRedirectCheckout(params)) {
     window.location.assign(url)
-    return
+    return true
   }
   submitPaymentForm(url, params ?? {})
+  return true
 }
 
 /**

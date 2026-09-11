@@ -1,13 +1,20 @@
 package service
 
 import (
+	"context"
+	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/QuantumNous/new-api/setting"
 	"github.com/stretchr/testify/require"
 )
 
@@ -70,6 +77,74 @@ func TestParseAlipayOneLineKeys(t *testing.T) {
 	}))
 }
 
+func TestCloseAlipayTradeTreatsClosedAndNotCreatedTransactionsAsSuccess(t *testing.T) {
+	privatePEM, publicPEM := mustAlipayTestKeyPair(t)
+	responses := []string{
+		`{"code":"10000","msg":"Success","out_trade_no":"ORDER-1"}`,
+		`{"code":"40004","msg":"Business Failed","sub_code":"ACQ.TRADE_NOT_EXIST","sub_msg":"Trade does not exist"}`,
+	}
+	requestCount := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, AlipayMethodTradeClose, r.URL.Query().Get("method"))
+		require.Contains(t, r.URL.Query().Get("biz_content"), `"out_trade_no":"ORDER-1"`)
+		responseNode := responses[requestCount]
+		requestCount++
+		signature := mustSignAlipayRaw(t, privatePEM, responseNode)
+		w.Header().Set("Content-Type", "application/json")
+		_, err := fmt.Fprintf(w, `{"alipay_trade_close_response":%s,"sign":%q}`, responseNode, signature)
+		require.NoError(t, err)
+	}))
+	t.Cleanup(server.Close)
+
+	originalGateway := setting.AlipayGateway
+	originalAppID := setting.AlipayAppId
+	originalPrivateKey := setting.AlipayPrivateKey
+	originalPublicKey := setting.AlipayPublicKey
+	t.Cleanup(func() {
+		setting.AlipayGateway = originalGateway
+		setting.AlipayAppId = originalAppID
+		setting.AlipayPrivateKey = originalPrivateKey
+		setting.AlipayPublicKey = originalPublicKey
+	})
+	setting.AlipayGateway = server.URL
+	setting.AlipayAppId = "app-1"
+	setting.AlipayPrivateKey = privatePEM
+	setting.AlipayPublicKey = publicPEM
+
+	require.NoError(t, CloseAlipayTrade(context.Background(), "ORDER-1"))
+	require.NoError(t, CloseAlipayTrade(context.Background(), "ORDER-1"))
+	require.Equal(t, 2, requestCount)
+}
+
+func TestCloseAlipayTradeRejectsProviderFailure(t *testing.T) {
+	privatePEM, publicPEM := mustAlipayTestKeyPair(t)
+	responseNode := `{"code":"40004","msg":"Business Failed","sub_code":"ACQ.TRADE_STATUS_ERROR","sub_msg":"Trade status is invalid"}`
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		signature := mustSignAlipayRaw(t, privatePEM, responseNode)
+		_, err := fmt.Fprintf(w, `{"alipay_trade_close_response":%s,"sign":%q}`, responseNode, signature)
+		require.NoError(t, err)
+	}))
+	t.Cleanup(server.Close)
+
+	originalGateway := setting.AlipayGateway
+	originalAppID := setting.AlipayAppId
+	originalPrivateKey := setting.AlipayPrivateKey
+	originalPublicKey := setting.AlipayPublicKey
+	t.Cleanup(func() {
+		setting.AlipayGateway = originalGateway
+		setting.AlipayAppId = originalAppID
+		setting.AlipayPrivateKey = originalPrivateKey
+		setting.AlipayPublicKey = originalPublicKey
+	})
+	setting.AlipayGateway = server.URL
+	setting.AlipayAppId = "app-1"
+	setting.AlipayPrivateKey = privatePEM
+	setting.AlipayPublicKey = publicPEM
+
+	err := CloseAlipayTrade(context.Background(), "ORDER-2")
+	require.ErrorContains(t, err, "ACQ.TRADE_STATUS_ERROR")
+}
+
 func mustAlipayTestKeyPair(t *testing.T) (string, string) {
 	t.Helper()
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -96,4 +171,14 @@ func stripPEM(raw string) string {
 		return raw
 	}
 	return base64.StdEncoding.EncodeToString(block.Bytes)
+}
+
+func mustSignAlipayRaw(t *testing.T, privatePEM, content string) string {
+	t.Helper()
+	key, err := parseRSAPrivateKey(privatePEM)
+	require.NoError(t, err)
+	digest := sha256.Sum256([]byte(content))
+	signature, err := rsa.SignPKCS1v15(rand.Reader, key, crypto.SHA256, digest[:])
+	require.NoError(t, err)
+	return base64.StdEncoding.EncodeToString(signature)
 }

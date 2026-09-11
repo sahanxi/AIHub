@@ -91,6 +91,7 @@ services:
       ALIPAY_APP_ID: ${ALIPAY_APP_ID:-}
       ALIPAY_GATEWAY: ${ALIPAY_GATEWAY:-https://openapi.alipay.com/gateway.do}
       ALIPAY_NOTIFY_URL: ${ALIPAY_NOTIFY_URL:-}
+      ALIPAY_BUSINESS_SEAT_NOTIFY_URL: ${ALIPAY_BUSINESS_SEAT_NOTIFY_URL:-}
       ALIPAY_PRIVATE_KEY_FILE: /run/secrets/alipay_app_private_key
       ALIPAY_PUBLIC_KEY_FILE: /run/secrets/alipay_alipay_public_key
       SQL_MAX_IDLE_CONNS: "10"

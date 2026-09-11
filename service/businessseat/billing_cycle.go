@@ -10,6 +10,12 @@ import (
 
 var ErrUnsupportedBillingCadence = errors.New("unsupported billing cadence")
 
+const (
+	DefaultRenewalLeadDays = 3
+	MinRenewalLeadDays     = 0
+	MaxRenewalLeadDays     = 14
+)
+
 type CycleWindow struct {
 	Start time.Time
 	End   time.Time
@@ -139,4 +145,56 @@ func (s *BillingCycleService) RenewalCycleWindow(ws *model.BusinessWorkspace, pr
 	start := time.Unix(prepaidThrough, 0).In(loc)
 	end := s.addPeriod(start, ws.BillingCadence)
 	return CycleWindow{Start: start, End: end}, nil
+}
+
+type RenewalTiming struct {
+	NextCycleStartAt         int64
+	NextCycleEndAt           int64
+	RenewalWindowOpensAt     int64
+	RenewalPaymentDeadlineAt int64
+	RenewalLeadDays          int
+}
+
+func EffectiveRenewalLeadDays(ws *model.BusinessWorkspace) int {
+	if ws == nil {
+		return DefaultRenewalLeadDays
+	}
+	if ws.RenewalLeadDays < MinRenewalLeadDays {
+		return DefaultRenewalLeadDays
+	}
+	if ws.RenewalLeadDays > MaxRenewalLeadDays {
+		return MaxRenewalLeadDays
+	}
+	return ws.RenewalLeadDays
+}
+
+func ValidateRenewalLeadDays(days int) error {
+	if days < MinRenewalLeadDays || days > MaxRenewalLeadDays {
+		return errors.New("renewal lead days must be between 0 and 14")
+	}
+	return nil
+}
+
+func (s *BillingCycleService) SubtractCalendarDays(t time.Time, days int) time.Time {
+	loc := t.Location()
+	year, month, day := t.Date()
+	hour, min, sec := t.Clock()
+	normalized := time.Date(year, month, day, hour, min, sec, 0, loc)
+	return normalized.AddDate(0, 0, -days)
+}
+
+func (s *BillingCycleService) RenewalTiming(ws *model.BusinessWorkspace, prepaidThrough int64) (RenewalTiming, error) {
+	cycle, err := s.RenewalCycleWindow(ws, prepaidThrough)
+	if err != nil {
+		return RenewalTiming{}, err
+	}
+	leadDays := EffectiveRenewalLeadDays(ws)
+	opensAt := s.SubtractCalendarDays(cycle.Start, leadDays)
+	return RenewalTiming{
+		NextCycleStartAt:         cycle.Start.Unix(),
+		NextCycleEndAt:           cycle.End.Unix(),
+		RenewalWindowOpensAt:     opensAt.Unix(),
+		RenewalPaymentDeadlineAt: cycle.Start.Unix(),
+		RenewalLeadDays:          leadDays,
+	}, nil
 }

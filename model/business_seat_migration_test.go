@@ -58,6 +58,22 @@ func testBusinessSeatMigrationIdempotent(t *testing.T, db *gorm.DB) {
 	var stored BusinessPriceVersion
 	require.NoError(t, db.First(&stored, pv.Id).Error)
 	assert.True(t, stored.PriceAmount.Equal(decimal.RequireFromString("199.00")))
+
+	order := BusinessSeatOrder{
+		OrderNo: GenerateBusinessSeatOrderNo(901), UserId: 901, ProductId: product.Id,
+		WorkspaceId: 1, PriceVersionId: pv.Id, QuoteId: 1, OrderType: BusinessOrderTypeNew,
+		ChatgptEmail: "matrix@example.com", Currency: "CNY",
+		CurrentCycleAmount: decimal.RequireFromString("10.00"), TotalAmount: decimal.RequireFromString("10.00"),
+		Status: BusinessOrderStatusPaying, PaymentStatus: "PENDING",
+		ProvisioningStatus: BusinessProvisioningStatusPending,
+	}
+	require.NoError(t, db.Create(&order).Error)
+	require.ErrorIs(t, CancelPayableBusinessSeatOrderForUser(order.Id, 902), ErrBusinessOrderNotFound)
+	require.NoError(t, CancelPayableBusinessSeatOrderForUser(order.Id, order.UserId))
+	require.NoError(t, db.First(&order, order.Id).Error)
+	assert.Equal(t, BusinessOrderStatusCancelled, order.Status)
+	assert.Equal(t, "CANCELLED", order.PaymentStatus)
+	require.ErrorIs(t, CancelPayableBusinessSeatOrderForUser(order.Id, order.UserId), ErrBusinessOrderNotFound)
 }
 
 func TestBusinessSeatMigrationSQLite(t *testing.T) {

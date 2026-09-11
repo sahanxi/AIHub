@@ -25,6 +25,7 @@ import {
   isStripePayment,
   isWaffoPayment,
   isWaffoPancakePayment,
+  isAlipayGatewayURL,
 } from './payment'
 
 describe('payment type classification', () => {
@@ -42,6 +43,15 @@ describe('alipay checkout mode', () => {
     expect(isRedirectCheckout({ mode: 'redirect' })).toBe(true)
     expect(isRedirectCheckout({ pid: '1', type: 'alipay' })).toBe(false)
     expect(isRedirectCheckout(undefined)).toBe(false)
+  })
+
+  test('detects alipay gateway URLs for direct navigation', () => {
+    expect(
+      isAlipayGatewayURL(
+        'https://openapi.alipay.com/gateway.do?app_id=1&method=alipay.trade.page.pay&sign=abc'
+      )
+    ).toBe(true)
+    expect(isAlipayGatewayURL('https://example.com/pay')).toBe(false)
   })
 })
 

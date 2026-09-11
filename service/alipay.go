@@ -1,14 +1,18 @@
 package service
 
 import (
+	"context"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"io"
+	"net/http"
 	"net/url"
 	"sort"
 	"strings"
@@ -19,13 +23,16 @@ import (
 )
 
 const (
-	AlipayMethodPagePay   = "alipay.trade.page.pay"
-	AlipayMethodWapPay    = "alipay.trade.wap.pay"
-	AlipayProductPagePay  = "FAST_INSTANT_TRADE_PAY"
-	AlipayProductWapPay   = "QUICK_WAP_WAY"
-	AlipayTradeSuccess    = "TRADE_SUCCESS"
-	AlipayTradeFinished   = "TRADE_FINISHED"
-	alipayTimestampLayout = "2006-01-02 15:04:05"
+	AlipayMethodPagePay    = "alipay.trade.page.pay"
+	AlipayMethodWapPay     = "alipay.trade.wap.pay"
+	AlipayMethodTradeClose = "alipay.trade.close"
+	AlipayProductPagePay   = "FAST_INSTANT_TRADE_PAY"
+	AlipayProductWapPay    = "QUICK_WAP_WAY"
+	AlipayTradeSuccess     = "TRADE_SUCCESS"
+	AlipayTradeFinished    = "TRADE_FINISHED"
+	alipayTimestampLayout  = "2006-01-02 15:04:05"
+	alipayRequestTimeout   = 15 * time.Second
+	alipayMaxResponseBytes = 1 << 20
 )
 
 type AlipayPagePayArgs struct {
@@ -76,6 +83,82 @@ func BuildAlipayCheckoutURL(args AlipayPagePayArgs) (string, error) {
 	return encodeAlipayGatewayURL(setting.AlipayGateway, params)
 }
 
+func CloseAlipayTrade(ctx context.Context, outTradeNo string) error {
+	if !setting.AlipayDirectConfigured() {
+		return fmt.Errorf("alipay is not configured")
+	}
+	tradeNo := strings.TrimSpace(outTradeNo)
+	if tradeNo == "" {
+		return fmt.Errorf("alipay trade number empty")
+	}
+	biz, err := common.Marshal(map[string]string{"out_trade_no": tradeNo})
+	if err != nil {
+		return err
+	}
+	params := map[string]string{
+		"app_id":      setting.AlipayAppId,
+		"method":      AlipayMethodTradeClose,
+		"format":      "JSON",
+		"charset":     "utf-8",
+		"sign_type":   "RSA2",
+		"timestamp":   alipayTimestampNow(),
+		"version":     "1.0",
+		"biz_content": string(biz),
+	}
+	sign, err := SignAlipayRequest(setting.AlipayPrivateKey, params)
+	if err != nil {
+		return err
+	}
+	params["sign"] = sign
+	requestURL, err := encodeAlipayGatewayURL(setting.AlipayGateway, params)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
+	if err != nil {
+		return err
+	}
+	client := &http.Client{Transport: alipayHTTPTransport(), Timeout: alipayRequestTimeout}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("alipay trade close request failed: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("alipay trade close returned status %d", resp.StatusCode)
+	}
+	body, err := io.ReadAll(io.LimitReader(resp.Body, alipayMaxResponseBytes))
+	if err != nil {
+		return fmt.Errorf("alipay trade close response read failed: %w", err)
+	}
+	if err := VerifyAlipayResponse(setting.AlipayPublicKey, body, "alipay_trade_close_response"); err != nil {
+		return err
+	}
+	var envelope struct {
+		Response struct {
+			Code    string `json:"code"`
+			Message string `json:"msg"`
+			SubCode string `json:"sub_code"`
+			SubMsg  string `json:"sub_msg"`
+		} `json:"alipay_trade_close_response"`
+	}
+	if err := common.Unmarshal(body, &envelope); err != nil {
+		return fmt.Errorf("alipay trade close response invalid: %w", err)
+	}
+	if envelope.Response.Code == "10000" || envelope.Response.SubCode == "ACQ.TRADE_NOT_EXIST" {
+		return nil
+	}
+	return fmt.Errorf("alipay trade close failed: code=%s sub_code=%s message=%s", envelope.Response.Code, envelope.Response.SubCode, strings.TrimSpace(envelope.Response.SubMsg))
+}
+
+func alipayHTTPTransport() http.RoundTripper {
+	client := GetHttpClient()
+	if client != nil && client.Transport != nil {
+		return client.Transport
+	}
+	return http.DefaultTransport
+}
+
 func SignAlipayRequest(privateKeyPEM string, params map[string]string) (string, error) {
 	content := alipaySignContent(params, false)
 	key, err := parseRSAPrivateKey(privateKeyPEM)
@@ -110,6 +193,34 @@ func VerifyAlipayNotification(publicKeyPEM string, params map[string]string) err
 	sum := sha256.Sum256([]byte(content))
 	if err := rsa.VerifyPKCS1v15(key, crypto.SHA256, sum[:], raw); err != nil {
 		return fmt.Errorf("alipay signature mismatch")
+	}
+	return nil
+}
+
+func VerifyAlipayResponse(publicKeyPEM string, body []byte, responseKey string) error {
+	var envelope map[string]json.RawMessage
+	if err := common.Unmarshal(body, &envelope); err != nil {
+		return fmt.Errorf("alipay response invalid: %w", err)
+	}
+	response, ok := envelope[responseKey]
+	if !ok || len(response) == 0 {
+		return fmt.Errorf("alipay response node missing")
+	}
+	var sign string
+	if err := common.Unmarshal(envelope["sign"], &sign); err != nil || strings.TrimSpace(sign) == "" {
+		return fmt.Errorf("alipay response sign missing")
+	}
+	raw, err := base64.StdEncoding.DecodeString(sign)
+	if err != nil {
+		return fmt.Errorf("alipay response sign invalid: %w", err)
+	}
+	key, err := parseRSAPublicKey(publicKeyPEM)
+	if err != nil {
+		return err
+	}
+	sum := sha256.Sum256(response)
+	if err := rsa.VerifyPKCS1v15(key, crypto.SHA256, sum[:], raw); err != nil {
+		return fmt.Errorf("alipay response signature mismatch")
 	}
 	return nil
 }

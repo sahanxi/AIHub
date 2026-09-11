@@ -222,3 +222,48 @@ func TestMySQLConcurrentLastSeatAllocation(t *testing.T) {
 
 	assert.EqualValues(t, 0, duplicateAllocations.Load(), "duplicate seat allocations across rounds")
 }
+
+func TestMySQLConcurrentRenewalOrderEnsure(t *testing.T) {
+	setupBusinessSeatMySQLTestDB(t)
+	loc, _ := time.LoadLocation("Asia/Shanghai")
+	ws, product, pv := seedWorkspaceWithSeats(t, 1, time.Date(2026, 10, 1, 0, 0, 0, 0, loc))
+	require.NoError(t, model.DB.Model(ws).Update("renewal_lead_days", 3).Error)
+
+	sub := model.BusinessSeatSubscription{
+		UserId: 9100, ProductId: product.Id, WorkspaceId: ws.Id, ChatgptEmail: "concurrent@gmail.com",
+		Status: model.BusinessSubscriptionStatusActive,
+		PrepaidThrough: time.Date(2026, 11, 1, 0, 0, 0, 0, loc).Unix(),
+		CurrentPriceVersionId: pv.Id,
+	}
+	require.NoError(t, model.DB.Create(&sub).Error)
+
+	renewalSvc := NewRenewalService()
+	now := time.Date(2026, 10, 29, 12, 0, 0, 0, loc)
+	const workers = 50
+	var wg sync.WaitGroup
+	var failures atomic.Int64
+	wg.Add(workers)
+	for i := 0; i < workers; i++ {
+		go func() {
+			defer wg.Done()
+			if _, err := renewalSvc.EnsureRenewalOrder(&sub, ws, now); err != nil {
+				failures.Add(1)
+			}
+		}()
+	}
+	wg.Wait()
+
+	assert.EqualValues(t, 0, failures.Load(), "EnsureRenewalOrder errors under concurrency")
+
+	var orderCount int64
+	require.NoError(t, model.DB.Model(&model.BusinessSeatOrder{}).
+		Where("subscription_id = ? AND order_type = ?", sub.Id, model.BusinessOrderTypeRenewal).
+		Count(&orderCount).Error)
+	assert.EqualValues(t, 1, orderCount)
+
+	var quoteCount int64
+	require.NoError(t, model.DB.Model(&model.BusinessQuote{}).
+		Where("user_id = ? AND order_type = ?", sub.UserId, model.BusinessOrderTypeRenewal).
+		Count(&quoteCount).Error)
+	assert.EqualValues(t, 1, quoteCount)
+}

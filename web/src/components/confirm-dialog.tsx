@@ -60,17 +60,31 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
     handleConfirm,
     ...actions
   } = props
+  const hasBody = Boolean(children)
+
   return (
     <AlertDialog {...actions}>
-      <AlertDialogContent className={cn(className && className)}>
-        <AlertDialogHeader className='text-start'>
+      <AlertDialogContent
+        className={cn(
+          hasBody &&
+            'flex max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] flex-col gap-4 overflow-hidden sm:max-w-lg',
+          className,
+        )}
+      >
+        <AlertDialogHeader className='shrink-0 text-start'>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription render={<div />}>
             {desc}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        {children}
-        <AlertDialogFooter>
+        {hasBody ? (
+          <div
+            className='-mx-1 min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-1 max-h-[calc(100vh-14rem)]'
+          >
+            {children}
+          </div>
+        ) : null}
+        <AlertDialogFooter className='shrink-0'>
           <AlertDialogCancel disabled={isLoading}>
             {cancelBtnText ?? t('Cancel')}
           </AlertDialogCancel>

@@ -178,6 +178,15 @@ func CriticalRateLimit() func(c *gin.Context) {
 	return defNext
 }
 
+// AuthRateLimit isolates login/session refresh from the shared CT bucket so
+// payment or other critical API testing cannot lock users out of sign-in.
+func AuthRateLimit() func(c *gin.Context) {
+	if common.CriticalRateLimitEnable {
+		return rateLimitFactory(common.CriticalRateLimitNum, common.CriticalRateLimitDuration, "LG")
+	}
+	return defNext
+}
+
 func UserCriticalRateLimit(scope string) func(c *gin.Context) {
 	if !common.CriticalRateLimitEnable {
 		return defNext

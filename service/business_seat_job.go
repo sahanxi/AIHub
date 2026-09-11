@@ -46,25 +46,41 @@ func runBusinessSeatBillingOnce() {
 	defer businessSeatJobRunning.Store(false)
 
 	ctx := context.Background()
-	now := common.GetTimestamp()
+	now := time.Now()
+	nowUnix := common.GetTimestamp()
 	subSvc := businessseat.NewSubscriptionService()
+	renewalSvc := businessseat.NewRenewalService()
 	recon := businessseat.NewReconciliationService()
 
-	if _, err := model.ExpireDueBusinessQuotes(now); err != nil {
+	if _, err := model.ExpireDueBusinessQuotes(nowUnix); err != nil {
 		logger.LogWarn(ctx, fmt.Sprintf("business seat quote expiry failed: %v", err))
 	}
 
-	var expiring []model.BusinessSeatSubscription
-	_ = model.DB.Where("status = ? AND prepaid_through <= ? AND prepaid_through > ?",
-		model.BusinessSubscriptionStatusActive, now+7*86400, now).
-		Find(&expiring).Error
-	for _, sub := range expiring {
-		_ = model.DB.Model(&sub).Update("status", model.BusinessSubscriptionStatusExpiring).Error
+	if err := renewalSvc.MarkExpiringSubscriptions(now); err != nil {
+		logger.LogWarn(ctx, fmt.Sprintf("business seat expiring mark failed: %v", err))
+	}
+
+	var renewable []model.BusinessSeatSubscription
+	_ = model.DB.Where("status IN ?", []string{
+		model.BusinessSubscriptionStatusActive,
+		model.BusinessSubscriptionStatusExpiring,
+	}).Limit(500).Find(&renewable).Error
+	for _, sub := range renewable {
+		if sub.PrepaidThrough <= nowUnix {
+			continue
+		}
+		ws, err := model.GetBusinessWorkspaceById(sub.WorkspaceId)
+		if err != nil {
+			continue
+		}
+		if _, err := renewalSvc.EnsureRenewalOrder(&sub, ws, now); err != nil {
+			logger.LogWarn(ctx, fmt.Sprintf("business seat renewal ensure failed sub=%d: %v", sub.Id, err))
+		}
 	}
 
 	var expired []model.BusinessSeatSubscription
 	_ = model.DB.Where("status IN ? AND prepaid_through <= ?",
-		[]string{model.BusinessSubscriptionStatusActive, model.BusinessSubscriptionStatusExpiring}, now).
+		[]string{model.BusinessSubscriptionStatusActive, model.BusinessSubscriptionStatusExpiring}, nowUnix).
 		Limit(200).Find(&expired).Error
 	for _, sub := range expired {
 		if err := subSvc.ExpireSubscription(sub.Id); err != nil {

@@ -23,6 +23,7 @@ const (
 	BusinessWorkspaceTypeChatGPTBusiness    = "CHATGPT_BUSINESS"
 	BusinessWorkspaceStatusActive           = "ACTIVE"
 	BusinessWorkspaceStatusDisabled         = "DISABLED"
+	MaxBusinessWorkspaceSubscriptionDescLen = 2000
 )
 
 // Product
@@ -32,24 +33,25 @@ const (
 
 // Quote types
 const (
-	BusinessQuoteTypeCycleStartFull            = "CYCLE_START_FULL"
-	BusinessQuoteTypeMidCycleProratedPlusNext  = "MID_CYCLE_PRORATED_PLUS_NEXT"
-	BusinessQuoteTypeRenewalFull               = "RENEWAL_FULL"
+	BusinessQuoteTypeCycleStartFull           = "CYCLE_START_FULL"
+	BusinessQuoteTypeMidCycleProratedPlusNext = "MID_CYCLE_PRORATED_PLUS_NEXT" // legacy paid quotes only
+	BusinessQuoteTypeMidCycleProratedOnly     = "MID_CYCLE_PRORATED_ONLY"
+	BusinessQuoteTypeRenewalFull              = "RENEWAL_FULL"
 )
 
 // Quote status
 const (
-	BusinessQuoteStatusPending  = "PENDING"
-	BusinessQuoteStatusUsed     = "USED"
-	BusinessQuoteStatusExpired  = "EXPIRED"
+	BusinessQuoteStatusPending   = "PENDING"
+	BusinessQuoteStatusUsed      = "USED"
+	BusinessQuoteStatusExpired   = "EXPIRED"
 	BusinessQuoteStatusCancelled = "CANCELLED"
 )
 
 // Order types
 const (
-	BusinessOrderTypeNew           = "NEW"
-	BusinessOrderTypeRenewal       = "RENEWAL"
-	BusinessOrderTypeReactivation  = "REACTIVATION"
+	BusinessOrderTypeNew          = "NEW"
+	BusinessOrderTypeRenewal      = "RENEWAL"
+	BusinessOrderTypeReactivation = "REACTIVATION"
 )
 
 // Order status (V1: no refund states used)
@@ -101,11 +103,11 @@ const (
 
 // Admin task types
 const (
-	BusinessTaskTypeAddSeat              = "ADD_SEAT"
-	BusinessTaskTypeInviteMember         = "INVITE_MEMBER"
-	BusinessTaskTypeConfirmActivation    = "CONFIRM_ACTIVATION"
-	BusinessTaskTypeRemoveMember         = "REMOVE_MEMBER"
-	BusinessTaskTypeVerifyReactivation   = "VERIFY_REACTIVATION"
+	BusinessTaskTypeAddSeat            = "ADD_SEAT"
+	BusinessTaskTypeInviteMember       = "INVITE_MEMBER"
+	BusinessTaskTypeConfirmActivation  = "CONFIRM_ACTIVATION"
+	BusinessTaskTypeRemoveMember       = "REMOVE_MEMBER"
+	BusinessTaskTypeVerifyReactivation = "VERIFY_REACTIVATION"
 )
 
 // Admin task status
@@ -139,18 +141,20 @@ var (
 )
 
 type BusinessWorkspace struct {
-	Id                     int    `json:"id"`
-	Name                   string `json:"name" gorm:"type:varchar(128);not null"`
-	Provider               string `json:"provider" gorm:"type:varchar(32);not null;default:OPENAI"`
-	WorkspaceType          string `json:"workspace_type" gorm:"type:varchar(64);not null;default:CHATGPT_BUSINESS"`
-	Status                 string `json:"status" gorm:"type:varchar(32);not null;default:ACTIVE;index"`
-	BillingCadence         string `json:"billing_cadence" gorm:"type:varchar(16);not null;default:MONTHLY"`
-	BillingAnchorAt        int64  `json:"billing_anchor_at" gorm:"type:bigint;not null"`
-	BillingTimezone        string `json:"billing_timezone" gorm:"type:varchar(64);not null;default:UTC"`
-	CycleStartGraceMinutes int    `json:"cycle_start_grace_minutes" gorm:"not null;default:60"`
-	TotalStandardSeats     int    `json:"total_standard_seats" gorm:"not null;default:0"`
-	CreatedAt              int64  `json:"created_at" gorm:"type:bigint;autoCreateTime"`
-	UpdatedAt              int64  `json:"updated_at" gorm:"type:bigint;autoUpdateTime"`
+	Id                      int    `json:"id"`
+	Name                    string `json:"name" gorm:"type:varchar(128);not null"`
+	SubscriptionDescription string `json:"subscription_description" gorm:"type:varchar(2000);not null;default:''"`
+	Provider                string `json:"provider" gorm:"type:varchar(32);not null;default:OPENAI"`
+	WorkspaceType           string `json:"workspace_type" gorm:"type:varchar(64);not null;default:CHATGPT_BUSINESS"`
+	Status                  string `json:"status" gorm:"type:varchar(32);not null;default:ACTIVE;index"`
+	BillingCadence          string `json:"billing_cadence" gorm:"type:varchar(16);not null;default:MONTHLY"`
+	BillingAnchorAt         int64  `json:"billing_anchor_at" gorm:"type:bigint;not null"`
+	BillingTimezone         string `json:"billing_timezone" gorm:"type:varchar(64);not null;default:UTC"`
+	CycleStartGraceMinutes  int    `json:"cycle_start_grace_minutes" gorm:"not null;default:60"`
+	RenewalLeadDays         int    `json:"renewal_lead_days" gorm:"not null;default:3"`
+	TotalStandardSeats      int    `json:"total_standard_seats" gorm:"not null;default:0"`
+	CreatedAt               int64  `json:"created_at" gorm:"type:bigint;autoCreateTime"`
+	UpdatedAt               int64  `json:"updated_at" gorm:"type:bigint;autoUpdateTime"`
 }
 
 type BusinessProduct struct {
@@ -178,57 +182,60 @@ type BusinessPriceVersion struct {
 }
 
 type BusinessQuote struct {
-	Id                 int             `json:"id"`
-	UserId             int             `json:"user_id" gorm:"index;not null"`
-	WorkspaceId        int             `json:"workspace_id" gorm:"index;not null"`
-	ProductId          int             `json:"product_id" gorm:"index;not null"`
-	PriceVersionId     int             `json:"price_version_id" gorm:"not null"`
-	ChatgptEmail       string          `json:"chatgpt_email" gorm:"type:varchar(255);not null"`
-	QuoteType          string          `json:"quote_type" gorm:"type:varchar(64);not null"`
-	QuoteAt            int64           `json:"quote_at" gorm:"type:bigint;not null"`
-	ExpiresAt          int64           `json:"expires_at" gorm:"type:bigint;not null;index"`
-	CycleStartAt       int64           `json:"cycle_start_at" gorm:"type:bigint;not null"`
-	CycleEndAt         int64           `json:"cycle_end_at" gorm:"type:bigint;not null"`
-	NextCycleStartAt   int64           `json:"next_cycle_start_at" gorm:"type:bigint;not null"`
-	NextCycleEndAt     int64           `json:"next_cycle_end_at" gorm:"type:bigint;not null"`
-	ProrationRatio     decimal.Decimal `json:"proration_ratio" gorm:"type:decimal(20,10);not null;default:0"`
-	CurrentCycleAmount decimal.Decimal `json:"current_cycle_amount" gorm:"type:decimal(20,6);not null"`
-	NextCycleAmount    decimal.Decimal `json:"next_cycle_amount" gorm:"type:decimal(20,6);not null;default:0"`
-	TotalAmount        decimal.Decimal `json:"total_amount" gorm:"type:decimal(20,6);not null"`
-	Currency           string          `json:"currency" gorm:"type:varchar(8);not null"`
-	PrepaidThrough     int64           `json:"prepaid_through" gorm:"type:bigint;not null"`
-	OrderType          string          `json:"order_type" gorm:"type:varchar(32);not null"`
-	Status             string          `json:"status" gorm:"type:varchar(32);not null;default:PENDING;index"`
-	CreatedAt          int64           `json:"created_at" gorm:"type:bigint;autoCreateTime"`
+	Id                       int             `json:"id"`
+	UserId                   int             `json:"user_id" gorm:"index;not null"`
+	WorkspaceId              int             `json:"workspace_id" gorm:"index;not null"`
+	ProductId                int             `json:"product_id" gorm:"index;not null"`
+	PriceVersionId           int             `json:"price_version_id" gorm:"not null"`
+	ChatgptEmail             string          `json:"chatgpt_email" gorm:"type:varchar(255);not null"`
+	QuoteType                string          `json:"quote_type" gorm:"type:varchar(64);not null"`
+	QuoteAt                  int64           `json:"quote_at" gorm:"type:bigint;not null"`
+	ExpiresAt                int64           `json:"expires_at" gorm:"type:bigint;not null;index"`
+	CycleStartAt             int64           `json:"cycle_start_at" gorm:"type:bigint;not null"`
+	CycleEndAt               int64           `json:"cycle_end_at" gorm:"type:bigint;not null"`
+	NextCycleStartAt         int64           `json:"next_cycle_start_at" gorm:"type:bigint;not null"`
+	NextCycleEndAt           int64           `json:"next_cycle_end_at" gorm:"type:bigint;not null"`
+	ProrationRatio           decimal.Decimal `json:"proration_ratio" gorm:"type:decimal(20,10);not null;default:0"`
+	CurrentCycleAmount       decimal.Decimal `json:"current_cycle_amount" gorm:"type:decimal(20,6);not null"`
+	NextCycleAmount          decimal.Decimal `json:"next_cycle_amount" gorm:"type:decimal(20,6);not null;default:0"`
+	TotalAmount              decimal.Decimal `json:"total_amount" gorm:"type:decimal(20,6);not null"`
+	Currency                 string          `json:"currency" gorm:"type:varchar(8);not null"`
+	PrepaidThrough           int64           `json:"prepaid_through" gorm:"type:bigint;not null"`
+	RenewalWindowOpensAt     int64           `json:"renewal_window_opens_at" gorm:"type:bigint;not null;default:0"`
+	RenewalPaymentDeadlineAt int64           `json:"renewal_payment_deadline_at" gorm:"type:bigint;not null;default:0"`
+	RenewalLeadDays          int             `json:"renewal_lead_days" gorm:"not null;default:0"`
+	OrderType                string          `json:"order_type" gorm:"type:varchar(32);not null"`
+	Status                   string          `json:"status" gorm:"type:varchar(32);not null;default:PENDING;index"`
+	CreatedAt                int64           `json:"created_at" gorm:"type:bigint;autoCreateTime"`
 }
 
 type BusinessSeatOrder struct {
-	Id                  int             `json:"id"`
-	OrderNo             string          `json:"order_no" gorm:"type:varchar(64);uniqueIndex;not null"`
-	UserId              int             `json:"user_id" gorm:"index;not null"`
-	ProductId           int             `json:"product_id" gorm:"index;not null"`
-	WorkspaceId         int             `json:"workspace_id" gorm:"index;not null"`
-	SubscriptionId      *int            `json:"subscription_id" gorm:"index"`
-	PriceVersionId      int             `json:"price_version_id" gorm:"not null"`
-	QuoteId             int             `json:"quote_id" gorm:"index;not null"`
-	OrderType           string          `json:"order_type" gorm:"type:varchar(32);not null"`
-	ChatgptEmail        string          `json:"chatgpt_email" gorm:"type:varchar(255);not null"`
-	Currency            string          `json:"currency" gorm:"type:varchar(8);not null"`
-	CurrentCycleAmount  decimal.Decimal `json:"current_cycle_amount" gorm:"type:decimal(20,6);not null"`
-	NextCycleAmount     decimal.Decimal `json:"next_cycle_amount" gorm:"type:decimal(20,6);not null;default:0"`
-	TotalAmount         decimal.Decimal `json:"total_amount" gorm:"type:decimal(20,6);not null"`
-	CycleStartAt        int64           `json:"cycle_start_at" gorm:"type:bigint;not null"`
-	CycleEndAt          int64           `json:"cycle_end_at" gorm:"type:bigint;not null"`
-	PrepaidThrough      int64           `json:"prepaid_through" gorm:"type:bigint;not null;index"`
-	Status              string          `json:"status" gorm:"type:varchar(32);not null;default:CREATED;index"`
-	PaymentStatus       string          `json:"payment_status" gorm:"type:varchar(32);not null;default:PENDING"`
-	ProvisioningStatus  string          `json:"provisioning_status" gorm:"type:varchar(32);not null;default:PENDING"`
-	PaymentChannel      string          `json:"payment_channel" gorm:"type:varchar(32);default:''"`
-	PaymentOrderNo      string          `json:"payment_order_no" gorm:"type:varchar(128);default:'';index"`
-	ProviderTradeNo     *string         `json:"provider_trade_no" gorm:"type:varchar(128);uniqueIndex"`
-	PaidAt              *int64          `json:"paid_at" gorm:"type:bigint"`
-	CreatedAt           int64           `json:"created_at" gorm:"type:bigint;autoCreateTime"`
-	UpdatedAt           int64           `json:"updated_at" gorm:"type:bigint;autoUpdateTime"`
+	Id                 int             `json:"id"`
+	OrderNo            string          `json:"order_no" gorm:"type:varchar(64);uniqueIndex;not null"`
+	UserId             int             `json:"user_id" gorm:"index;not null"`
+	ProductId          int             `json:"product_id" gorm:"index;not null"`
+	WorkspaceId        int             `json:"workspace_id" gorm:"index;not null"`
+	SubscriptionId     *int            `json:"subscription_id" gorm:"index"`
+	PriceVersionId     int             `json:"price_version_id" gorm:"not null"`
+	QuoteId            int             `json:"quote_id" gorm:"index;not null"`
+	OrderType          string          `json:"order_type" gorm:"type:varchar(32);not null"`
+	ChatgptEmail       string          `json:"chatgpt_email" gorm:"type:varchar(255);not null"`
+	Currency           string          `json:"currency" gorm:"type:varchar(8);not null"`
+	CurrentCycleAmount decimal.Decimal `json:"current_cycle_amount" gorm:"type:decimal(20,6);not null"`
+	NextCycleAmount    decimal.Decimal `json:"next_cycle_amount" gorm:"type:decimal(20,6);not null;default:0"`
+	TotalAmount        decimal.Decimal `json:"total_amount" gorm:"type:decimal(20,6);not null"`
+	CycleStartAt       int64           `json:"cycle_start_at" gorm:"type:bigint;not null"`
+	CycleEndAt         int64           `json:"cycle_end_at" gorm:"type:bigint;not null"`
+	PrepaidThrough     int64           `json:"prepaid_through" gorm:"type:bigint;not null;index"`
+	Status             string          `json:"status" gorm:"type:varchar(32);not null;default:CREATED;index"`
+	PaymentStatus      string          `json:"payment_status" gorm:"type:varchar(32);not null;default:PENDING"`
+	ProvisioningStatus string          `json:"provisioning_status" gorm:"type:varchar(32);not null;default:PENDING"`
+	PaymentChannel     string          `json:"payment_channel" gorm:"type:varchar(32);default:''"`
+	PaymentOrderNo     string          `json:"payment_order_no" gorm:"type:varchar(128);default:'';index"`
+	ProviderTradeNo    *string         `json:"provider_trade_no" gorm:"type:varchar(128);uniqueIndex"`
+	PaidAt             *int64          `json:"paid_at" gorm:"type:bigint"`
+	CreatedAt          int64           `json:"created_at" gorm:"type:bigint;autoCreateTime"`
+	UpdatedAt          int64           `json:"updated_at" gorm:"type:bigint;autoUpdateTime"`
 }
 
 type BusinessSeatOrderItem struct {
@@ -244,40 +251,40 @@ type BusinessSeatOrderItem struct {
 }
 
 type BusinessSeatSubscription struct {
-	Id                   int    `json:"id"`
-	UserId               int    `json:"user_id" gorm:"index;not null"`
-	ProductId            int    `json:"product_id" gorm:"index;not null"`
-	WorkspaceId          int    `json:"workspace_id" gorm:"index;not null"`
-	SeatId               *int   `json:"seat_id" gorm:"index"`
-	ChatgptEmail         string `json:"chatgpt_email" gorm:"type:varchar(255);not null;index"`
-	Status               string `json:"status" gorm:"type:varchar(32);not null;index"`
-	ActivatedAt          *int64 `json:"activated_at" gorm:"type:bigint"`
-	AccessStartAt        *int64 `json:"access_start_at" gorm:"type:bigint"`
-	PrepaidThrough       int64  `json:"prepaid_through" gorm:"type:bigint;not null;index"`
-	CurrentPriceVersionId int   `json:"current_price_version_id" gorm:"not null"`
-	LastOrderId          *int   `json:"last_order_id" gorm:"index"`
-	InvitedAt            *int64 `json:"invited_at" gorm:"type:bigint"`
-	ExpiredAt            *int64 `json:"expired_at" gorm:"type:bigint"`
-	RemovedAt            *int64 `json:"removed_at" gorm:"type:bigint"`
-	CreatedAt            int64  `json:"created_at" gorm:"type:bigint;autoCreateTime"`
-	UpdatedAt            int64  `json:"updated_at" gorm:"type:bigint;autoUpdateTime"`
+	Id                    int    `json:"id"`
+	UserId                int    `json:"user_id" gorm:"index;not null"`
+	ProductId             int    `json:"product_id" gorm:"index;not null"`
+	WorkspaceId           int    `json:"workspace_id" gorm:"index;not null"`
+	SeatId                *int   `json:"seat_id" gorm:"index"`
+	ChatgptEmail          string `json:"chatgpt_email" gorm:"type:varchar(255);not null;index"`
+	Status                string `json:"status" gorm:"type:varchar(32);not null;index"`
+	ActivatedAt           *int64 `json:"activated_at" gorm:"type:bigint"`
+	AccessStartAt         *int64 `json:"access_start_at" gorm:"type:bigint"`
+	PrepaidThrough        int64  `json:"prepaid_through" gorm:"type:bigint;not null;index"`
+	CurrentPriceVersionId int    `json:"current_price_version_id" gorm:"not null"`
+	LastOrderId           *int   `json:"last_order_id" gorm:"index"`
+	InvitedAt             *int64 `json:"invited_at" gorm:"type:bigint"`
+	ExpiredAt             *int64 `json:"expired_at" gorm:"type:bigint"`
+	RemovedAt             *int64 `json:"removed_at" gorm:"type:bigint"`
+	CreatedAt             int64  `json:"created_at" gorm:"type:bigint;autoCreateTime"`
+	UpdatedAt             int64  `json:"updated_at" gorm:"type:bigint;autoUpdateTime"`
 }
 
 type BusinessSeat struct {
-	Id              int    `json:"id"`
-	WorkspaceId     int    `json:"workspace_id" gorm:"index:idx_business_seat_workspace_number,priority:1;not null"`
-	SeatType        string `json:"seat_type" gorm:"type:varchar(32);not null;default:STANDARD"`
-	SeatNumber      int    `json:"seat_number" gorm:"index:idx_business_seat_workspace_number,priority:2;not null"`
-	Status          string `json:"status" gorm:"type:varchar(32);not null;index"`
-	SubscriptionId  *int   `json:"subscription_id" gorm:"index"`
-	UserId          *int   `json:"user_id" gorm:"index"`
-	AssignedEmail   string `json:"assigned_email" gorm:"type:varchar(255);default:''"`
-	ReservedAt      *int64 `json:"reserved_at" gorm:"type:bigint"`
-	InvitedAt       *int64 `json:"invited_at" gorm:"type:bigint"`
-	ActivatedAt     *int64 `json:"activated_at" gorm:"type:bigint"`
-	ReleasedAt      *int64 `json:"released_at" gorm:"type:bigint"`
-	CreatedAt       int64  `json:"created_at" gorm:"type:bigint;autoCreateTime"`
-	UpdatedAt       int64  `json:"updated_at" gorm:"type:bigint;autoUpdateTime"`
+	Id             int    `json:"id"`
+	WorkspaceId    int    `json:"workspace_id" gorm:"index:idx_business_seat_workspace_number,priority:1;not null"`
+	SeatType       string `json:"seat_type" gorm:"type:varchar(32);not null;default:STANDARD"`
+	SeatNumber     int    `json:"seat_number" gorm:"index:idx_business_seat_workspace_number,priority:2;not null"`
+	Status         string `json:"status" gorm:"type:varchar(32);not null;index"`
+	SubscriptionId *int   `json:"subscription_id" gorm:"index"`
+	UserId         *int   `json:"user_id" gorm:"index"`
+	AssignedEmail  string `json:"assigned_email" gorm:"type:varchar(255);default:''"`
+	ReservedAt     *int64 `json:"reserved_at" gorm:"type:bigint"`
+	InvitedAt      *int64 `json:"invited_at" gorm:"type:bigint"`
+	ActivatedAt    *int64 `json:"activated_at" gorm:"type:bigint"`
+	ReleasedAt     *int64 `json:"released_at" gorm:"type:bigint"`
+	CreatedAt      int64  `json:"created_at" gorm:"type:bigint;autoCreateTime"`
+	UpdatedAt      int64  `json:"updated_at" gorm:"type:bigint;autoUpdateTime"`
 }
 
 type BusinessSeatTask struct {
@@ -466,12 +473,27 @@ func ListBusinessProducts() ([]BusinessProduct, error) {
 	return list, err
 }
 
+func effectiveBusinessPriceVersionQuery(db *gorm.DB, productId int, at int64) *gorm.DB {
+	return db.Where("product_id = ? AND enabled = ? AND effective_from <= ?", productId, true, at).
+		Where("effective_to IS NULL OR effective_to > ?", at).
+		Order("effective_from desc, id desc")
+}
+
 func GetEffectiveBusinessPriceVersion(productId int, at int64) (*BusinessPriceVersion, error) {
 	var pv BusinessPriceVersion
-	err := DB.Where("product_id = ? AND enabled = ? AND effective_from <= ?", productId, true, at).
-		Where("effective_to IS NULL OR effective_to > ?", at).
-		Order("effective_from desc, id desc").
-		First(&pv).Error
+	err := effectiveBusinessPriceVersionQuery(DB, productId, at).First(&pv).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrBusinessPriceVersionNotFound
+		}
+		return nil, err
+	}
+	return &pv, nil
+}
+
+func GetEffectiveBusinessPriceVersionTx(tx *gorm.DB, productId int, at int64) (*BusinessPriceVersion, error) {
+	var pv BusinessPriceVersion
+	err := effectiveBusinessPriceVersionQuery(tx, productId, at).First(&pv).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrBusinessPriceVersionNotFound
@@ -546,6 +568,103 @@ func GetBusinessSeatOrderById(id int) (*BusinessSeatOrder, error) {
 		return nil, err
 	}
 	return &order, nil
+}
+
+func findRenewalOrderForServicePeriodQuery(db *gorm.DB, subscriptionId int, cycleStart, cycleEnd int64) *gorm.DB {
+	return db.Where(
+		"subscription_id = ? AND order_type = ? AND cycle_start_at = ? AND cycle_end_at = ? AND status IN ?",
+		subscriptionId,
+		BusinessOrderTypeRenewal,
+		cycleStart,
+		cycleEnd,
+		[]string{BusinessOrderStatusCreated, BusinessOrderStatusPaying, BusinessOrderStatusPaid},
+	)
+}
+
+func FindRenewalOrderForServicePeriod(subscriptionId int, cycleStart, cycleEnd int64) (*BusinessSeatOrder, error) {
+	var order BusinessSeatOrder
+	err := findRenewalOrderForServicePeriodQuery(DB, subscriptionId, cycleStart, cycleEnd).
+		Order("id desc").First(&order).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &order, nil
+}
+
+func FindRenewalOrderForServicePeriodTx(tx *gorm.DB, subscriptionId int, cycleStart, cycleEnd int64) (*BusinessSeatOrder, error) {
+	var order BusinessSeatOrder
+	err := findRenewalOrderForServicePeriodQuery(tx, subscriptionId, cycleStart, cycleEnd).
+		Order("id desc").First(&order).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &order, nil
+}
+
+func GetBusinessSeatSubscriptionByIdForUpdate(tx *gorm.DB, id int) (*BusinessSeatSubscription, error) {
+	var sub BusinessSeatSubscription
+	err := lockForUpdate(tx).First(&sub, id).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrBusinessSubscriptionNotFound
+		}
+		return nil, err
+	}
+	return &sub, nil
+}
+
+func ListPayableBusinessSeatOrdersForUser(userId int) ([]BusinessSeatOrder, error) {
+	var list []BusinessSeatOrder
+	err := DB.Where("user_id = ? AND status IN ?",
+		userId, []string{BusinessOrderStatusCreated, BusinessOrderStatusPaying}).
+		Order("id desc").
+		Find(&list).Error
+	return list, err
+}
+
+func CancelPayableBusinessSeatOrderForUser(orderId, userId int) error {
+	result := DB.Model(&BusinessSeatOrder{}).
+		Where("id = ? AND user_id = ? AND status IN ?", orderId, userId,
+			[]string{BusinessOrderStatusCreated, BusinessOrderStatusPaying}).
+		Updates(map[string]interface{}{
+			"status":         BusinessOrderStatusCancelled,
+			"payment_status": "CANCELLED",
+		})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return ErrBusinessOrderNotFound
+	}
+	return nil
+}
+
+func GetPayableBusinessSeatOrderByQuoteId(quoteId, userId int) (*BusinessSeatOrder, error) {
+	var order BusinessSeatOrder
+	err := DB.Where("quote_id = ? AND user_id = ? AND status IN ?",
+		quoteId, userId, []string{BusinessOrderStatusCreated, BusinessOrderStatusPaying}).
+		Order("id desc").
+		First(&order).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrBusinessOrderNotFound
+		}
+		return nil, err
+	}
+	return &order, nil
+}
+
+func CancelPendingBusinessQuotesForUser(userId int, chatgptEmail, orderType string) error {
+	return DB.Model(&BusinessQuote{}).
+		Where("user_id = ? AND chatgpt_email = ? AND order_type = ? AND status = ?",
+			userId, chatgptEmail, orderType, BusinessQuoteStatusPending).
+		Update("status", BusinessQuoteStatusCancelled).Error
 }
 
 var (

@@ -25,6 +25,7 @@ export interface BusinessProduct {
 export interface BusinessWorkspace {
   id: number
   name: string
+  subscription_description?: string
   provider: string
   workspace_type: string
   status: string
@@ -32,6 +33,7 @@ export interface BusinessWorkspace {
   billing_anchor_at: number
   billing_timezone: string
   cycle_start_grace_minutes: number
+  renewal_lead_days: number
   total_standard_seats: number
   pool?: BusinessSeatPoolStats
   active_subscriptions?: number
@@ -59,6 +61,9 @@ export interface BusinessQuote {
   next_cycle_start_at: number
   next_cycle_end_at: number
   prepaid_through: number
+  renewal_window_opens_at?: number
+  renewal_payment_deadline_at?: number
+  renewal_lead_days?: number
   expires_at: number
   chatgpt_email: string
 }
@@ -70,7 +75,9 @@ export interface BusinessSeatOrder {
   currency: string
   status: string
   prepaid_through: number
+  cycle_start_at?: number
   chatgpt_email?: string
+  created_at?: number
 }
 
 export interface BusinessSubscription {
