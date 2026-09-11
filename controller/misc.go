@@ -98,7 +98,7 @@ func GetStatus(c *gin.Context) {
 		"password_login_encryption_enabled": common.PasswordLoginEncryptionEnabled,
 
 		"usd_exchange_rate": operation_setting.USDExchangeRate,
-		"price":             operation_setting.Price,
+		"price":             operation_setting.GetTopUpSettlementUnitPrice(),
 		"stripe_unit_price": setting.StripeUnitPrice,
 
 		// 面板启用开关

@@ -162,7 +162,7 @@ func getPayMoney(amount int64, group string) float64 {
 	}
 
 	dTopupGroupRatio := decimal.NewFromFloat(topupGroupRatio)
-	dPrice := decimal.NewFromFloat(operation_setting.Price)
+	dPrice := decimal.NewFromFloat(operation_setting.GetTopUpSettlementUnitPrice())
 	// apply optional preset discount by the original request amount (if configured), default 1.0
 	discount := 1.0
 	if ds, ok := operation_setting.GetPaymentSetting().AmountDiscount[int(amount)]; ok {
@@ -579,25 +579,22 @@ func GetAllTopUps(c *gin.Context) {
 	common.ApiSuccess(c, pageInfo)
 }
 
-type AdminCompleteTopupRequest struct {
-	TradeNo string `json:"trade_no"`
-}
-
-// AdminCompleteTopUp 管理员补单接口
-func AdminCompleteTopUp(c *gin.Context) {
-	var req AdminCompleteTopupRequest
-	if err := c.ShouldBindJSON(&req); err != nil || req.TradeNo == "" {
-		common.ApiErrorMsg(c, "参数错误")
+// DeleteTopUp removes a pending order owned by the current user. Administrators
+// may remove pending orders from the all-users billing history as well.
+func DeleteTopUp(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		common.ApiErrorMsg(c, "订单不存在")
 		return
 	}
 
-	// 订单级互斥，防止并发补单
-	LockOrder(req.TradeNo)
-	defer UnlockOrder(req.TradeNo)
-
-	if err := model.ManualCompleteTopUp(req.TradeNo, c.ClientIP()); err != nil {
+	if err := model.DeletePendingTopUp(id, c.GetInt("id"), c.GetInt("role") >= common.RoleAdminUser); err != nil {
+		if errors.Is(err, model.ErrTopUpNotFound) {
+			common.ApiErrorMsg(c, "订单不存在或不是待支付状态")
+			return
+		}
 		common.ApiError(c, err)
 		return
 	}
-	common.ApiSuccess(c, nil)
+	common.ApiSuccess(c, gin.H{"success": true})
 }

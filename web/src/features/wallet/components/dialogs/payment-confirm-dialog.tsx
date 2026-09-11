@@ -33,8 +33,16 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { formatLocalCurrencyAmount } from '@/lib/currency'
 
 import { DEFAULT_DISCOUNT_RATE } from '../../constants'
-import { formatCurrency, getPaymentIcon } from '../../lib'
+import { getPaymentIcon } from '../../lib'
 import type { PaymentMethod } from '../../types'
+
+function formatSettlementCNY(amount: number): string {
+  if (!Number.isFinite(amount)) return '-'
+  return `¥${new Intl.NumberFormat(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount)}`
+}
 
 interface PaymentConfirmDialogProps {
   open: boolean
@@ -99,15 +107,20 @@ export function PaymentConfirmDialog({
             {calculating ? (
               <Skeleton className='h-6 w-24' />
             ) : (
-              <div className='flex items-baseline gap-2'>
-                <span className='text-2xl font-semibold'>
-                  {formatCurrency(paymentAmount)}
-                </span>
-                {hasDiscount && (
-                  <span className='text-muted-foreground text-sm line-through'>
-                    {formatCurrency(originalAmount)}
+              <div className='flex flex-col items-end gap-1'>
+                <div className='flex items-baseline gap-2'>
+                  <span className='text-2xl font-semibold'>
+                    {formatSettlementCNY(paymentAmount)}
                   </span>
-                )}
+                  {hasDiscount && (
+                    <span className='text-muted-foreground text-sm line-through'>
+                      {formatSettlementCNY(originalAmount)}
+                    </span>
+                  )}
+                </div>
+                <span className='text-muted-foreground text-xs'>
+                  {t('Settled in CNY via Alipay')}
+                </span>
               </div>
             )}
           </div>
@@ -117,7 +130,7 @@ export function PaymentConfirmDialog({
               <div className='flex items-center justify-between text-sm'>
                 <span className='text-muted-foreground'>{t('You save')}</span>
                 <span className='font-semibold text-green-600'>
-                  {formatCurrency(discountAmount)}
+                  {formatSettlementCNY(discountAmount)}
                 </span>
               </div>
             </div>

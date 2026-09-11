@@ -53,11 +53,16 @@ func (s *ProvisioningService) ProcessPayment(input PaymentConfirmInput) (*model.
 		}
 
 		expected := RoundMoney(order.TotalAmount, order.Currency)
+		expectedCurrency := order.Currency
+		if order.SettlementCurrency != "" && order.SettlementAmount.GreaterThan(decimal.Zero) {
+			expected = RoundMoney(order.SettlementAmount, order.SettlementCurrency)
+			expectedCurrency = order.SettlementCurrency
+		}
 		paid := RoundMoney(input.PaidAmount, input.Currency)
 		if !expected.Equal(paid) {
 			return fmt.Errorf("payment amount mismatch: expected %s got %s", expected, paid)
 		}
-		if order.Currency != input.Currency {
+		if expectedCurrency != input.Currency {
 			return errors.New("payment currency mismatch")
 		}
 

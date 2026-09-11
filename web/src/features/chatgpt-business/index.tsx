@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { startGatewayCheckout } from '@/features/wallet/lib/payment'
+import { useSystemConfigStore } from '@/stores/system-config-store'
 
 import {
   createBusinessOrder,
@@ -39,6 +40,25 @@ function formatMoney(amount: string, currency: string) {
   if (currency === 'CNY') return `¥${amount}`
   if (currency === 'USD') return `$${amount}`
   return `${currency} ${amount}`
+}
+
+function formatSettlementCNY(amount: number): string {
+  if (!Number.isFinite(amount)) return '-'
+  return `¥${new Intl.NumberFormat(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount)}`
+}
+
+function settlePreviewCNY(
+  amount: string,
+  currency: string,
+  usdToCnyRate: number
+): number {
+  const value = Number.parseFloat(amount)
+  if (!Number.isFinite(value)) return Number.NaN
+  if (currency === 'CNY') return value
+  return value * usdToCnyRate
 }
 
 function formatDate(ts: number) {
@@ -207,6 +227,33 @@ export function ChatGPTBusinessPage() {
     null
   )
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [payConfirmOpen, setPayConfirmOpen] = useState(false)
+  const [pendingPayOrderId, setPendingPayOrderId] = useState<number | undefined>()
+  const usdToCnyRate =
+    useSystemConfigStore((s) => s.config.currency.usdExchangeRate) || 1
+
+  const payConfirmAmount = useMemo(() => {
+    if (pendingPayOrderId) {
+      const order = pendingOrders.find((item) => item.id === pendingPayOrderId)
+      if (order) {
+        return {
+          display: formatMoney(order.total_amount, order.currency),
+          settle: formatSettlementCNY(
+            settlePreviewCNY(order.total_amount, order.currency, usdToCnyRate)
+          ),
+        }
+      }
+    }
+    if (quote) {
+      return {
+        display: formatMoney(quote.total_amount, quote.currency),
+        settle: formatSettlementCNY(
+          settlePreviewCNY(quote.total_amount, quote.currency, usdToCnyRate)
+        ),
+      }
+    }
+    return null
+  }, [pendingPayOrderId, pendingOrders, quote, usdToCnyRate])
 
   const loadPendingOrders = useCallback(async () => {
     const res = await getBusinessPendingOrders()
@@ -261,9 +308,14 @@ export function ChatGPTBusinessPage() {
   }
 
   const handlePay = async (existingOrderId?: number) => {
+    setPendingPayOrderId(existingOrderId)
+    setPayConfirmOpen(true)
+  }
+
+  const confirmPay = async () => {
     setCheckoutLoading(true)
     try {
-      let orderId = existingOrderId
+      let orderId = pendingPayOrderId
       if (!orderId) {
         if (!quote) {
           return
@@ -278,7 +330,10 @@ export function ChatGPTBusinessPage() {
         }
         orderId = orderRes.data.id
       }
-      await startPayment(orderId)
+      const paid = await startPayment(orderId)
+      if (paid) {
+        setPayConfirmOpen(false)
+      }
     } catch {
       toast.error(t('Unable to start payment'))
     } finally {
@@ -534,6 +589,38 @@ export function ChatGPTBusinessPage() {
             </Card>
           )}
         </div>
+        <ConfirmDialog
+          open={payConfirmOpen}
+          onOpenChange={(open) => {
+            if (!open && !checkoutLoading) {
+              setPayConfirmOpen(false)
+              setPendingPayOrderId(undefined)
+            }
+          }}
+          title={t('Confirm Payment')}
+          desc={t('Review your payment details')}
+          confirmText={t('Continue to Alipay')}
+          isLoading={checkoutLoading}
+          handleConfirm={() => void confirmPay()}
+        >
+          {payConfirmAmount ? (
+            <div className='space-y-3 text-sm'>
+              <div className='flex items-center justify-between gap-4'>
+                <span className='text-muted-foreground'>{t('Amount due today')}</span>
+                <span className='font-semibold'>{payConfirmAmount.display}</span>
+              </div>
+              <div className='flex items-center justify-between gap-4'>
+                <span className='text-muted-foreground'>{t('You Pay')}</span>
+                <div className='text-right'>
+                  <div className='text-lg font-semibold'>{payConfirmAmount.settle}</div>
+                  <div className='text-muted-foreground text-xs'>
+                    {t('Settled in CNY via Alipay')}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </ConfirmDialog>
         <ConfirmDialog
           open={orderToDelete !== null}
           onOpenChange={(open) => {

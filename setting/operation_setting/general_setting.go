@@ -1,6 +1,9 @@
 package operation_setting
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/setting/config"
 
@@ -124,4 +127,56 @@ func WalletQuotaFromTopUpAmount(amount int64) (int, error) {
 		quota = quota.Div(decimal.NewFromFloat(rate))
 	}
 	return common.WalletQuotaFromDecimalStrict(quota.Mul(decimal.NewFromFloat(common.QuotaPerUnit)))
+}
+
+// GetUsdToCnyRate returns the admin-configured USD→CNY rate used for Alipay
+// settlement. Falls back to Price when USDExchangeRate is unset so a single
+// misconfiguration does not silently charge 1:1.
+func GetUsdToCnyRate() float64 {
+	if USDExchangeRate > 0 {
+		return USDExchangeRate
+	}
+	if Price > 0 {
+		return Price
+	}
+	return 1
+}
+
+// GetTopUpSettlementUnitPrice is the local-currency amount charged per one
+// unit of the user-facing top-up amount. When the site displays USD (or
+// tokens converted to USD), settlement uses the unified USD→CNY rate so
+// Alipay receives CNY. When the site already displays CNY, the unit price
+// is 1 (amount is already local currency).
+func GetTopUpSettlementUnitPrice() float64 {
+	switch GetQuotaDisplayType() {
+	case QuotaDisplayTypeUSD, QuotaDisplayTypeTokens:
+		return GetUsdToCnyRate()
+	case QuotaDisplayTypeCustom:
+		if generalSetting.CustomCurrencyExchangeRate > 0 {
+			return generalSetting.CustomCurrencyExchangeRate
+		}
+		return GetUsdToCnyRate()
+	case QuotaDisplayTypeCNY:
+		return 1
+	default:
+		return GetUsdToCnyRate()
+	}
+}
+
+// ConvertAmountToCNY converts a money amount into CNY for Alipay settlement.
+// CNY passes through; USD is multiplied by GetUsdToCnyRate().
+func ConvertAmountToCNY(amount decimal.Decimal, currency string) (decimal.Decimal, error) {
+	currency = strings.ToUpper(strings.TrimSpace(currency))
+	switch currency {
+	case "", "CNY":
+		return amount, nil
+	case "USD":
+		rate := GetUsdToCnyRate()
+		if rate <= 0 {
+			return decimal.Zero, fmt.Errorf("usd to cny rate is not configured")
+		}
+		return amount.Mul(decimal.NewFromFloat(rate)), nil
+	default:
+		return decimal.Zero, fmt.Errorf("unsupported settlement currency %s", currency)
+	}
 }

@@ -34,11 +34,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { formatNumber } from '@/lib/format'
+import { formatLocalCurrencyAmount } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 
 import {
-  formatCurrency,
   getDiscountLabel,
   getPaymentIcon,
   getMinTopupAmount,
@@ -60,7 +59,6 @@ interface RechargeFormCardProps {
   onSelectPreset: (preset: PresetAmount) => void
   topupAmount: number
   onTopupAmountChange: (amount: number) => void
-  paymentAmount: number
   calculating: boolean
   onPaymentMethodSelect: (method: PaymentMethod) => void
   paymentLoading: string | null
@@ -90,7 +88,6 @@ export function RechargeFormCard({
   onSelectPreset,
   topupAmount,
   onTopupAmountChange,
-  paymentAmount,
   calculating,
   onPaymentMethodSelect,
   paymentLoading,
@@ -234,7 +231,6 @@ export function RechargeFormCard({
                         1.0
                       const {
                         displayValue,
-                        actualPrice,
                         savedAmount,
                         hasDiscount,
                       } = calculatePresetPricing(
@@ -257,7 +253,11 @@ export function RechargeFormCard({
                         >
                           <div className='flex w-full items-center justify-between'>
                             <div className='text-base font-semibold sm:text-lg'>
-                              {formatNumber(displayValue)}
+                              {formatLocalCurrencyAmount(displayValue, {
+                                digitsLarge: 0,
+                                digitsSmall: 2,
+                                abbreviate: false,
+                              })}
                             </div>
                             {hasDiscount && (
                               <div className='text-xs font-medium text-green-600'>
@@ -265,15 +265,11 @@ export function RechargeFormCard({
                               </div>
                             )}
                           </div>
-                          <div className='text-muted-foreground mt-1.5 w-full text-xs sm:mt-2'>
-                            Pay {formatCurrency(actualPrice)}
-                            {hasDiscount && savedAmount > 0 && (
-                              <span className='text-green-600'>
-                                {' '}
-                                • Save {formatCurrency(savedAmount)}
-                              </span>
-                            )}
-                          </div>
+                          {hasDiscount && savedAmount > 0 ? (
+                            <div className='text-muted-foreground mt-1.5 w-full text-xs text-green-600 sm:mt-2'>
+                              {t('Includes top-up discount')}
+                            </div>
+                          ) : null}
                         </Button>
                       )
                     })}
@@ -300,13 +296,17 @@ export function RechargeFormCard({
                   />
                   <div className='bg-muted/30 flex min-h-9 items-center justify-between gap-2 rounded-md border px-3 lg:min-w-52'>
                     <span className='text-muted-foreground truncate text-xs'>
-                      {t('Amount to pay:')}
+                      {t('Topup Amount')}
                     </span>
                     {calculating ? (
                       <Skeleton className='h-5 w-16' />
                     ) : (
                       <span className='text-sm font-semibold'>
-                        {formatCurrency(paymentAmount)}
+                        {formatLocalCurrencyAmount(Number(localAmount) || 0, {
+                          digitsLarge: 2,
+                          digitsSmall: 2,
+                          abbreviate: false,
+                        })}
                       </span>
                     )}
                   </div>

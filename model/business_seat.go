@@ -224,6 +224,10 @@ type BusinessSeatOrder struct {
 	CurrentCycleAmount decimal.Decimal `json:"current_cycle_amount" gorm:"type:decimal(20,6);not null"`
 	NextCycleAmount    decimal.Decimal `json:"next_cycle_amount" gorm:"type:decimal(20,6);not null;default:0"`
 	TotalAmount        decimal.Decimal `json:"total_amount" gorm:"type:decimal(20,6);not null"`
+	// SettlementAmount/Currency freeze the Alipay CNY charge at pay start so a
+	// later FX-rate edit cannot break notify verification.
+	SettlementAmount   decimal.Decimal `json:"settlement_amount" gorm:"type:decimal(20,6);not null;default:0"`
+	SettlementCurrency string          `json:"settlement_currency" gorm:"type:varchar(8);not null;default:''"`
 	CycleStartAt       int64           `json:"cycle_start_at" gorm:"type:bigint;not null"`
 	CycleEndAt         int64           `json:"cycle_end_at" gorm:"type:bigint;not null"`
 	PrepaidThrough     int64           `json:"prepaid_through" gorm:"type:bigint;not null;index"`

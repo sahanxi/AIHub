@@ -74,7 +74,16 @@ export async function createBusinessOrder(body: {
 
 export async function payBusinessOrderAlipay(body: {
   order_id: number
-}): Promise<ApiResponse<{ mode: string; url: string }>> {
+}): Promise<
+  ApiResponse<{
+    mode: string
+    url: string
+    settlement_amount?: string
+    settlement_currency?: string
+    display_amount?: string
+    display_currency?: string
+  }>
+> {
   const res = await api.post('/api/business-seat/alipay/pay', body, {
     skipBusinessError: true,
   })

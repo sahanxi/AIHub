@@ -50,7 +50,13 @@ func BusinessSeatRequestAlipay(c *gin.Context) {
 	notifyURL := setting.ResolveAlipayBusinessSeatNotifyURL(service.GetCallbackAddress())
 	returnURL := paymentReturnPath("/chatgpt-business?pay=success")
 	tradeNo := order.OrderNo
-	totalAmount := businessseat.AlipayAmountString(order.TotalAmount, order.Currency)
+	settledAmount, settledCurrency, err := businessseat.SettleForAlipay(order.TotalAmount, order.Currency)
+	if err != nil {
+		logger.LogError(c.Request.Context(), fmt.Sprintf("business seat alipay settlement failed order=%s error=%q", tradeNo, err.Error()))
+		common.ApiErrorMsg(c, "Failed to start payment")
+		return
+	}
+	totalAmount := businessseat.FormatMoney(settledAmount, settledCurrency)
 	subject := strings.TrimSpace(common.SystemName)
 	if subject == "" {
 		subject = "AIHub"
@@ -72,14 +78,20 @@ func BusinessSeatRequestAlipay(c *gin.Context) {
 		return
 	}
 	_ = model.DB.Model(order).Updates(map[string]interface{}{
-		"status":           model.BusinessOrderStatusPaying,
-		"payment_channel":  model.PaymentProviderAlipay,
-		"payment_order_no": tradeNo,
+		"status":              model.BusinessOrderStatusPaying,
+		"payment_channel":     model.PaymentProviderAlipay,
+		"payment_order_no":    tradeNo,
+		"settlement_amount":   settledAmount,
+		"settlement_currency": settledCurrency,
 	}).Error
 
 	common.ApiSuccess(c, gin.H{
-		"mode": "redirect",
-		"url":  checkoutURL,
+		"mode":                "redirect",
+		"url":                 checkoutURL,
+		"settlement_amount":   totalAmount,
+		"settlement_currency": settledCurrency,
+		"display_amount":      businessseat.FormatMoney(order.TotalAmount, order.Currency),
+		"display_currency":    order.Currency,
 	})
 }
 
@@ -131,8 +143,23 @@ func BusinessSeatAlipayNotify(c *gin.Context) {
 		writeAlipayNotify(c, "fail")
 		return
 	}
-	orderMoney, _ := order.TotalAmount.Float64()
-	if err := epayPaidAmountMatches(orderMoney, params["total_amount"]); err != nil {
+	expectedAmount := order.TotalAmount
+	expectedCurrency := order.Currency
+	if order.SettlementCurrency != "" && order.SettlementAmount.GreaterThan(decimal.Zero) {
+		expectedAmount = order.SettlementAmount
+		expectedCurrency = order.SettlementCurrency
+	} else {
+		settled, settledCurrency, settleErr := businessseat.SettleForAlipay(order.TotalAmount, order.Currency)
+		if settleErr != nil {
+			logger.LogWarn(c.Request.Context(), fmt.Sprintf("business seat alipay settlement resolve failed order=%s error=%q", tradeNo, settleErr.Error()))
+			writeAlipayNotify(c, "fail")
+			return
+		}
+		expectedAmount = settled
+		expectedCurrency = settledCurrency
+	}
+	expectedMoney, _ := expectedAmount.Float64()
+	if err := epayPaidAmountMatches(expectedMoney, params["total_amount"]); err != nil {
 		logger.LogWarn(c.Request.Context(), fmt.Sprintf("business seat alipay amount mismatch order=%s error=%q", tradeNo, err.Error()))
 		writeAlipayNotify(c, "fail")
 		return
@@ -143,7 +170,7 @@ func BusinessSeatAlipayNotify(c *gin.Context) {
 		OrderNo:         tradeNo,
 		ProviderTradeNo: providerTradeNo,
 		PaidAmount:      paidAmount,
-		Currency:        order.Currency,
+		Currency:        expectedCurrency,
 		PaymentChannel:  model.PaymentProviderAlipay,
 	})
 	if err != nil && !errors.Is(err, model.ErrBusinessOrderNotFound) {

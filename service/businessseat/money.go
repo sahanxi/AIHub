@@ -3,6 +3,7 @@ package businessseat
 import (
 	"strings"
 
+	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/shopspring/decimal"
 )
 
@@ -35,6 +36,20 @@ func FormatMoney(amount decimal.Decimal, currency string) string {
 	return RoundMoney(amount, currency).StringFixed(CurrencyScale(currency))
 }
 
+// SettleForAlipay converts a catalog amount into the CNY total Alipay expects.
+// CNY catalog prices pass through; USD prices use the site-wide USD→CNY rate.
+func SettleForAlipay(amount decimal.Decimal, currency string) (decimal.Decimal, string, error) {
+	cny, err := operation_setting.ConvertAmountToCNY(amount, currency)
+	if err != nil {
+		return decimal.Zero, "", err
+	}
+	return RoundMoney(cny, "CNY"), "CNY", nil
+}
+
 func AlipayAmountString(amount decimal.Decimal, currency string) string {
-	return FormatMoney(amount, currency)
+	settled, _, err := SettleForAlipay(amount, currency)
+	if err != nil {
+		return FormatMoney(amount, currency)
+	}
+	return FormatMoney(settled, "CNY")
 }
