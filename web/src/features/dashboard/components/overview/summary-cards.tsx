@@ -1,3 +1,59 @@
+import { useQuery } from '@tanstack/react-query'
+import { Activity, CreditCard, Flame, Zap } from 'lucide-react'
+import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
+
+import { StaggerContainer, StaggerItem } from '@/components/page-transition'
+import { IconBadge } from '@/components/ui/icon-badge'
+import { getUserQuotaDates } from '@/features/dashboard/api'
+import { useStatus } from '@/hooks/use-status'
+import { formatNumber, formatQuota } from '@/lib/format'
+import { getStartOfDay } from '@/lib/time'
+import { useAuthStore } from '@/stores/auth-store'
+
+export function SummaryCards() {
+  const { t } = useTranslation()
+  const user = useAuthStore((state) => state.auth.user)
+  const { loading } = useStatus()
+  const todayRange = useMemo(() => {
+    const start = getStartOfDay()
+    return {
+      start_timestamp: Math.floor(start.getTime() / 1000),
+      end_timestamp: Math.floor(Date.now() / 1000) + 3600,
+    }
+  }, [])
+  const usageQuery = useQuery({
+    queryKey: ['dashboard', 'overview', 'summary-today', todayRange.start_timestamp],
+    queryFn: () => getUserQuotaDates({ ...todayRange, default_time: 'hour' }),
+    staleTime: 60 * 1000,
+  })
+  const today = usageQuery.data?.data ?? []
+  const todaySpend = today.reduce((sum, item) => sum + (Number(item.quota) || 0), 0)
+  const todayRequests = today.reduce((sum, item) => sum + (Number(item.count) || 0), 0)
+  const cards = [
+    { title: t('Available balance'), value: formatQuota(Number(user?.quota ?? 0)), description: t('Available for API calls'), icon: CreditCard, tone: 'info' as const },
+    { title: t('Today spend'), value: formatQuota(todaySpend), description: t('Cumulative spend today'), icon: Flame, tone: 'warning' as const },
+    { title: t('Today requests'), value: formatNumber(todayRequests), description: t('API calls today'), icon: Zap, tone: 'chart-3' as const },
+    { title: t('Service status'), value: t('Normal'), description: t('Global nodes are operating normally'), icon: Activity, tone: 'success' as const },
+  ]
+
+  return (
+    <StaggerContainer className='grid gap-3 sm:grid-cols-2 xl:grid-cols-4'>
+      {cards.map((card) => (
+        <StaggerItem key={card.title} className='bg-card min-h-36 rounded-2xl border p-4 shadow-xs sm:p-5'>
+          <div className='flex items-start justify-between gap-3'>
+            <div className='text-muted-foreground text-sm font-medium'>{card.title}</div>
+            <IconBadge tone={card.tone} size='sm'><card.icon /></IconBadge>
+          </div>
+          <div className='mt-5 text-2xl font-semibold tracking-tight tabular-nums'>
+            {loading || usageQuery.isLoading ? '—' : card.value}
+          </div>
+          <div className='text-muted-foreground mt-1 text-xs'>{card.description}</div>
+        </StaggerItem>
+      ))}
+    </StaggerContainer>
+  )
+}
 /*
 Copyright (C) 2023-2026 QuantumNous
 
@@ -16,376 +72,3 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
-import { ArrowRight, Flame, ShieldCheck, TrendingDown } from 'lucide-react'
-import { useMemo } from 'react'
-import { useTranslation } from 'react-i18next'
-
-import { StaggerContainer, StaggerItem } from '@/components/page-transition'
-import { Button } from '@/components/ui/button'
-import { getUserQuotaDates } from '@/features/dashboard/api'
-import { useSummaryCardsConfig } from '@/features/dashboard/hooks/use-dashboard-config'
-import type { QuotaDataItem } from '@/features/dashboard/types'
-import { useStatus } from '@/hooks/use-status'
-import { getCurrencyLabel, isCurrencyDisplayEnabled } from '@/lib/currency'
-import { formatNumber, formatQuota } from '@/lib/format'
-import { getStartOfDay } from '@/lib/time'
-import { cn } from '@/lib/utils'
-import { useAuthStore } from '@/stores/auth-store'
-
-import { StatCard } from '../ui/stat-card'
-
-const SUMMARY_SPARKLINE_BUCKETS = 12
-
-type SummarySparklineKey = 'balance' | 'usage' | 'requests'
-
-function getBucketIndex(
-  timestamp: number,
-  start: number,
-  end: number,
-  bucketCount: number
-): number {
-  if (end <= start) return 0
-  const ratio = (timestamp - start) / (end - start)
-  return Math.min(bucketCount - 1, Math.max(0, Math.floor(ratio * bucketCount)))
-}
-
-function buildSummarySparklines(
-  data: QuotaDataItem[],
-  currentBalance: number,
-  start: number,
-  end: number
-): Record<SummarySparklineKey, number[]> {
-  const usage = Array.from({ length: SUMMARY_SPARKLINE_BUCKETS }, () => 0)
-  const requests = Array.from({ length: SUMMARY_SPARKLINE_BUCKETS }, () => 0)
-
-  for (const item of data) {
-    const timestamp = Number(item.created_at) || start
-    const index = getBucketIndex(
-      timestamp,
-      start,
-      end,
-      SUMMARY_SPARKLINE_BUCKETS
-    )
-    usage[index] += Number(item.quota) || 0
-    requests[index] += Number(item.count) || 0
-  }
-
-  let balance = currentBalance
-  const balanceTrend = Array.from(
-    { length: SUMMARY_SPARKLINE_BUCKETS },
-    () => 0
-  )
-
-  for (let index = SUMMARY_SPARKLINE_BUCKETS - 1; index >= 0; index--) {
-    balanceTrend[index] = Math.max(0, balance)
-    balance += usage[index]
-  }
-
-  return {
-    balance: balanceTrend,
-    usage,
-    requests,
-  }
-}
-
-function getSummarySparkline(
-  key: string,
-  sparklineData: Record<SummarySparklineKey, number[]>
-): number[] | undefined {
-  if (key === 'usage') return sparklineData.usage
-  if (key === 'requests') return sparklineData.requests
-  return undefined
-}
-
-function getRunwayDays(
-  remainQuota: number,
-  recentUsage: number
-): number | null {
-  if (remainQuota <= 0 || recentUsage <= 0) return null
-  const days = remainQuota / recentUsage
-  if (!Number.isFinite(days)) return null
-  return days
-}
-
-type HealthLevel = 'healthy' | 'caution' | 'critical'
-
-function getHealthLevel(remainQuota: number, recentUsage: number): HealthLevel {
-  if (remainQuota <= 0) return 'critical'
-  const days = getRunwayDays(remainQuota, recentUsage)
-  if (days !== null && days < 3) return 'caution'
-  return 'healthy'
-}
-
-const HEALTH_CONFIG: Record<
-  HealthLevel,
-  { dotClass: string; labelKey: string }
-> = {
-  healthy: {
-    dotClass: 'bg-success',
-    labelKey: 'Healthy',
-  },
-  caution: {
-    dotClass: 'bg-warning',
-    labelKey: 'Low balance',
-  },
-  critical: {
-    dotClass: 'bg-destructive',
-    labelKey: 'Balance depleted',
-  },
-}
-
-export function SummaryCards() {
-  const { t } = useTranslation()
-  const user = useAuthStore((state) => state.auth.user)
-  const { status, loading } = useStatus()
-
-  const todayRange = useMemo(() => {
-    const start = getStartOfDay()
-    return {
-      start_timestamp: Math.floor(start.getTime() / 1000),
-      end_timestamp: Math.floor(Date.now() / 1000) + 3600,
-    }
-  }, [])
-  const monthRange = useMemo(() => {
-    const now = new Date()
-    const start = new Date(now.getFullYear(), now.getMonth(), 1)
-    start.setHours(0, 0, 0, 0)
-    return {
-      start_timestamp: Math.floor(start.getTime() / 1000),
-      end_timestamp: Math.floor(Date.now() / 1000) + 3600,
-    }
-  }, [])
-  const remainQuota = Number(user?.quota ?? 0)
-
-  const usageTrendQuery = useQuery({
-    queryKey: [
-      'dashboard',
-      'overview',
-      'summary-today',
-      todayRange.start_timestamp,
-      todayRange.end_timestamp,
-    ],
-    queryFn: async () =>
-      getUserQuotaDates({
-        start_timestamp: todayRange.start_timestamp,
-        end_timestamp: todayRange.end_timestamp,
-        default_time: 'hour',
-      }),
-    staleTime: 60 * 1000,
-  })
-
-  const monthUsageQuery = useQuery({
-    queryKey: [
-      'dashboard',
-      'overview',
-      'summary-month',
-      monthRange.start_timestamp,
-      monthRange.end_timestamp,
-    ],
-    queryFn: async () =>
-      getUserQuotaDates({
-        start_timestamp: monthRange.start_timestamp,
-        end_timestamp: monthRange.end_timestamp,
-        default_time: 'day',
-      }),
-    staleTime: 60 * 1000,
-  })
-
-  const todayStats = useMemo(() => {
-    const rows = usageTrendQuery.data?.data ?? []
-    return {
-      quota: rows.reduce((total, item) => total + (Number(item.quota) || 0), 0),
-      count: rows.reduce((total, item) => total + (Number(item.count) || 0), 0),
-    }
-  }, [usageTrendQuery.data?.data])
-
-  const monthQuota = useMemo(
-    () =>
-      (monthUsageQuery.data?.data ?? []).reduce(
-        (total, item) => total + (Number(item.quota) || 0),
-        0
-      ),
-    [monthUsageQuery.data?.data]
-  )
-
-  const currencyEnabledFromStore = isCurrencyDisplayEnabled()
-  const statusCurrencyFlag =
-    typeof status?.display_in_currency === 'boolean'
-      ? Boolean(status.display_in_currency)
-      : undefined
-  const currencyEnabled =
-    statusCurrencyFlag !== undefined
-      ? statusCurrencyFlag
-      : currencyEnabledFromStore
-  const currencyLabel = currencyEnabled ? getCurrencyLabel() : 'Tokens'
-
-  const sparklineData = useMemo(
-    () =>
-      buildSummarySparklines(
-        usageTrendQuery.data?.data ?? [],
-        remainQuota,
-        todayRange.start_timestamp,
-        todayRange.end_timestamp
-      ),
-    [
-      remainQuota,
-      todayRange.end_timestamp,
-      todayRange.start_timestamp,
-      usageTrendQuery.data?.data,
-    ]
-  )
-
-  const recentUsage = todayStats.quota
-
-  const healthLevel = getHealthLevel(remainQuota, recentUsage)
-  const healthCfg = HEALTH_CONFIG[healthLevel]
-  const runwayDays = getRunwayDays(remainQuota, recentUsage)
-
-  const todayUsageDisplay = formatQuota(todayStats.quota)
-  const monthUsageDisplay = formatQuota(monthQuota)
-  const todayRequestDisplay = formatNumber(todayStats.count)
-  let runwayDisplay: string
-  if (runwayDays !== null) {
-    if (runwayDays < 1) {
-      runwayDisplay = t('Less than 1 day left')
-    } else if (runwayDays > 999) {
-      runwayDisplay = `999+ ${t('days')}`
-    } else {
-      runwayDisplay = `~${formatNumber(Math.floor(runwayDays))} ${t('days')}`
-    }
-  } else if (remainQuota <= 0) {
-    runwayDisplay = t('Balance depleted')
-  } else {
-    runwayDisplay = t('No recent usage')
-  }
-
-  const items = useSummaryCardsConfig({
-    todayUsageDisplay,
-    monthUsageDisplay,
-    todayRequestDisplay,
-    currencyEnabled,
-    currencyLabel,
-  }).map((config, index) => {
-    const tones = ['accent-1', 'accent-2', 'accent-3'] as const
-
-    return {
-      key: config.key,
-      title: config.title,
-      value: config.value,
-      desc: config.description,
-      icon: config.icon,
-      tone: tones[index] ?? 'accent-3',
-      sparkline:
-        config.key === 'todayUsage'
-          ? sparklineData.usage
-          : getSummarySparkline(config.key, sparklineData),
-      sparklineVariant: 'line' as const,
-    }
-  })
-
-  return (
-    <div className='bg-card overflow-hidden rounded-2xl border shadow-xs'>
-      <div className='grid xl:grid-cols-[minmax(0,1fr)_19rem]'>
-        <div className='flex flex-col gap-2.5 p-3 sm:gap-3 sm:p-5'>
-          <div className='flex flex-wrap items-start justify-between gap-3'>
-            <div className='flex flex-col gap-1'>
-              <h3 className='text-sm font-semibold sm:text-base'>
-                {t('Usage at a glance')}
-              </h3>
-              <p className='text-muted-foreground text-xs sm:text-sm'>
-                {t('Monitor balance, usage, and request volume')}
-              </p>
-            </div>
-          </div>
-          <StaggerContainer className='grid grid-cols-3 gap-1.5 sm:gap-3'>
-            {items.map((it) => (
-              <StaggerItem
-                key={it.key}
-                className='bg-background/60 rounded-lg border px-2 py-1.5 sm:rounded-xl sm:p-3'
-              >
-                <StatCard
-                  title={it.title}
-                  value={it.value}
-                  description={it.desc}
-                  icon={it.icon}
-                  tone={it.tone}
-                  sparkline={it.sparkline}
-                  sparklineVariant={it.sparklineVariant}
-                  loading={loading}
-                  compactMobile
-                />
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
-        </div>
-
-        <div className='flex flex-col justify-between gap-3 border-t bg-[linear-gradient(135deg,color-mix(in_oklch,var(--overview-accent-2)_12%,var(--background))_0%,color-mix(in_oklch,oklch(0.82_0.04_155)_8%,var(--background))_48%,color-mix(in_oklch,var(--overview-accent-1)_7%,var(--background))_100%)] p-3 sm:gap-4 sm:p-5 xl:border-t-0 xl:border-l'>
-          <div className='flex flex-col gap-2 sm:gap-3'>
-            <div className='flex items-center justify-between'>
-              <span className='text-muted-foreground text-xs font-medium'>
-                {t('Credit remaining')}
-              </span>
-              <span className='flex items-center gap-1.5'>
-                <span
-                  className={cn('size-1.5 rounded-full', healthCfg.dotClass)}
-                  aria-hidden='true'
-                />
-                <span className='text-muted-foreground text-[11px] font-medium'>
-                  {t(healthCfg.labelKey)}
-                </span>
-              </span>
-            </div>
-
-            <div className='font-mono text-xl font-semibold tracking-tight sm:text-2xl'>
-              {formatQuota(remainQuota)}
-            </div>
-
-            <div className='grid grid-cols-2 gap-2'>
-              <div className='bg-background/60 rounded-lg px-2.5 py-2'>
-                <div className='text-muted-foreground flex items-center gap-1 text-[11px] leading-none font-medium'>
-                  <Flame className='size-3 shrink-0' aria-hidden='true' />
-                  <span className='truncate'>{t('Today spend')}</span>
-                </div>
-                <div className='text-foreground mt-1.5 truncate text-xs font-semibold tabular-nums'>
-                  {formatQuota(recentUsage)}
-                </div>
-              </div>
-              <div className='bg-background/60 rounded-lg px-2.5 py-2'>
-                <div className='text-muted-foreground flex items-center gap-1 text-[11px] leading-none font-medium'>
-                  {runwayDays !== null && runwayDays < 3 ? (
-                    <TrendingDown
-                      className='size-3 shrink-0'
-                      aria-hidden='true'
-                    />
-                  ) : (
-                    <ShieldCheck
-                      className='size-3 shrink-0'
-                      aria-hidden='true'
-                    />
-                  )}
-                  <span className='truncate'>{t('Runway')}</span>
-                </div>
-                <div
-                  className={cn(
-                    'mt-1.5 truncate text-xs font-semibold tabular-nums',
-                    healthLevel === 'critical' && 'text-destructive',
-                    healthLevel === 'caution' && 'text-warning'
-                  )}
-                >
-                  {runwayDisplay}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <Button className='justify-between' render={<Link to='/wallet' />}>
-            <span>{t('Wallet')}</span>
-            <ArrowRight data-icon='inline-end' />
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
-}
