@@ -23,25 +23,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import dayjs from '@/lib/dayjs'
 
 import {
-  BUSINESS_BILLING_CADENCES,
-  BUSINESS_PRICE_CURRENCIES,
-  getBillingCadenceLabelKey,
-} from '../constants'
-import { formatWorkspaceSubscriptionSummaryFromWorkspace } from '../workspace-summary'
-import {
-  WorkspaceBillingAnchorField,
-  WorkspaceBillingCadenceField,
-  WorkspaceGraceMinutesField,
-  WorkspaceRenewalLeadDaysField,
-  WorkspaceNameField,
-  WorkspaceSubscriptionAlignmentPreview,
-  WorkspaceSubscriptionDescriptionField,
-  WorkspaceProviderField,
-  WorkspaceSeatCountField,
-  WorkspaceTimezoneField,
-} from './workspace-form-fields'
-
-import {
   activateAdminBusinessSubscription,
   addAdminBusinessSeats,
   confirmAdminRemoved,
@@ -63,6 +44,11 @@ import {
   updateAdminBusinessWorkspace,
 } from '../api'
 import {
+  BUSINESS_BILLING_CADENCES,
+  BUSINESS_PRICE_CURRENCIES,
+  getBillingCadenceLabelKey,
+} from '../constants'
+import {
   BusinessSeatStatusBadge,
   BusinessSubscriptionStatusBadge,
   BusinessTaskStatusBadge,
@@ -77,6 +63,19 @@ import type {
   BusinessSubscription,
   BusinessWorkspace,
 } from '../types'
+import { formatWorkspaceSubscriptionSummaryFromWorkspace } from '../workspace-summary'
+import {
+  WorkspaceBillingAnchorField,
+  WorkspaceBillingCadenceField,
+  WorkspaceGraceMinutesField,
+  WorkspaceRenewalLeadDaysField,
+  WorkspaceNameField,
+  WorkspaceSubscriptionAlignmentPreview,
+  WorkspaceSubscriptionDescriptionField,
+  WorkspaceProviderField,
+  WorkspaceSeatCountField,
+  WorkspaceTimezoneField,
+} from './workspace-form-fields'
 
 function formatTs(ts?: number | null) {
   if (!ts) return '—'
@@ -101,25 +100,31 @@ export function ChatGPTBusinessAdminPage() {
   const [tab, setTab] = useState('overview')
   const [overview, setOverview] = useState<Record<string, unknown> | null>(null)
   const [workspaces, setWorkspaces] = useState<BusinessWorkspace[]>([])
-  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<number | null>(null)
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<number | null>(
+    null
+  )
   const [seats, setSeats] = useState<BusinessSeat[]>([])
+  const [seatStatusFilter, setSeatStatusFilter] = useState('ALL')
   const [tasks, setTasks] = useState<BusinessSeatTask[]>([])
   const [subscriptions, setSubscriptions] = useState<BusinessSubscription[]>([])
   const [orders, setOrders] = useState<BusinessSeatOrder[]>([])
-  const [currentPrice, setCurrentPrice] = useState<BusinessPriceVersion | null>(null)
+  const [currentPrice, setCurrentPrice] = useState<BusinessPriceVersion | null>(
+    null
+  )
   const [priceAmount, setPriceAmount] = useState('')
   const [currency, setCurrency] = useState('CNY')
   const [billingCadence, setBillingCadence] = useState('MONTHLY')
   const [displayUnit, setDisplayUnit] = useState('/ month')
-  const [pricingWorkspaceId, setPricingWorkspaceId] = useState<number | null>(null)
-  const [overviewDetail, setOverviewDetail] = useState<OverviewDetailKey | null>(
-    null,
+  const [pricingWorkspaceId, setPricingWorkspaceId] = useState<number | null>(
+    null
   )
+  const [overviewDetail, setOverviewDetail] =
+    useState<OverviewDetailKey | null>(null)
   const [overviewAvailableSeats, setOverviewAvailableSeats] = useState<
     BusinessSeat[]
   >([])
   const [removeSeatTarget, setRemoveSeatTarget] = useState<BusinessSeat | null>(
-    null,
+    null
   )
 
   const [createOpen, setCreateOpen] = useState(false)
@@ -136,10 +141,14 @@ export function ChatGPTBusinessAdminPage() {
   const [addSeatOpen, setAddSeatOpen] = useState(false)
   const [addSeatCount, setAddSeatCount] = useState('1')
   const [addSeatConfirmed, setAddSeatConfirmed] = useState(false)
-  const [addSeatWorkspaceId, setAddSeatWorkspaceId] = useState<number | null>(null)
+  const [addSeatWorkspaceId, setAddSeatWorkspaceId] = useState<number | null>(
+    null
+  )
 
   const [editOpen, setEditOpen] = useState(false)
-  const [editWorkspace, setEditWorkspace] = useState<BusinessWorkspace | null>(null)
+  const [editWorkspace, setEditWorkspace] = useState<BusinessWorkspace | null>(
+    null
+  )
   const [editName, setEditName] = useState('')
   const [editDescription, setEditDescription] = useState('')
   const [editTimezone, setEditTimezone] = useState('')
@@ -148,18 +157,21 @@ export function ChatGPTBusinessAdminPage() {
   const [editAnchor, setEditAnchor] = useState<Date | undefined>()
 
   const selectedWorkspace = useMemo(
-    () => workspaces.find((w) => w.id === selectedWorkspaceId) ?? workspaces[0] ?? null,
-    [workspaces, selectedWorkspaceId],
+    () =>
+      workspaces.find((w) => w.id === selectedWorkspaceId) ??
+      workspaces[0] ??
+      null,
+    [workspaces, selectedWorkspaceId]
   )
 
   const pricingWorkspace = useMemo(
     () => workspaces.find((w) => w.id === pricingWorkspaceId) ?? null,
-    [workspaces, pricingWorkspaceId],
+    [workspaces, pricingWorkspaceId]
   )
 
   const workspaceNameById = useMemo(
     () => new Map(workspaces.map((ws) => [ws.id, ws.name])),
-    [workspaces],
+    [workspaces]
   )
 
   const loadPricing = useCallback(async (workspaceId: number | null) => {
@@ -168,13 +180,14 @@ export function ChatGPTBusinessAdminPage() {
   }, [])
 
   const loadCore = useCallback(async () => {
-    const [overviewRes, wsRes, subsRes, ordersRes, tasksRes] = await Promise.all([
-      getAdminBusinessOverview(),
-      getAdminBusinessWorkspaces(),
-      getAdminBusinessSubscriptions(),
-      getAdminBusinessOrders(),
-      getAdminBusinessTasks(),
-    ])
+    const [overviewRes, wsRes, subsRes, ordersRes, tasksRes] =
+      await Promise.all([
+        getAdminBusinessOverview(),
+        getAdminBusinessWorkspaces(),
+        getAdminBusinessSubscriptions(),
+        getAdminBusinessOrders(),
+        getAdminBusinessTasks(),
+      ])
     if (isApiSuccess(overviewRes)) setOverview(overviewRes.data)
     if (isApiSuccess(wsRes)) {
       setWorkspaces(wsRes.data)
@@ -188,10 +201,13 @@ export function ChatGPTBusinessAdminPage() {
     if (isApiSuccess(tasksRes)) setTasks(tasksRes.data)
   }, [])
 
-  const loadSeats = useCallback(async (workspaceId: number) => {
-    const res = await getAdminBusinessSeats(workspaceId)
-    if (isApiSuccess(res)) setSeats(res.data.seats)
-  }, [])
+  const loadSeats = useCallback(
+    async (workspaceId: number, status = seatStatusFilter) => {
+      const res = await getAdminBusinessSeats(workspaceId, status)
+      if (isApiSuccess(res)) setSeats(res.data.seats)
+    },
+    [seatStatusFilter]
+  )
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -208,9 +224,9 @@ export function ChatGPTBusinessAdminPage() {
 
   useEffect(() => {
     if (selectedWorkspace?.id) {
-      void loadSeats(selectedWorkspace.id)
+      void loadSeats(selectedWorkspace.id, seatStatusFilter)
     }
-  }, [selectedWorkspace?.id, loadSeats])
+  }, [selectedWorkspace?.id, seatStatusFilter, loadSeats])
 
   useEffect(() => {
     if (pricingWorkspaceId != null) {
@@ -232,7 +248,7 @@ export function ChatGPTBusinessAdminPage() {
         const res = await getAdminBusinessSeats(ws.id)
         if (isApiSuccess(res)) {
           merged.push(
-            ...res.data.seats.filter((seat) => seat.status === 'AVAILABLE'),
+            ...res.data.seats.filter((seat) => seat.status === 'AVAILABLE')
           )
         }
       }
@@ -321,7 +337,8 @@ export function ChatGPTBusinessAdminPage() {
       name: editName.trim(),
       subscription_description: editDescription.trim(),
       billing_timezone: editTimezone.trim(),
-      cycle_start_grace_minutes: Number(editGrace) || editWorkspace.cycle_start_grace_minutes,
+      cycle_start_grace_minutes:
+        Number(editGrace) || editWorkspace.cycle_start_grace_minutes,
       renewal_lead_days: Number(editRenewalLead),
     }
     if ((editWorkspace.active_subscriptions ?? 0) === 0 && editAnchor) {
@@ -354,7 +371,7 @@ export function ChatGPTBusinessAdminPage() {
 
   const runAction = async (
     action: () => Promise<{ success: boolean; message: string }>,
-    okMsg: string,
+    okMsg: string
   ) => {
     const res = await action()
     if (res.success) {
@@ -369,12 +386,14 @@ export function ChatGPTBusinessAdminPage() {
     () => ({
       provider: wsProvider,
       billingCadence: wsCadence,
-      billingAnchorAt: wsAnchor ? Math.floor(wsAnchor.getTime() / 1000) : undefined,
+      billingAnchorAt: wsAnchor
+        ? Math.floor(wsAnchor.getTime() / 1000)
+        : undefined,
       billingTimezone: wsTimezone,
       seatCount: Number(wsSeats) || 0,
       graceMinutes: Number(wsGrace) || 0,
     }),
-    [wsAnchor, wsCadence, wsGrace, wsProvider, wsSeats, wsTimezone],
+    [wsAnchor, wsCadence, wsGrace, wsProvider, wsSeats, wsTimezone]
   )
 
   const editWorkspaceSummaryInput = useMemo(() => {
@@ -384,20 +403,32 @@ export function ChatGPTBusinessAdminPage() {
     return {
       provider: editWorkspace.provider,
       billingCadence: editWorkspace.billing_cadence,
-      billingAnchorAt: editAnchor ? Math.floor(editAnchor.getTime() / 1000) : editWorkspace.billing_anchor_at,
+      billingAnchorAt: editAnchor
+        ? Math.floor(editAnchor.getTime() / 1000)
+        : editWorkspace.billing_anchor_at,
       billingTimezone: editTimezone || editWorkspace.billing_timezone,
-      seatCount: editWorkspace.pool?.total ?? editWorkspace.total_standard_seats,
-      graceMinutes: Number(editGrace) || editWorkspace.cycle_start_grace_minutes,
+      seatCount:
+        editWorkspace.pool?.total ?? editWorkspace.total_standard_seats,
+      graceMinutes:
+        Number(editGrace) || editWorkspace.cycle_start_grace_minutes,
     }
-  }, [createWorkspaceSummaryInput, editAnchor, editGrace, editTimezone, editWorkspace])
+  }, [
+    createWorkspaceSummaryInput,
+    editAnchor,
+    editGrace,
+    editTimezone,
+    editWorkspace,
+  ])
 
   if (loading) return <LoadingState />
 
   const pool = overview?.pool as { available_seats?: number } | undefined
 
-  const activeSubscriptions = subscriptions.filter((sub) => sub.status === 'ACTIVE')
+  const activeSubscriptions = subscriptions.filter(
+    (sub) => sub.status === 'ACTIVE'
+  )
   const pendingActivationSubscriptions = subscriptions.filter((sub) =>
-    ['PENDING_ACTIVATION', 'INVITED', 'PENDING_CAPACITY'].includes(sub.status),
+    ['PENDING_ACTIVATION', 'INVITED', 'PENDING_CAPACITY'].includes(sub.status)
   )
   const availableSeats = seats.filter((seat) => seat.status === 'AVAILABLE')
   const paidOrders = orders.filter((order) => order.status === 'PAID')
@@ -428,7 +459,7 @@ export function ChatGPTBusinessAdminPage() {
       key: 'pending_activation',
       label: t('Pending Activation'),
       value: String(
-        overview?.pending_activation ?? pendingActivationSubscriptions.length,
+        overview?.pending_activation ?? pendingActivationSubscriptions.length
       ),
     },
     {
@@ -442,7 +473,7 @@ export function ChatGPTBusinessAdminPage() {
     if (!removeSeatTarget) return
     await runAction(
       () => removeAdminBusinessSeat(removeSeatTarget.id),
-      'Seat removal requested',
+      'Seat removal requested'
     )
     setRemoveSeatTarget(null)
   }
@@ -451,79 +482,96 @@ export function ChatGPTBusinessAdminPage() {
     <SectionPageLayout>
       <SectionPageLayout.Title>
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{t('ChatGPT Business')}</h1>
-          <p className="text-sm text-muted-foreground">{t('Manage workspaces, pricing, and activations')}</p>
+          <h1 className='text-2xl font-semibold tracking-tight'>
+            {t('ChatGPT Business')}
+          </h1>
+          <p className='text-muted-foreground text-sm'>
+            {t('Manage workspaces, pricing, and activations')}
+          </p>
         </div>
       </SectionPageLayout.Title>
       <SectionPageLayout.Content>
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="max-w-full flex-wrap justify-start">
-            <TabsTrigger value="overview">{t('Overview')}</TabsTrigger>
-            <TabsTrigger value="workspaces">{t('Workspaces')}</TabsTrigger>
-            <TabsTrigger value="seats">{t('Seat Pool')}</TabsTrigger>
-            <TabsTrigger value="tasks">{t('Tasks')}</TabsTrigger>
-            <TabsTrigger value="subscriptions">{t('Subscriptions')}</TabsTrigger>
-            <TabsTrigger value="pricing">{t('Pricing')}</TabsTrigger>
+          <TabsList className='max-w-full flex-wrap justify-start'>
+            <TabsTrigger value='overview'>{t('Overview')}</TabsTrigger>
+            <TabsTrigger value='workspaces'>{t('Workspaces')}</TabsTrigger>
+            <TabsTrigger value='seats'>{t('Seat Pool')}</TabsTrigger>
+            <TabsTrigger value='tasks'>{t('Tasks')}</TabsTrigger>
+            <TabsTrigger value='subscriptions'>
+              {t('Subscriptions')}
+            </TabsTrigger>
+            <TabsTrigger value='pricing'>{t('Pricing')}</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="mt-4 space-y-4">
+          <TabsContent value='overview' className='mt-4 space-y-4'>
             {overviewDetail == null ? (
-              <div className="grid gap-4 md:grid-cols-4">
+              <div className='grid gap-4 md:grid-cols-4'>
                 {overviewCards.map((card) => (
                   <Card
                     key={card.key}
-                    className="cursor-pointer transition-colors hover:border-primary/40 hover:bg-muted/20"
+                    className='hover:border-primary/40 hover:bg-muted/20 cursor-pointer transition-colors'
                     onClick={() => setOverviewDetail(card.key)}
                   >
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium">{card.label}</CardTitle>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='text-sm font-medium'>
+                        {card.label}
+                      </CardTitle>
                     </CardHeader>
-                    <CardContent className="text-2xl font-semibold tabular-nums">
+                    <CardContent className='text-2xl font-semibold tabular-nums'>
                       {card.value}
                     </CardContent>
                   </Card>
                 ))}
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
+              <div className='space-y-4'>
+                <div className='flex items-center gap-3'>
                   <Button
-                    variant="outline"
-                    size="sm"
+                    variant='outline'
+                    size='sm'
                     onClick={() => setOverviewDetail(null)}
                   >
                     {t('Back')}
                   </Button>
-                  <h2 className="text-lg font-semibold">
+                  <h2 className='text-lg font-semibold'>
                     {overviewDetailTitle[overviewDetail]}
                   </h2>
                 </div>
                 {overviewDetail === 'active_users' && (
-                  <div className="overflow-x-auto rounded-lg border">
-                    <table className="w-full min-w-[640px] text-sm">
-                      <thead className="bg-muted/50 text-left">
+                  <div className='overflow-x-auto rounded-lg border'>
+                    <table className='w-full min-w-[640px] text-sm'>
+                      <thead className='bg-muted/50 text-left'>
                         <tr>
-                          <th className="p-2">{t('ChatGPT Email')}</th>
-                          <th className="p-2">{t('Status')}</th>
-                          <th className="p-2">{t('Activated At')}</th>
+                          <th className='p-2'>{t('ChatGPT Email')}</th>
+                          <th className='p-2'>{t('Status')}</th>
+                          <th className='p-2'>{t('Activated At')}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {activeSubscriptions.length === 0 ? (
                           <tr>
-                            <td colSpan={3} className="text-muted-foreground p-4">
+                            <td
+                              colSpan={3}
+                              className='text-muted-foreground p-4'
+                            >
                               {t('No subscriptions yet')}
                             </td>
                           </tr>
                         ) : (
                           activeSubscriptions.map((sub) => (
-                            <tr key={sub.id} className="border-t">
-                              <td className="p-2">{sub.chatgpt_email}</td>
-                              <td className="p-2">
-                                <BusinessSubscriptionStatusBadge status={sub.status} t={t} />
+                            <tr key={sub.id} className='border-t'>
+                              <td className='p-2'>{sub.chatgpt_email}</td>
+                              <td className='p-2'>
+                                <BusinessSubscriptionStatusBadge
+                                  status={sub.status}
+                                  t={t}
+                                />
                               </td>
-                              <td className="p-2">
-                                <ImportantTimestamp ts={sub.activated_at} format={formatTs} />
+                              <td className='p-2'>
+                                <ImportantTimestamp
+                                  ts={sub.activated_at}
+                                  format={formatTs}
+                                />
                               </td>
                             </tr>
                           ))
@@ -533,33 +581,40 @@ export function ChatGPTBusinessAdminPage() {
                   </div>
                 )}
                 {overviewDetail === 'available_seats' && (
-                  <div className="overflow-x-auto rounded-lg border">
-                    <table className="w-full min-w-[640px] text-sm">
-                      <thead className="bg-muted/50 text-left">
+                  <div className='overflow-x-auto rounded-lg border'>
+                    <table className='w-full min-w-[640px] text-sm'>
+                      <thead className='bg-muted/50 text-left'>
                         <tr>
-                          <th className="p-2">{t('Workspace')}</th>
-                          <th className="p-2">{t('Seat Number')}</th>
-                          <th className="p-2">{t('Status')}</th>
+                          <th className='p-2'>{t('Workspace')}</th>
+                          <th className='p-2'>{t('Seat Number')}</th>
+                          <th className='p-2'>{t('Status')}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {overviewAvailableSeats.length === 0 ? (
                           <tr>
-                            <td colSpan={3} className="text-muted-foreground p-4">
+                            <td
+                              colSpan={3}
+                              className='text-muted-foreground p-4'
+                            >
                               {t('No available seats')}
                             </td>
                           </tr>
                         ) : (
                           overviewAvailableSeats.map((seat) => (
-                            <tr key={seat.id} className="border-t">
-                              <td className="p-2">
-                                {workspaceNameById.get(seat.workspace_id) ?? '—'}
+                            <tr key={seat.id} className='border-t'>
+                              <td className='p-2'>
+                                {workspaceNameById.get(seat.workspace_id) ??
+                                  '—'}
                               </td>
-                              <td className="p-2">
+                              <td className='p-2'>
                                 #{String(seat.seat_number).padStart(3, '0')}
                               </td>
-                              <td className="p-2">
-                                <BusinessSeatStatusBadge status={seat.status} t={t} />
+                              <td className='p-2'>
+                                <BusinessSeatStatusBadge
+                                  status={seat.status}
+                                  t={t}
+                                />
                               </td>
                             </tr>
                           ))
@@ -569,51 +624,71 @@ export function ChatGPTBusinessAdminPage() {
                   </div>
                 )}
                 {overviewDetail === 'pending_activation' && (
-                  <div className="overflow-x-auto rounded-lg border">
-                    <table className="w-full min-w-[720px] text-sm">
-                      <thead className="bg-muted/50 text-left">
+                  <div className='overflow-x-auto rounded-lg border'>
+                    <table className='w-full min-w-[720px] text-sm'>
+                      <thead className='bg-muted/50 text-left'>
                         <tr>
-                          <th className="p-2">{t('ChatGPT Email')}</th>
-                          <th className="p-2">{t('Status')}</th>
-                          <th className="p-2">{t('Created At')}</th>
-                          <th className="p-2">{t('Tasks')}</th>
+                          <th className='p-2'>{t('ChatGPT Email')}</th>
+                          <th className='p-2'>{t('Status')}</th>
+                          <th className='p-2'>{t('Created At')}</th>
+                          <th className='p-2'>{t('Tasks')}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {pendingActivationSubscriptions.length === 0 &&
                         tasks.length === 0 ? (
                           <tr>
-                            <td colSpan={4} className="text-muted-foreground p-4">
+                            <td
+                              colSpan={4}
+                              className='text-muted-foreground p-4'
+                            >
                               {t('No pending tasks')}
                             </td>
                           </tr>
                         ) : (
                           <>
                             {pendingActivationSubscriptions.map((sub) => (
-                              <tr key={`sub-${sub.id}`} className="border-t">
-                                <td className="p-2">{sub.chatgpt_email}</td>
-                                <td className="p-2">
-                                  <BusinessSubscriptionStatusBadge status={sub.status} t={t} />
+                              <tr key={`sub-${sub.id}`} className='border-t'>
+                                <td className='p-2'>{sub.chatgpt_email}</td>
+                                <td className='p-2'>
+                                  <BusinessSubscriptionStatusBadge
+                                    status={sub.status}
+                                    t={t}
+                                  />
                                 </td>
-                                <td className="p-2">
-                                  <ImportantTimestamp ts={sub.created_at} format={formatTs} />
+                                <td className='p-2'>
+                                  <ImportantTimestamp
+                                    ts={sub.created_at}
+                                    format={formatTs}
+                                  />
                                 </td>
-                                <td className="p-2 text-muted-foreground">—</td>
+                                <td className='text-muted-foreground p-2'>—</td>
                               </tr>
                             ))}
                             {tasks.map((task) => (
-                              <tr key={`task-${task.id}`} className="border-t">
-                                <td className="p-2">{task.chatgpt_email || '—'}</td>
-                                <td className="p-2">
-                                  <div className="flex flex-wrap gap-1">
-                                    <BusinessTaskTypeBadge taskType={task.task_type} t={t} />
-                                    <BusinessTaskStatusBadge status={task.status} t={t} />
+                              <tr key={`task-${task.id}`} className='border-t'>
+                                <td className='p-2'>
+                                  {task.chatgpt_email || '—'}
+                                </td>
+                                <td className='p-2'>
+                                  <div className='flex flex-wrap gap-1'>
+                                    <BusinessTaskTypeBadge
+                                      taskType={task.task_type}
+                                      t={t}
+                                    />
+                                    <BusinessTaskStatusBadge
+                                      status={task.status}
+                                      t={t}
+                                    />
                                   </div>
                                 </td>
-                                <td className="p-2">
-                                  <ImportantTimestamp ts={task.created_at} format={formatTs} />
+                                <td className='p-2'>
+                                  <ImportantTimestamp
+                                    ts={task.created_at}
+                                    format={formatTs}
+                                  />
                                 </td>
-                                <td className="p-2 text-muted-foreground">
+                                <td className='text-muted-foreground p-2'>
                                   {task.workspace_name} · {t('Seat Number')} #
                                   {task.seat_number || '—'}
                                 </td>
@@ -626,33 +701,41 @@ export function ChatGPTBusinessAdminPage() {
                   </div>
                 )}
                 {overviewDetail === 'cash_collected' && (
-                  <div className="overflow-x-auto rounded-lg border">
-                    <table className="w-full min-w-[640px] text-sm">
-                      <thead className="bg-muted/50 text-left">
+                  <div className='overflow-x-auto rounded-lg border'>
+                    <table className='w-full min-w-[640px] text-sm'>
+                      <thead className='bg-muted/50 text-left'>
                         <tr>
-                          <th className="p-2">{t('Order')}</th>
-                          <th className="p-2">{t('ChatGPT Email')}</th>
-                          <th className="p-2">{t('Amount')}</th>
-                          <th className="p-2">{t('Created At')}</th>
+                          <th className='p-2'>{t('Order')}</th>
+                          <th className='p-2'>{t('ChatGPT Email')}</th>
+                          <th className='p-2'>{t('Amount')}</th>
+                          <th className='p-2'>{t('Created At')}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {paidOrders.length === 0 ? (
                           <tr>
-                            <td colSpan={4} className="text-muted-foreground p-4">
+                            <td
+                              colSpan={4}
+                              className='text-muted-foreground p-4'
+                            >
                               {t('No paid orders yet')}
                             </td>
                           </tr>
                         ) : (
                           paidOrders.map((order) => (
-                            <tr key={order.id} className="border-t">
-                              <td className="p-2">{order.order_no}</td>
-                              <td className="p-2">{maskEmail(order.chatgpt_email ?? '')}</td>
-                              <td className="p-2">
+                            <tr key={order.id} className='border-t'>
+                              <td className='p-2'>{order.order_no}</td>
+                              <td className='p-2'>
+                                {maskEmail(order.chatgpt_email ?? '')}
+                              </td>
+                              <td className='p-2'>
                                 {order.total_amount} {order.currency}
                               </td>
-                              <td className="p-2">
-                                <ImportantTimestamp ts={order.created_at} format={formatTs} />
+                              <td className='p-2'>
+                                <ImportantTimestamp
+                                  ts={order.created_at}
+                                  format={formatTs}
+                                />
                               </td>
                             </tr>
                           ))
@@ -665,39 +748,52 @@ export function ChatGPTBusinessAdminPage() {
             )}
           </TabsContent>
 
-          <TabsContent value="workspaces" className="mt-4 space-y-4">
-            <div className="flex justify-end">
-              <Button onClick={() => setCreateOpen(true)}>{t('Create Workspace')}</Button>
+          <TabsContent value='workspaces' className='mt-4 space-y-4'>
+            <div className='flex justify-end'>
+              <Button onClick={() => setCreateOpen(true)}>
+                {t('Create Workspace')}
+              </Button>
             </div>
             {workspaces.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t('No workspaces yet')}</p>
+              <p className='text-muted-foreground text-sm'>
+                {t('No workspaces yet')}
+              </p>
             ) : (
               workspaces.map((ws) => (
                 <Card key={ws.id}>
-                  <CardHeader className="flex flex-row items-start justify-between gap-4">
-                    <div className="space-y-1">
+                  <CardHeader className='flex flex-row items-start justify-between gap-4'>
+                    <div className='space-y-1'>
                       <CardTitle>{ws.name}</CardTitle>
                       {ws.subscription_description ? (
-                        <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                        <p className='text-muted-foreground text-sm whitespace-pre-wrap'>
                           {ws.subscription_description}
                         </p>
                       ) : null}
-                      <p className="text-sm text-muted-foreground">
-                        {formatWorkspaceSubscriptionSummaryFromWorkspace(ws, t, formatTs)}
+                      <p className='text-muted-foreground text-sm'>
+                        {formatWorkspaceSubscriptionSummaryFromWorkspace(
+                          ws,
+                          t,
+                          formatTs
+                        )}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className='text-muted-foreground text-xs'>
                         {t('Status')}:{' '}
                         <BusinessSeatStatusBadge status={ws.status} t={t} /> ·{' '}
-                        {t('Active Subscriptions')}: {ws.active_subscriptions ?? 0}
+                        {t('Active Subscriptions')}:{' '}
+                        {ws.active_subscriptions ?? 0}
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => openEditWorkspace(ws)}>
+                    <div className='flex gap-2'>
+                      <Button
+                        size='sm'
+                        variant='outline'
+                        onClick={() => openEditWorkspace(ws)}
+                      >
                         {t('Edit')}
                       </Button>
                       <Button
-                        size="sm"
-                        variant="outline"
+                        size='sm'
+                        variant='outline'
                         onClick={() => {
                           setAddSeatWorkspaceId(ws.id)
                           setAddSeatOpen(true)
@@ -707,13 +803,13 @@ export function ChatGPTBusinessAdminPage() {
                       </Button>
                     </div>
                   </CardHeader>
-                  <CardContent className="grid gap-2 text-sm md:grid-cols-3">
+                  <CardContent className='grid gap-2 text-sm md:grid-cols-3'>
                     <div>
                       {t('Billing Anchor')}:{' '}
                       <ImportantTimestamp
                         ts={ws.billing_anchor_at}
                         format={formatTs}
-                        emphasis="warning"
+                        emphasis='warning'
                       />
                     </div>
                     <div>
@@ -723,10 +819,12 @@ export function ChatGPTBusinessAdminPage() {
                       {t('Grace Minutes')}: {ws.cycle_start_grace_minutes}
                     </div>
                     <div>
-                      {t('Renewal lead time')}: {ws.renewal_lead_days ?? 3} {t('days')}
+                      {t('Renewal lead time')}: {ws.renewal_lead_days ?? 3}{' '}
+                      {t('days')}
                     </div>
                     <div>
-                      {t('Total Seats')}: {ws.pool?.total ?? ws.total_standard_seats}
+                      {t('Total Seats')}:{' '}
+                      {ws.pool?.total ?? ws.total_standard_seats}
                     </div>
                     <div>
                       {t('Active Seats')}: {ws.pool?.active ?? 0}
@@ -735,7 +833,8 @@ export function ChatGPTBusinessAdminPage() {
                       {t('Available Seats')}: {ws.pool?.available ?? 0}
                     </div>
                     <div>
-                      {t('Active Subscriptions')}: {ws.active_subscriptions ?? 0}
+                      {t('Active Subscriptions')}:{' '}
+                      {ws.active_subscriptions ?? 0}
                     </div>
                   </CardContent>
                 </Card>
@@ -743,14 +842,16 @@ export function ChatGPTBusinessAdminPage() {
             )}
           </TabsContent>
 
-          <TabsContent value="seats" className="mt-4 space-y-4">
+          <TabsContent value='seats' className='mt-4 space-y-4'>
             {workspaces.length > 1 && (
-              <div className="flex flex-wrap gap-2">
+              <div className='flex flex-wrap gap-2'>
                 {workspaces.map((ws) => (
                   <Button
                     key={ws.id}
-                    size="sm"
-                    variant={selectedWorkspace?.id === ws.id ? 'default' : 'outline'}
+                    size='sm'
+                    variant={
+                      selectedWorkspace?.id === ws.id ? 'default' : 'outline'
+                    }
                     onClick={() => setSelectedWorkspaceId(ws.id)}
                   >
                     {ws.name}
@@ -758,46 +859,74 @@ export function ChatGPTBusinessAdminPage() {
                 ))}
               </div>
             )}
-            <div className="overflow-x-auto rounded-lg border">
-              <table className="w-full min-w-[720px] text-sm">
-                <thead className="bg-muted/50 text-left">
+            <div className='flex items-center gap-2'>
+              <Label htmlFor='seat-status-filter'>{t('Status')}</Label>
+              <Select
+                value={seatStatusFilter}
+                onValueChange={(value) => value && setSeatStatusFilter(value)}
+              >
+                <SelectTrigger id='seat-status-filter' className='w-48'>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='ALL'>{t('All statuses')}</SelectItem>
+                  {[
+                    'AVAILABLE',
+                    'RESERVED',
+                    'INVITED',
+                    'ACTIVE',
+                    'PENDING_RELEASE',
+                    'DISABLED',
+                  ].map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {t(`Business seat status.${status}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className='overflow-x-auto rounded-lg border'>
+              <table className='w-full min-w-[720px] text-sm'>
+                <thead className='bg-muted/50 text-left'>
                   <tr>
-                    <th className="p-2">{t('Seat Number')}</th>
-                    <th className="p-2">{t('Status')}</th>
-                    <th className="p-2">{t('User')}</th>
-                    <th className="p-2">{t('ChatGPT Email')}</th>
-                    <th className="p-2">{t('Subscription')}</th>
-                    <th className="p-2">{t('Activated At')}</th>
-                    <th className="p-2">{t('Actions')}</th>
+                    <th className='p-2'>{t('Seat Number')}</th>
+                    <th className='p-2'>{t('Status')}</th>
+                    <th className='p-2'>{t('User')}</th>
+                    <th className='p-2'>{t('ChatGPT Email')}</th>
+                    <th className='p-2'>{t('Subscription')}</th>
+                    <th className='p-2'>{t('Activated At')}</th>
+                    <th className='p-2'>{t('Actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {seats.map((seat) => (
-                    <tr key={seat.id} className="border-t">
-                      <td className="p-2">#{String(seat.seat_number).padStart(3, '0')}</td>
-                      <td className="p-2">
+                    <tr key={seat.id} className='border-t'>
+                      <td className='p-2'>
+                        #{String(seat.seat_number).padStart(3, '0')}
+                      </td>
+                      <td className='p-2'>
                         <BusinessSeatStatusBadge status={seat.status} t={t} />
                       </td>
-                      <td className="p-2">{seat.user_id ?? '—'}</td>
-                      <td className="p-2">{seat.assigned_email || '—'}</td>
-                      <td className="p-2">{seat.subscription_id ?? '—'}</td>
-                      <td className="p-2">
+                      <td className='p-2'>{seat.user_id ?? '—'}</td>
+                      <td className='p-2'>{seat.assigned_email || '—'}</td>
+                      <td className='p-2'>{seat.subscription_id ?? '—'}</td>
+                      <td className='p-2'>
                         <ImportantTimestamp
                           ts={seat.activated_at}
                           format={formatTs}
                           emphasis={seat.activated_at ? 'default' : undefined}
                         />
                       </td>
-                      <td className="p-2">
-                        <div className="flex flex-wrap gap-2">
+                      <td className='p-2'>
+                        <div className='flex flex-wrap gap-2'>
                           {seat.status === 'AVAILABLE' && (
                             <Button
-                              size="sm"
-                              variant="outline"
+                              size='sm'
+                              variant='outline'
                               onClick={() =>
                                 void runAction(
                                   () => disableAdminBusinessSeat(seat.id),
-                                  'Seat disabled',
+                                  'Seat disabled'
                                 )
                               }
                             >
@@ -806,12 +935,12 @@ export function ChatGPTBusinessAdminPage() {
                           )}
                           {seat.status === 'DISABLED' && (
                             <Button
-                              size="sm"
-                              variant="outline"
+                              size='sm'
+                              variant='outline'
                               onClick={() =>
                                 void runAction(
                                   () => enableAdminBusinessSeat(seat.id),
-                                  'Seat enabled',
+                                  'Seat enabled'
                                 )
                               }
                             >
@@ -819,12 +948,15 @@ export function ChatGPTBusinessAdminPage() {
                             </Button>
                           )}
                           {seat.subscription_id &&
-                            ['ACTIVE', 'INVITED', 'RESERVED', 'PENDING_RELEASE'].includes(
-                              seat.status,
-                            ) && (
+                            [
+                              'ACTIVE',
+                              'INVITED',
+                              'RESERVED',
+                              'PENDING_RELEASE',
+                            ].includes(seat.status) && (
                               <Button
-                                size="sm"
-                                variant="destructive"
+                                size='sm'
+                                variant='destructive'
                                 onClick={() => setRemoveSeatTarget(seat)}
                               >
                                 {t('Remove')}
@@ -839,89 +971,116 @@ export function ChatGPTBusinessAdminPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="tasks" className="mt-4 space-y-3">
+          <TabsContent value='tasks' className='mt-4 space-y-3'>
             {tasks.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t('No pending tasks')}</p>
+              <p className='text-muted-foreground text-sm'>
+                {t('No pending tasks')}
+              </p>
             ) : (
               tasks.map((task) => (
                 <Card key={task.id}>
-                  <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <BusinessTaskTypeBadge taskType={task.task_type} t={t} />
+                  <CardContent className='flex flex-wrap items-center justify-between gap-3 p-4 text-sm'>
+                    <div className='space-y-1'>
+                      <div className='flex flex-wrap items-center gap-2'>
+                        <BusinessTaskTypeBadge
+                          taskType={task.task_type}
+                          t={t}
+                        />
                         <BusinessTaskStatusBadge status={task.status} t={t} />
                       </div>
                       <div>
-                        {task.workspace_name} · {t('Seat Number')} #{task.seat_number || '—'}
+                        {task.workspace_name} · {t('Seat Number')} #
+                        {task.seat_number || '—'}
                       </div>
                       <div>{task.chatgpt_email || '—'}</div>
                       <div>
                         <ImportantTimestamp
                           ts={task.created_at}
                           format={formatTs}
-                          emphasis="warning"
+                          emphasis='warning'
                         />
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className='flex flex-wrap gap-2'>
                       {task.chatgpt_email && (
-                        <CopyButton value={task.chatgpt_email} size="sm" variant="outline" tooltip={t('Copy Email')}>
+                        <CopyButton
+                          value={task.chatgpt_email}
+                          size='sm'
+                          variant='outline'
+                          tooltip={t('Copy Email')}
+                        >
                           {t('Copy Email')}
                         </CopyButton>
                       )}
-                      {task.task_type === 'ADD_SEAT' && task.subscription_id && (
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            void runAction(
-                              () => confirmAdminSeatAdded(task.subscription_id!),
-                              'Seat added confirmed',
-                            )
-                          }
-                        >
-                          {t('Confirm Seat Added')}
-                        </Button>
-                      )}
-                      {task.task_type === 'INVITE_MEMBER' && task.subscription_id && (
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            void runAction(
-                              () => markAdminBusinessInvited(task.subscription_id!),
-                              'Marked invited',
-                            )
-                          }
-                        >
-                          {t('Mark Invited')}
-                        </Button>
-                      )}
-                      {task.task_type === 'CONFIRM_ACTIVATION' && task.subscription_id && (
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            void runAction(
-                              () => activateAdminBusinessSubscription(task.subscription_id!),
-                              'Activated',
-                            )
-                          }
-                        >
-                          {t('Activate')}
-                        </Button>
-                      )}
-                      {task.task_type === 'REMOVE_MEMBER' && task.subscription_id && (
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() =>
-                            void runAction(
-                              () => confirmAdminRemoved(task.subscription_id!),
-                              'Marked removed',
-                            )
-                          }
-                        >
-                          {t('Mark Removed')}
-                        </Button>
-                      )}
+                      {task.task_type === 'ADD_SEAT' &&
+                        task.subscription_id && (
+                          <Button
+                            size='sm'
+                            onClick={() =>
+                              void runAction(
+                                () =>
+                                  confirmAdminSeatAdded(
+                                    task.subscription_id ?? 0
+                                  ),
+                                'Seat added confirmed'
+                              )
+                            }
+                          >
+                            {t('Confirm Seat Added')}
+                          </Button>
+                        )}
+                      {task.task_type === 'INVITE_MEMBER' &&
+                        task.subscription_id && (
+                          <Button
+                            size='sm'
+                            onClick={() =>
+                              void runAction(
+                                () =>
+                                  markAdminBusinessInvited(
+                                    task.subscription_id ?? 0
+                                  ),
+                                'Marked invited'
+                              )
+                            }
+                          >
+                            {t('Mark Invited')}
+                          </Button>
+                        )}
+                      {task.task_type === 'CONFIRM_ACTIVATION' &&
+                        task.subscription_id && (
+                          <Button
+                            size='sm'
+                            onClick={() =>
+                              void runAction(
+                                () =>
+                                  activateAdminBusinessSubscription(
+                                    task.subscription_id ?? 0
+                                  ),
+                                'Activated'
+                              )
+                            }
+                          >
+                            {t('Activate')}
+                          </Button>
+                        )}
+                      {task.task_type === 'REMOVE_MEMBER' &&
+                        task.subscription_id && (
+                          <Button
+                            size='sm'
+                            variant='destructive'
+                            onClick={() =>
+                              void runAction(
+                                () =>
+                                  confirmAdminRemoved(
+                                    task.subscription_id ?? 0
+                                  ),
+                                'Marked removed'
+                              )
+                            }
+                          >
+                            {t('Mark Removed')}
+                          </Button>
+                        )}
                     </div>
                   </CardContent>
                 </Card>
@@ -929,57 +1088,72 @@ export function ChatGPTBusinessAdminPage() {
             )}
           </TabsContent>
 
-          <TabsContent value="subscriptions" className="mt-4 space-y-3">
+          <TabsContent value='subscriptions' className='mt-4 space-y-3'>
             {subscriptions.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t('No subscriptions yet')}</p>
+              <p className='text-muted-foreground text-sm'>
+                {t('No subscriptions yet')}
+              </p>
             ) : (
               subscriptions.map((sub) => {
                 const order = orders.find((o) => o.id === sub.last_order_id)
                 return (
                   <div
                     key={sub.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3 text-sm"
+                    className='flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3 text-sm'
                   >
                     <div>
                       <div>{sub.chatgpt_email}</div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <BusinessSubscriptionStatusBadge status={sub.status} t={t} />
-                        <span className="text-muted-foreground">
+                      <div className='flex flex-wrap items-center gap-2'>
+                        <BusinessSubscriptionStatusBadge
+                          status={sub.status}
+                          t={t}
+                        />
+                        <span className='text-muted-foreground'>
                           {t('Paid Through')}:{' '}
                           <ImportantTimestamp
                             ts={sub.prepaid_through}
                             format={formatTs}
-                            emphasis="warning"
+                            emphasis='warning'
                           />
                         </span>
                       </div>
                       {order && (
-                        <div className="text-muted-foreground">
-                          {t('Order')}: {order.order_no} · {order.total_amount} {order.currency}
+                        <div className='text-muted-foreground'>
+                          {t('Order')}: {order.order_no} · {order.total_amount}{' '}
+                          {order.currency}
                         </div>
                       )}
                     </div>
-                    <div className="flex gap-2">
-                      {(sub.status === 'PENDING_ACTIVATION' || sub.status === 'INVITED') && (
+                    <div className='flex gap-2'>
+                      {(sub.status === 'PENDING_ACTIVATION' ||
+                        sub.status === 'INVITED') && (
                         <>
-                          <CopyButton value={sub.chatgpt_email} size="sm" variant="outline" tooltip={t('Copy Email')}>
+                          <CopyButton
+                            value={sub.chatgpt_email}
+                            size='sm'
+                            variant='outline'
+                            tooltip={t('Copy Email')}
+                          >
                             {t('Copy Email')}
                           </CopyButton>
                           <Button
-                            size="sm"
-                            variant="outline"
+                            size='sm'
+                            variant='outline'
                             onClick={() =>
-                              void runAction(() => markAdminBusinessInvited(sub.id), 'Marked invited')
+                              void runAction(
+                                () => markAdminBusinessInvited(sub.id),
+                                'Marked invited'
+                              )
                             }
                           >
                             {t('Mark Invited')}
                           </Button>
                           <Button
-                            size="sm"
+                            size='sm'
                             onClick={() =>
                               void runAction(
                                 () => activateAdminBusinessSubscription(sub.id),
-                                'Activated',
+                                'Activated'
                               )
                             }
                           >
@@ -989,9 +1163,12 @@ export function ChatGPTBusinessAdminPage() {
                       )}
                       {sub.status === 'PENDING_CAPACITY' && (
                         <Button
-                          size="sm"
+                          size='sm'
                           onClick={() =>
-                            void runAction(() => confirmAdminSeatAdded(sub.id), 'Seat added confirmed')
+                            void runAction(
+                              () => confirmAdminSeatAdded(sub.id),
+                              'Seat added confirmed'
+                            )
                           }
                         >
                           {t('Confirm Seat Added')}
@@ -999,10 +1176,13 @@ export function ChatGPTBusinessAdminPage() {
                       )}
                       {sub.status === 'PENDING_REMOVAL' && (
                         <Button
-                          size="sm"
-                          variant="destructive"
+                          size='sm'
+                          variant='destructive'
                           onClick={() =>
-                            void runAction(() => confirmAdminRemoved(sub.id), 'Marked removed')
+                            void runAction(
+                              () => confirmAdminRemoved(sub.id),
+                              'Marked removed'
+                            )
                           }
                         >
                           {t('Mark Removed')}
@@ -1015,24 +1195,28 @@ export function ChatGPTBusinessAdminPage() {
             )}
           </TabsContent>
 
-          <TabsContent value="pricing" className="mt-4">
+          <TabsContent value='pricing' className='mt-4'>
             <Card>
               <CardHeader>
                 <CardTitle>{t('Pricing')}</CardTitle>
               </CardHeader>
-              <CardContent className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2 md:col-span-2">
+              <CardContent className='grid gap-4 md:grid-cols-2'>
+                <div className='space-y-2 md:col-span-2'>
                   <Label>{t('Workspace')}</Label>
                   <Select
-                    value={pricingWorkspaceId != null ? String(pricingWorkspaceId) : undefined}
+                    value={
+                      pricingWorkspaceId != null
+                        ? String(pricingWorkspaceId)
+                        : undefined
+                    }
                     onValueChange={(value) => {
                       if (value) {
                         setPricingWorkspaceId(Number(value))
                       }
                     }}
                   >
-                    <SelectTrigger className="w-full max-w-md">
-                      <span className="truncate">
+                    <SelectTrigger className='w-full max-w-md'>
+                      <span className='truncate'>
                         {pricingWorkspace?.name ?? t('Select workspace')}
                       </span>
                     </SelectTrigger>
@@ -1048,28 +1232,40 @@ export function ChatGPTBusinessAdminPage() {
                   </Select>
                 </div>
                 {currentPrice ? (
-                  <p className="text-sm text-muted-foreground md:col-span-2">
-                    {t('Current Price')}: {currentPrice.price_amount} {currentPrice.currency}{' '}
-                    {currentPrice.display_unit}
+                  <p className='text-muted-foreground text-sm md:col-span-2'>
+                    {t('Current Price')}: {currentPrice.price_amount}{' '}
+                    {currentPrice.currency} {currentPrice.display_unit}
                   </p>
                 ) : (
-                  <p className="text-sm text-muted-foreground md:col-span-2">
+                  <p className='text-muted-foreground text-sm md:col-span-2'>
                     {t('Pricing configuration required')}
                   </p>
                 )}
-                <div className="space-y-2 md:col-span-2">
-                  <p className="text-xs text-muted-foreground">{t('Pricing helper')}</p>
+                <div className='space-y-2 md:col-span-2'>
+                  <p className='text-muted-foreground text-xs'>
+                    {t('Pricing helper')}
+                  </p>
                 </div>
-                <div className="space-y-2">
+                <div className='space-y-2'>
                   <Label>{t('Amount')}</Label>
-                  <p className="text-xs text-muted-foreground">{t('Price amount helper')}</p>
-                  <Input value={priceAmount} onChange={(e) => setPriceAmount(e.target.value)} />
+                  <p className='text-muted-foreground text-xs'>
+                    {t('Price amount helper')}
+                  </p>
+                  <Input
+                    value={priceAmount}
+                    onChange={(e) => setPriceAmount(e.target.value)}
+                  />
                 </div>
-                <div className="space-y-2">
+                <div className='space-y-2'>
                   <Label>{t('Currency')}</Label>
-                  <p className="text-xs text-muted-foreground">{t('Price currency helper')}</p>
-                  <Select value={currency} onValueChange={(value) => value && setCurrency(value)}>
-                    <SelectTrigger className="w-full">
+                  <p className='text-muted-foreground text-xs'>
+                    {t('Price currency helper')}
+                  </p>
+                  <Select
+                    value={currency}
+                    onValueChange={(value) => value && setCurrency(value)}
+                  >
+                    <SelectTrigger className='w-full'>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent alignItemWithTrigger={false}>
@@ -1083,11 +1279,16 @@ export function ChatGPTBusinessAdminPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
+                <div className='space-y-2'>
                   <Label>{t('Billing')}</Label>
-                  <p className="text-xs text-muted-foreground">{t('Billing cadence helper')}</p>
-                  <Select value={billingCadence} onValueChange={(value) => value && setBillingCadence(value)}>
-                    <SelectTrigger className="w-full">
+                  <p className='text-muted-foreground text-xs'>
+                    {t('Billing cadence helper')}
+                  </p>
+                  <Select
+                    value={billingCadence}
+                    onValueChange={(value) => value && setBillingCadence(value)}
+                  >
+                    <SelectTrigger className='w-full'>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent alignItemWithTrigger={false}>
@@ -1101,10 +1302,15 @@ export function ChatGPTBusinessAdminPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
+                <div className='space-y-2'>
                   <Label>{t('Display')}</Label>
-                  <p className="text-xs text-muted-foreground">{t('Price display helper')}</p>
-                  <Input value={displayUnit} onChange={(e) => setDisplayUnit(e.target.value)} />
+                  <p className='text-muted-foreground text-xs'>
+                    {t('Price display helper')}
+                  </p>
+                  <Input
+                    value={displayUnit}
+                    onChange={(e) => setDisplayUnit(e.target.value)}
+                  />
                 </div>
                 <Button onClick={() => void savePrice()}>{t('Save')}</Button>
               </CardContent>
@@ -1120,7 +1326,7 @@ export function ChatGPTBusinessAdminPage() {
           confirmText={t('Create')}
           handleConfirm={() => void createWorkspace()}
         >
-          <div className="grid gap-3 py-2">
+          <div className='grid gap-3 py-2'>
             <WorkspaceNameField t={t} value={wsName} onChange={setWsName} />
             <WorkspaceSubscriptionDescriptionField
               t={t}
@@ -1132,13 +1338,41 @@ export function ChatGPTBusinessAdminPage() {
               summaryInput={createWorkspaceSummaryInput}
               formatTimestamp={formatTs}
             />
-            <WorkspaceProviderField t={t} value={wsProvider} onChange={setWsProvider} />
-            <WorkspaceBillingCadenceField t={t} value={wsCadence} onChange={setWsCadence} />
-            <WorkspaceBillingAnchorField t={t} value={wsAnchor} onChange={setWsAnchor} />
-            <WorkspaceTimezoneField t={t} value={wsTimezone} onChange={setWsTimezone} />
-            <WorkspaceSeatCountField t={t} value={wsSeats} onChange={setWsSeats} />
-            <WorkspaceGraceMinutesField t={t} value={wsGrace} onChange={setWsGrace} />
-            <WorkspaceRenewalLeadDaysField t={t} value={wsRenewalLead} onChange={setWsRenewalLead} />
+            <WorkspaceProviderField
+              t={t}
+              value={wsProvider}
+              onChange={setWsProvider}
+            />
+            <WorkspaceBillingCadenceField
+              t={t}
+              value={wsCadence}
+              onChange={setWsCadence}
+            />
+            <WorkspaceBillingAnchorField
+              t={t}
+              value={wsAnchor}
+              onChange={setWsAnchor}
+            />
+            <WorkspaceTimezoneField
+              t={t}
+              value={wsTimezone}
+              onChange={setWsTimezone}
+            />
+            <WorkspaceSeatCountField
+              t={t}
+              value={wsSeats}
+              onChange={setWsSeats}
+            />
+            <WorkspaceGraceMinutesField
+              t={t}
+              value={wsGrace}
+              onChange={setWsGrace}
+            />
+            <WorkspaceRenewalLeadDaysField
+              t={t}
+              value={wsRenewalLead}
+              onChange={setWsRenewalLead}
+            />
           </div>
         </ConfirmDialog>
 
@@ -1154,7 +1388,7 @@ export function ChatGPTBusinessAdminPage() {
           confirmText={t('Save')}
           handleConfirm={() => void saveWorkspaceEdit()}
         >
-          <div className="grid gap-3 py-2">
+          <div className='grid gap-3 py-2'>
             <WorkspaceNameField t={t} value={editName} onChange={setEditName} />
             <WorkspaceSubscriptionDescriptionField
               t={t}
@@ -1172,9 +1406,21 @@ export function ChatGPTBusinessAdminPage() {
               onChange={setEditAnchor}
               disabled={(editWorkspace?.active_subscriptions ?? 0) > 0}
             />
-            <WorkspaceTimezoneField t={t} value={editTimezone} onChange={setEditTimezone} />
-            <WorkspaceGraceMinutesField t={t} value={editGrace} onChange={setEditGrace} />
-            <WorkspaceRenewalLeadDaysField t={t} value={editRenewalLead} onChange={setEditRenewalLead} />
+            <WorkspaceTimezoneField
+              t={t}
+              value={editTimezone}
+              onChange={setEditTimezone}
+            />
+            <WorkspaceGraceMinutesField
+              t={t}
+              value={editGrace}
+              onChange={setEditGrace}
+            />
+            <WorkspaceRenewalLeadDaysField
+              t={t}
+              value={editRenewalLead}
+              onChange={setEditRenewalLead}
+            />
           </div>
         </ConfirmDialog>
 
@@ -1185,7 +1431,7 @@ export function ChatGPTBusinessAdminPage() {
           }}
           title={t('Remove seat assignment?')}
           desc={t(
-            'This starts removal for the assigned member and releases the seat after confirmation.',
+            'This starts removal for the assigned member and releases the seat after confirmation.'
           )}
           confirmText={t('Remove')}
           destructive
@@ -1199,32 +1445,45 @@ export function ChatGPTBusinessAdminPage() {
             if (!open) setAddSeatConfirmed(false)
           }}
           title={t('Add Standard Seats')}
-          desc={t('Increase local seat pool after adding seats in the official workspace')}
+          desc={t(
+            'Increase local seat pool after adding seats in the official workspace'
+          )}
           confirmText={t('Confirm')}
           disabled={!addSeatConfirmed}
           handleConfirm={() => void confirmAddSeats()}
         >
-          <div className="grid gap-3 py-2">
+          <div className='grid gap-3 py-2'>
             {selectedWorkspace && (
-              <p className="text-sm text-muted-foreground">
-                {t('Current Seat Count')}: {selectedWorkspace.pool?.total ?? selectedWorkspace.total_standard_seats}
+              <p className='text-muted-foreground text-sm'>
+                {t('Current Seat Count')}:{' '}
+                {selectedWorkspace.pool?.total ??
+                  selectedWorkspace.total_standard_seats}
               </p>
             )}
-            <div className="space-y-2">
+            <div className='space-y-2'>
               <Label>{t('Add Quantity')}</Label>
-              <Input value={addSeatCount} onChange={(e) => setAddSeatCount(e.target.value)} />
+              <Input
+                value={addSeatCount}
+                onChange={(e) => setAddSeatCount(e.target.value)}
+              />
             </div>
             {selectedWorkspace && (
-              <p className="text-sm">
+              <p className='text-sm'>
                 {t('New Total')}:{' '}
-                {(selectedWorkspace.pool?.total ?? selectedWorkspace.total_standard_seats) +
+                {(selectedWorkspace.pool?.total ??
+                  selectedWorkspace.total_standard_seats) +
                   (Number(addSeatCount) || 0)}
               </p>
             )}
-            <label className="flex items-start gap-2 text-sm">
-              <Checkbox checked={addSeatConfirmed} onCheckedChange={(v) => setAddSeatConfirmed(v === true)} />
+            <label className='flex items-start gap-2 text-sm'>
+              <Checkbox
+                checked={addSeatConfirmed}
+                onCheckedChange={(v) => setAddSeatConfirmed(v === true)}
+              />
               <span>
-                {t('I confirm that the corresponding seat(s) have already been added in the official Workspace.')}
+                {t(
+                  'I confirm that the corresponding seat(s) have already been added in the official Workspace.'
+                )}
               </span>
             </label>
           </div>

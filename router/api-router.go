@@ -202,6 +202,7 @@ func SetApiRouter(router *gin.Engine) {
 		{
 			businessSeatRoute.GET("/catalog", controller.GetBusinessSeatCatalog)
 			businessSeatRoute.GET("/self", controller.GetBusinessSeatSelf)
+			businessSeatRoute.POST("/subscription/cancel", middleware.UserCriticalRateLimit("business-seat-cancel"), controller.CancelBusinessSeatSubscription)
 			businessSeatRoute.POST("/quote", middleware.UserCriticalRateLimit("business-seat-quote"), controller.CreateBusinessSeatQuote)
 			businessSeatRoute.GET("/orders/pending", controller.GetBusinessSeatPendingOrders)
 			businessSeatRoute.DELETE("/orders/:id", middleware.UserCriticalRateLimit("business-seat-order"), controller.DeleteBusinessSeatPendingOrder)

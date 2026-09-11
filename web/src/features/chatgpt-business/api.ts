@@ -36,6 +36,19 @@ export async function getBusinessSelf(): Promise<
   return res.data
 }
 
+export async function cancelBusinessSubscription(): Promise<
+  ApiResponse<{ success: boolean }>
+> {
+  const res = await api.post(
+    '/api/business-seat/subscription/cancel',
+    undefined,
+    {
+      skipBusinessError: true,
+    }
+  )
+  return res.data
+}
+
 export async function createBusinessQuote(body: {
   chatgpt_email: string
   order_type?: string
@@ -150,12 +163,16 @@ export async function addAdminBusinessSeats(
 }
 
 export async function getAdminBusinessSeats(
-  workspaceId?: number
+  workspaceId?: number,
+  status?: string
 ): Promise<
   ApiResponse<{ seats: BusinessSeat[]; stats: BusinessSeatPoolStats }>
 > {
   const res = await api.get('/api/business-seat/admin/seats', {
-    params: workspaceId ? { workspace_id: workspaceId } : undefined,
+    params: {
+      ...(workspaceId ? { workspace_id: workspaceId } : {}),
+      ...(status && status !== 'ALL' ? { status } : {}),
+    },
   })
   return res.data
 }
@@ -224,8 +241,7 @@ export async function getAdminBusinessPricing(workspaceId?: number): Promise<
   }>
 > {
   const res = await api.get('/api/business-seat/admin/pricing', {
-    params:
-      workspaceId != null ? { workspace_id: workspaceId } : undefined,
+    params: workspaceId != null ? { workspace_id: workspaceId } : undefined,
   })
   return res.data
 }

@@ -505,6 +505,80 @@ const newKeys = {
   },
 }
 
+const requestedKeys = {
+  en: {
+    'ChatGPT Subscription': 'ChatGPT Subscription',
+    'Manage your ChatGPT subscription and workspace access': 'Manage your ChatGPT subscription and workspace access',
+    'Cancel subscription': 'Cancel subscription',
+    'Subscription cancellation scheduled': 'Subscription cancellation scheduled',
+    'Unable to cancel subscription': 'Unable to cancel subscription',
+    'All statuses': 'All statuses',
+    'Cancel subscription?': 'Cancel subscription?',
+    'Your subscription will remain active until the end of the current period.': 'Your subscription will remain active until the end of the current period.',
+  },
+  zh: {
+    'ChatGPT Subscription': 'ChatGPT 订阅',
+    'Manage your ChatGPT subscription and workspace access': '管理 ChatGPT 订阅和工作区访问权限',
+    'Cancel subscription': '取消订阅',
+    'Subscription cancellation scheduled': '已安排在下个周期取消订阅',
+    'Unable to cancel subscription': '取消订阅失败',
+    'All statuses': '全部状态',
+    'Cancel subscription?': '确定取消订阅？',
+    'Your subscription will remain active until the end of the current period.': '订阅将在当前周期结束前继续有效。',
+  },
+  'zh-TW': {
+    'ChatGPT Subscription': 'ChatGPT 訂閱',
+    'Manage your ChatGPT subscription and workspace access': '管理 ChatGPT 訂閱與工作區存取權限',
+    'Cancel subscription': '取消訂閱',
+    'Subscription cancellation scheduled': '已安排在下個週期取消訂閱',
+    'Unable to cancel subscription': '取消訂閱失敗',
+    'All statuses': '全部狀態',
+    'Cancel subscription?': '確定取消訂閱？',
+    'Your subscription will remain active until the end of the current period.': '訂閱將在目前週期結束前持續有效。',
+  },
+  fr: {
+    'ChatGPT Subscription': 'Abonnement ChatGPT',
+    'Manage your ChatGPT subscription and workspace access': 'Gérez votre abonnement ChatGPT et vos accès aux espaces de travail',
+    'Cancel subscription': "Annuler l'abonnement",
+    'Subscription cancellation scheduled': "Annulation de l'abonnement planifiée",
+    'Unable to cancel subscription': "Impossible d'annuler l'abonnement",
+    'All statuses': 'Tous les statuts',
+    'Cancel subscription?': "Annuler l'abonnement ?",
+    'Your subscription will remain active until the end of the current period.': "Votre abonnement restera actif jusqu'à la fin de la période en cours.",
+  },
+  ja: {
+    'ChatGPT Subscription': 'ChatGPT サブスクリプション',
+    'Manage your ChatGPT subscription and workspace access': 'ChatGPT サブスクリプションとワークスペースへのアクセスを管理',
+    'Cancel subscription': 'サブスクリプションをキャンセル',
+    'Subscription cancellation scheduled': '次のサイクルでの解約を設定しました',
+    'Unable to cancel subscription': 'サブスクリプションをキャンセルできません',
+    'All statuses': 'すべてのステータス',
+    'Cancel subscription?': 'サブスクリプションをキャンセルしますか？',
+    'Your subscription will remain active until the end of the current period.': '現在の期間が終了するまでサブスクリプションは有効です。',
+  },
+  ru: {
+    'ChatGPT Subscription': 'Подписка ChatGPT',
+    'Manage your ChatGPT subscription and workspace access': 'Управляйте подпиской ChatGPT и доступом к рабочим пространствам',
+    'Cancel subscription': 'Отменить подписку',
+    'Subscription cancellation scheduled': 'Отмена подписки запланирована на следующий период',
+    'Unable to cancel subscription': 'Не удалось отменить подписку',
+    'All statuses': 'Все статусы',
+    'Cancel subscription?': 'Отменить подписку?',
+    'Your subscription will remain active until the end of the current period.': 'Подписка останется активной до конца текущего периода.',
+  },
+  vi: {
+    'ChatGPT Subscription': 'Gói đăng ký ChatGPT',
+    'Manage your ChatGPT subscription and workspace access': 'Quản lý gói đăng ký ChatGPT và quyền truy cập workspace',
+    'Cancel subscription': 'Hủy gói đăng ký',
+    'Subscription cancellation scheduled': 'Đã lên lịch hủy gói vào chu kỳ tiếp theo',
+    'Unable to cancel subscription': 'Không thể hủy gói đăng ký',
+    'All statuses': 'Tất cả trạng thái',
+    'Cancel subscription?': 'Hủy gói đăng ký?',
+    'Your subscription will remain active until the end of the current period.': 'Gói đăng ký vẫn hoạt động đến hết chu kỳ hiện tại.',
+  },
+}
+for (const [locale, values] of Object.entries(requestedKeys)) Object.assign(newKeys[locale], values)
+
 async function main() {
   let totalAdded = 0
 

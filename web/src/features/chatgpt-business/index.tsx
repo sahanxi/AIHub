@@ -15,21 +15,20 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { startGatewayCheckout } from '@/features/wallet/lib/payment'
-import { useSystemConfigStore } from '@/stores/system-config-store'
-
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from '@/components/ui/select'
+import { startGatewayCheckout } from '@/features/wallet/lib/payment'
+import { useSystemConfigStore } from '@/stores/system-config-store'
 
 import {
   createBusinessOrder,
   createBusinessQuote,
+  cancelBusinessSubscription,
   deleteBusinessPendingOrder,
   getBusinessCatalog,
   getBusinessPendingOrders,
@@ -238,10 +237,14 @@ export function ChatGPTBusinessPage() {
     null
   )
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [cancelLoading, setCancelLoading] = useState(false)
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false)
   const [payConfirmOpen, setPayConfirmOpen] = useState(false)
-  const [pendingPayOrderId, setPendingPayOrderId] = useState<number | undefined>()
+  const [pendingPayOrderId, setPendingPayOrderId] = useState<
+    number | undefined
+  >()
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<number | null>(
-    null,
+    null
   )
   const usdToCnyRate =
     useSystemConfigStore((s) => s.config.currency.usdExchangeRate) || 1
@@ -436,6 +439,22 @@ export function ChatGPTBusinessPage() {
     }
   }
 
+  const handleCancelSubscription = async () => {
+    setCancelLoading(true)
+    try {
+      const res = await cancelBusinessSubscription()
+      if (!isApiSuccess(res)) throw new Error(res.message)
+      toast.success(t('Subscription cancellation scheduled'))
+      setCancelConfirmOpen(false)
+      const selfRes = await getBusinessSelf()
+      if (isApiSuccess(selfRes)) setSubscription(selfRes.data.subscription)
+    } catch {
+      toast.error(t('Unable to cancel subscription'))
+    } finally {
+      setCancelLoading(false)
+    }
+  }
+
   const visiblePendingOrders = useMemo(() => {
     const normalizedEmail = email.trim().toLowerCase()
     if (!normalizedEmail) {
@@ -452,7 +471,7 @@ export function ChatGPTBusinessPage() {
 
   const catalogWorkspaces = catalog?.workspaces ?? []
   const selectedCatalogWorkspace = catalogWorkspaces.find(
-    (row) => row.workspace.id === selectedWorkspaceId,
+    (row) => row.workspace.id === selectedWorkspaceId
   )
   const selectedCatalogWorkspaceName =
     selectedCatalogWorkspace?.workspace.name ?? null
@@ -465,7 +484,8 @@ export function ChatGPTBusinessPage() {
     displayWorkspace?.subscription_description?.trim() ?? ''
   const price = selectedCatalogWorkspace?.price ?? catalog?.price ?? null
   const workspaceAvailable =
-    selectedCatalogWorkspace?.currently_available ?? catalog?.currently_available
+    selectedCatalogWorkspace?.currently_available ??
+    catalog?.currently_available
   const priceLabel =
     price && workspaceAvailable
       ? `${formatMoney(price.price_amount, price.currency)} ${price.display_unit || ''}`.trim()
@@ -476,10 +496,10 @@ export function ChatGPTBusinessPage() {
       <SectionPageLayout.Title>
         <div>
           <h1 className='text-2xl font-semibold tracking-tight'>
-            {t('ChatGPT Business')}
+            {t('ChatGPT Subscription')}
           </h1>
           <p className='text-muted-foreground text-sm'>
-            {t('Business Standard seat for your ChatGPT account')}
+            {t('Manage your ChatGPT subscription and workspace access')}
           </p>
         </div>
       </SectionPageLayout.Title>
@@ -497,7 +517,10 @@ export function ChatGPTBusinessPage() {
                   </p>
                 ) : null}
                 <div className='mt-1'>
-                  <BusinessSubscriptionStatusBadge status={subscription.status} t={t} />
+                  <BusinessSubscriptionStatusBadge
+                    status={subscription.status}
+                    t={t}
+                  />
                 </div>
               </CardHeader>
               <CardContent className='space-y-3 text-sm'>
@@ -515,12 +538,21 @@ export function ChatGPTBusinessPage() {
                 </div>
                 {(subscription.status === 'ACTIVE' ||
                   subscription.status === 'EXPIRING') && (
-                  <Button
-                    onClick={() => void handleRenewQuote()}
-                    disabled={checkoutLoading}
-                  >
-                    {t('Complete renewal')}
-                  </Button>
+                  <div className='flex flex-wrap gap-2'>
+                    <Button
+                      onClick={() => void handleRenewQuote()}
+                      disabled={checkoutLoading}
+                    >
+                      {t('Complete renewal')}
+                    </Button>
+                    <Button
+                      variant='outline'
+                      onClick={() => setCancelConfirmOpen(true)}
+                      disabled={cancelLoading}
+                    >
+                      {t('Cancel subscription')}
+                    </Button>
+                  </div>
                 )}
                 {quote && subscription.status !== 'PENDING_CAPACITY' ? (
                   <BillingDisclosure
@@ -575,7 +607,8 @@ export function ChatGPTBusinessPage() {
                     >
                       <SelectTrigger className='w-full'>
                         <span className='truncate'>
-                          {selectedCatalogWorkspaceName ?? t('Select workspace')}
+                          {selectedCatalogWorkspaceName ??
+                            t('Select workspace')}
                         </span>
                       </SelectTrigger>
                       <SelectContent alignItemWithTrigger={false}>
@@ -587,13 +620,17 @@ export function ChatGPTBusinessPage() {
                                 value={String(row.workspace.id)}
                               >
                                 {row.workspace.name}
-                                {!row.currently_available
-                                  ? ` (${t('Currently unavailable')})`
-                                  : row.price
-                                    ? ` · ${formatMoney(row.price.price_amount, row.price.currency)}`
-                                    : ''}
+                                {(() => {
+                                  if (!row.currently_available) {
+                                    return ` (${t('Currently unavailable')})`
+                                  }
+                                  if (row.price) {
+                                    return ` · ${formatMoney(row.price.price_amount, row.price.currency)}`
+                                  }
+                                  return ''
+                                })()}
                               </SelectItem>
-                            ),
+                            )
                           )}
                         </SelectGroup>
                       </SelectContent>
@@ -674,6 +711,20 @@ export function ChatGPTBusinessPage() {
           )}
         </div>
         <ConfirmDialog
+          open={cancelConfirmOpen}
+          onOpenChange={(open) => {
+            if (!open && !cancelLoading) setCancelConfirmOpen(false)
+          }}
+          title={t('Cancel subscription?')}
+          desc={t(
+            'Your subscription will remain active until the end of the current period.'
+          )}
+          confirmText={t('Cancel subscription')}
+          destructive
+          isLoading={cancelLoading}
+          handleConfirm={() => void handleCancelSubscription()}
+        />
+        <ConfirmDialog
           open={payConfirmOpen}
           onOpenChange={(open) => {
             if (!open && !checkoutLoading) {
@@ -690,13 +741,19 @@ export function ChatGPTBusinessPage() {
           {payConfirmAmount ? (
             <div className='space-y-3 text-sm'>
               <div className='flex items-center justify-between gap-4'>
-                <span className='text-muted-foreground'>{t('Amount due today')}</span>
-                <span className='font-semibold'>{payConfirmAmount.display}</span>
+                <span className='text-muted-foreground'>
+                  {t('Amount due today')}
+                </span>
+                <span className='font-semibold'>
+                  {payConfirmAmount.display}
+                </span>
               </div>
               <div className='flex items-center justify-between gap-4'>
                 <span className='text-muted-foreground'>{t('You Pay')}</span>
                 <div className='text-right'>
-                  <div className='text-lg font-semibold'>{payConfirmAmount.settle}</div>
+                  <div className='text-lg font-semibold'>
+                    {payConfirmAmount.settle}
+                  </div>
                   <div className='text-muted-foreground text-xs'>
                     {t('Settled in CNY via Alipay')}
                   </div>
