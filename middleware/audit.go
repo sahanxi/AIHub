@@ -43,7 +43,7 @@ func (w *auditResponseWriter) WriteString(s string) (int, error) {
 // 未命中的写操作回退为 action="generic"，前端展示 "METHOD route"。
 var auditRouteActions = map[string]string{
 	// 用户管理
-	"POST /api/user/topup/complete":                    "user.topup_complete",
+	"DELETE /api/user/topup/:id":                       "user.topup_delete",
 	"DELETE /api/user/:id/reset_passkey":               "user.reset_passkey",
 	"DELETE /api/user/:id/oauth/bindings/:provider_id": "user.oauth_unbind",
 

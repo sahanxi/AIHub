@@ -32,7 +32,6 @@ import type {
   AffiliateCodeResponse,
   AffiliateTransferResponse,
   BillingHistoryResponse,
-  CompleteOrderRequest,
   CreemPaymentRequest,
   CreemPaymentResponse,
   WaffoPaymentRequest,
@@ -238,11 +237,9 @@ export async function getAllBillingHistory(
 }
 
 /**
- * Complete a pending order (admin only)
+ * Delete a pending billing record.
  */
-export async function completeOrder(
-  request: CompleteOrderRequest
-): Promise<ApiResponse> {
-  const res = await api.post('/api/user/topup/complete', request)
+export async function deletePendingTopUp(id: number): Promise<ApiResponse> {
+  const res = await api.delete(`/api/user/topup/${id}`)
   return res.data
 }

@@ -1878,11 +1878,11 @@
         ]
       }
     },
-    "/api/user/topup/complete": {
-      "post": {
-        "summary": "管理员完成充值",
+    "/api/user/topup/{id}": {
+      "delete": {
+        "summary": "删除待支付充值订单",
         "deprecated": false,
-        "description": "👨‍💼 需要管理员权限（Admin）",
+        "description": "删除当前用户的待支付订单；管理员可删除任意待支付订单",
         "tags": [
           "用户管理"
         ],

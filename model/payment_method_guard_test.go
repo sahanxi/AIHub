@@ -150,6 +150,20 @@ func TestUpdatePendingTopUpStatus_RejectsMismatchedPaymentProvider(t *testing.T)
 	}
 }
 
+func TestDeletePendingTopUpRequiresOwnerAndRemovesOnlyPendingOrders(t *testing.T) {
+	truncateTables(t)
+
+	insertUserForPaymentGuardTest(t, 175, 0)
+	pending := createEpayTestOrder(t, 175, "DELETE-PENDING-TOPUP", PaymentProviderEpay, common.TopUpStatusPending)
+	require.ErrorIs(t, DeletePendingTopUp(pending.Id, 999, false), ErrTopUpNotFound)
+	require.NoError(t, DeletePendingTopUp(pending.Id, 175, false))
+	assert.Nil(t, GetTopUpByTradeNo(pending.TradeNo))
+
+	completed := createEpayTestOrder(t, 175, "DELETE-COMPLETED-TOPUP", PaymentProviderEpay, common.TopUpStatusSuccess)
+	require.ErrorIs(t, DeletePendingTopUp(completed.Id, 175, false), ErrTopUpNotFound)
+	require.NotNil(t, GetTopUpByTradeNo(completed.TradeNo))
+}
+
 func TestCompleteSubscriptionOrder_RejectsMismatchedPaymentProvider(t *testing.T) {
 	truncateTables(t)
 

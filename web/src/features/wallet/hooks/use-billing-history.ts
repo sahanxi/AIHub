@@ -26,7 +26,7 @@ import { useDebounce } from '@/hooks/use-debounce'
 import {
   getUserBillingHistory,
   getAllBillingHistory,
-  completeOrder,
+  deletePendingTopUp,
   isApiSuccess,
 } from '../api'
 import type { TopupRecord } from '../types'
@@ -54,7 +54,7 @@ export function useBillingHistory(options: UseBillingHistoryOptions = {}) {
   const debouncedKeyword = useDebounce(keyword)
   const requestIdRef = useRef(0)
   const [loading, setLoading] = useState(false)
-  const [completing, setCompleting] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   /**
    * Fetch billing history
@@ -94,38 +94,29 @@ export function useBillingHistory(options: UseBillingHistoryOptions = {}) {
     }
   }, [debouncedKeyword, isAdmin, page, pageSize])
 
-  /**
-   * Complete a pending order (admin only)
-   */
-  const handleCompleteOrder = useCallback(
-    async (tradeNo: string) => {
-      if (!isAdmin) {
-        toast.error(i18next.t('Admin access required'))
-        return false
-      }
-
-      setCompleting(true)
+  const handleDeleteOrder = useCallback(
+    async (id: number) => {
+      setDeleting(true)
       try {
-        const response = await completeOrder({ trade_no: tradeNo })
+        const response = await deletePendingTopUp(id)
         if (isApiSuccess(response)) {
-          toast.success(i18next.t('Order completed successfully'))
-          // Refresh the list
+          toast.success(i18next.t('Order deleted'))
           await fetchBillingHistory()
           return true
         } else {
-          toast.error(response.message || i18next.t('Failed to complete order'))
+          toast.error(response.message || i18next.t('Unable to delete order'))
           return false
         }
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.error('Failed to complete order:', error)
-        toast.error(i18next.t('Failed to complete order'))
+        console.error('Failed to delete order:', error)
+        toast.error(i18next.t('Unable to delete order'))
         return false
       } finally {
-        setCompleting(false)
+        setDeleting(false)
       }
     },
-    [isAdmin, fetchBillingHistory]
+    [fetchBillingHistory]
   )
 
   /**
@@ -166,12 +157,12 @@ export function useBillingHistory(options: UseBillingHistoryOptions = {}) {
     pageSize,
     keyword,
     loading,
-    completing,
+    deleting,
     isAdmin,
     handlePageChange,
     handlePageSizeChange,
     handleSearch,
-    handleCompleteOrder,
+    handleDeleteOrder,
     refresh: fetchBillingHistory,
   }
 }

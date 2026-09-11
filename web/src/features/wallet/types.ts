@@ -280,10 +280,3 @@ export interface BillingHistoryResponse {
   items: TopupRecord[]
   total: number
 }
-
-/**
- * Complete order request (admin only)
- */
-export interface CompleteOrderRequest {
-  trade_no: string
-}

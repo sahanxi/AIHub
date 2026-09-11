@@ -767,7 +767,7 @@ export const MANAGEMENT_API_GROUPS: DocsApiGroup[] = [
       { method: 'POST', path: '/api/subscription/creem/pay' },
       { method: 'POST', path: '/api/subscription/waffo-pancake/pay' },
       { method: 'GET', path: '/api/user/topup', auth: 'admin' },
-      { method: 'POST', path: '/api/user/topup/complete', auth: 'admin' },
+      { method: 'DELETE', path: '/api/user/topup/:id', auth: 'user' },
       { method: 'GET', path: '/api/subscription/admin/plans', auth: 'admin' },
       { method: 'POST', path: '/api/subscription/admin/plans', auth: 'admin' },
       {
