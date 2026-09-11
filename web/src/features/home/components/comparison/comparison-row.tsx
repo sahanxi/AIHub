@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 
 import type { ComparisonRowKey } from './comparison-config'
+import { comparisonTheme as theme } from './comparison-theme'
 
 interface ComparisonRowProps {
   rowKey: ComparisonRowKey
@@ -16,25 +17,22 @@ function ComparisonCell(props: {
   description: string
   tone: 'aihub' | 'competitor'
 }) {
-  const titleClass =
-    props.tone === 'aihub'
-      ? 'text-foreground'
-      : 'text-foreground/90'
-  const descClass =
-    props.tone === 'competitor'
-      ? 'text-[#9a6b6b]/90'
-      : 'text-muted-foreground'
+  const titleColor =
+    props.tone === 'aihub' ? theme.aihubConclusion : theme.competitorConclusion
+  const descColor =
+    props.tone === 'aihub' ? theme.aihubDescription : theme.competitorDescription
 
   return (
-    <div className='flex min-h-[84px] flex-col justify-center py-5 md:min-h-[92px] md:py-6'>
-      <p className={cn('text-base leading-snug font-semibold md:text-[17px]', titleClass)}>
+    <div className='flex flex-col justify-center py-3 md:py-3.5'>
+      <p
+        className='text-[15px] leading-[1.45] font-semibold md:text-base'
+        style={{ color: titleColor }}
+      >
         {props.title}
       </p>
       <p
-        className={cn(
-          'mt-2 max-w-prose text-[13px] leading-[1.7] md:text-sm md:leading-[1.75]',
-          descClass
-        )}
+        className='mt-1 text-[12px] leading-[1.55] md:text-[13px] md:leading-[1.6]'
+        style={{ color: descColor }}
       >
         {props.description}
       </p>
@@ -55,48 +53,103 @@ export function ComparisonRow(props: ComparisonRowProps) {
 
   return (
     <div
-      className={cn(
-        'border-border/40 border-t first:border-t-0',
-        props.className
-      )}
+      className={cn('border-t first:border-t-0', props.className)}
+      style={{ borderColor: theme.rowBorder }}
     >
-      <div className='hidden min-h-[84px] grid-cols-[16%_42%_42%] lg:grid lg:min-h-[92px]'>
-        <div className='border-border/30 flex items-center gap-3 border-r px-4 py-5 md:px-5 md:py-6'>
-          <Icon
-            className='text-primary/55 size-5 shrink-0 stroke-[1.6]'
-            aria-hidden='true'
-          />
-          <span className='text-muted-foreground text-sm leading-snug font-medium'>
+      <div className='hidden grid-cols-[16%_42%_42%] items-stretch lg:grid'>
+        <div
+          className='flex items-center gap-2.5 border-r px-4 py-3 md:px-5 md:py-3.5'
+          style={{
+            backgroundColor: theme.labelColumnBg,
+            borderColor: theme.labelColumnBorder,
+          }}
+        >
+          <span
+            className='flex size-8 shrink-0 items-center justify-center rounded-full'
+            style={{ backgroundColor: '#F1F4F8' }}
+          >
+            <Icon
+              className='size-4 stroke-[1.6]'
+              style={{ color: theme.labelIcon }}
+              aria-hidden='true'
+            />
+          </span>
+          <span
+            className='text-[13px] leading-snug font-medium md:text-sm'
+            style={{ color: theme.labelText }}
+          >
             {label}
           </span>
         </div>
-        <div className='border-border/30 bg-primary/[0.035] border-r px-5 py-0 md:px-6'>
-          <ComparisonCell
-            tone='aihub'
-            title={aihubTitle}
-            description={aihubDescription}
-          />
+
+        <div
+          className='group/aihub flex items-center border-r px-4 py-0 transition-colors duration-200 md:px-5'
+          style={{
+            background: theme.aihubColumnBg,
+            borderColor: theme.aihubColumnBorder,
+          }}
+        >
+          <div
+            className='w-full rounded-xl px-1 transition-colors duration-200 group-hover/aihub:bg-[rgba(255,255,255,0.95)]'
+            style={{ backgroundColor: theme.aihubRowBg }}
+          >
+            <ComparisonCell
+              tone='aihub'
+              title={aihubTitle}
+              description={aihubDescription}
+            />
+          </div>
         </div>
-        <div className='bg-[#faf8f7] px-5 py-0 md:px-6 dark:bg-muted/20'>
-          <ComparisonCell
-            tone='competitor'
-            title={competitorTitle}
-            description={competitorDescription}
-          />
+
+        <div
+          className='group/competitor flex items-center px-4 py-0 transition-colors duration-200 md:px-5'
+          style={{ background: theme.competitorColumnBg }}
+        >
+          <div
+            className='w-full rounded-xl px-1 transition-colors duration-200 group-hover/competitor:bg-[rgba(255,255,255,0.88)]'
+            style={{ backgroundColor: theme.competitorRowBg }}
+          >
+            <ComparisonCell
+              tone='competitor'
+              title={competitorTitle}
+              description={competitorDescription}
+            />
+          </div>
         </div>
       </div>
 
-      <div className='space-y-4 px-4 py-6 lg:hidden'>
-        <div className='flex items-center gap-3'>
-          <Icon
-            className='text-primary/55 size-5 shrink-0 stroke-[1.6]'
-            aria-hidden='true'
-          />
-          <h3 className='text-foreground text-base font-semibold'>{label}</h3>
+      <div className='space-y-3 px-4 py-4 lg:hidden'>
+        <div className='flex items-center gap-2.5'>
+          <span
+            className='flex size-8 shrink-0 items-center justify-center rounded-full'
+            style={{ backgroundColor: '#F1F4F8' }}
+          >
+            <Icon
+              className='size-4 stroke-[1.6]'
+              style={{ color: theme.labelIcon }}
+              aria-hidden='true'
+            />
+          </span>
+          <h3
+            className='text-[15px] font-semibold'
+            style={{ color: theme.title }}
+          >
+            {label}
+          </h3>
         </div>
 
-        <div className='border-primary/15 bg-primary/[0.04] rounded-2xl border p-4 shadow-[0_8px_30px_-18px_rgba(37,99,235,0.45)]'>
-          <p className='text-primary mb-3 text-xs font-semibold tracking-wide uppercase'>
+        <div
+          className='rounded-2xl border p-3.5'
+          style={{
+            background: theme.aihubColumnBg,
+            borderColor: theme.aihubColumnBorder,
+            boxShadow: '0 12px 40px rgba(47, 125, 246, 0.08)',
+          }}
+        >
+          <p
+            className='mb-2 text-[11px] font-semibold tracking-wide uppercase'
+            style={{ color: theme.titleBrand }}
+          >
             {t('home.comparison.aihub')}
           </p>
           <ComparisonCell
@@ -106,12 +159,24 @@ export function ComparisonRow(props: ComparisonRowProps) {
           />
         </div>
 
-        <p className='text-muted-foreground/70 text-center text-xs font-medium tracking-[0.2em] uppercase'>
+        <p
+          className='text-center text-[11px] font-medium tracking-[0.18em] uppercase'
+          style={{ color: theme.promoSecondary }}
+        >
           {t('home.comparison.vs')}
         </p>
 
-        <div className='rounded-2xl border border-[#ead9d9] bg-[#faf8f7] p-4 dark:border-border/40 dark:bg-muted/20'>
-          <p className='text-muted-foreground mb-3 text-xs font-semibold tracking-wide uppercase'>
+        <div
+          className='rounded-2xl border p-3.5'
+          style={{
+            background: theme.competitorColumnBg,
+            borderColor: theme.competitorColumnBorder,
+          }}
+        >
+          <p
+            className='mb-2 text-[11px] font-semibold tracking-wide uppercase'
+            style={{ color: theme.competitorSubtitle }}
+          >
             {t('home.comparison.competitor')}
           </p>
           <ComparisonCell
