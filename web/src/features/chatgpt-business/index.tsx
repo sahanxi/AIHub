@@ -513,6 +513,8 @@ export function ChatGPTBusinessPage() {
     workspace ??
     catalog?.workspace ??
     null
+  const displayName =
+    displayWorkspace?.name ?? catalog?.product?.name ?? t('Business Standard')
   const subscriptionDescription =
     displayWorkspace?.subscription_description?.trim() ?? ''
   const price =
@@ -553,7 +555,7 @@ export function ChatGPTBusinessPage() {
             <Card>
               <CardHeader>
                 <CardTitle>
-                  {catalog?.product?.name || t('Business Standard')}
+                  {displayName}
                 </CardTitle>
                 {subscriptionDescription ? (
                   <p className='text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap'>
@@ -636,7 +638,7 @@ export function ChatGPTBusinessPage() {
                   <BillingDisclosure
                     quote={quote}
                     productName={
-                      catalog?.product?.name || t('Business Standard')
+                      displayName
                     }
                   />
                 ) : null}
@@ -660,7 +662,7 @@ export function ChatGPTBusinessPage() {
             <Card>
               <CardHeader>
                 <CardTitle>
-                  {catalog?.product?.name || t('Business Standard')}
+                  {displayName}
                 </CardTitle>
                 {subscriptionDescription ? (
                   <p className='text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap'>
@@ -726,7 +728,7 @@ export function ChatGPTBusinessPage() {
                         <BillingDisclosure
                           quote={quote}
                           productName={
-                            catalog?.product?.name || t('Business Standard')
+                            displayName
                           }
                         />
                         <div className='flex gap-2'>

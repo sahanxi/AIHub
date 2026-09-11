@@ -149,4 +149,12 @@ test('shows all workspaces and marks the selected workspace subscription', async
 
   expect(await screen.findByRole('button', { name: /Standard.*Subscribed/ })).toBeInTheDocument()
   expect(screen.getByRole('button', { name: /Premium.*Available/ })).toBeInTheDocument()
+  expect(
+    screen.getByText('Standard', { selector: '[data-slot="card-title"]' })
+  ).toBeInTheDocument()
+  expect(
+    screen.queryByText('Business Standard', {
+      selector: '[data-slot="card-title"]',
+    })
+  ).not.toBeInTheDocument()
 })
