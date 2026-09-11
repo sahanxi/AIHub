@@ -485,7 +485,7 @@ export function ChatGPTBusinessPage() {
         </div>
       </SectionPageLayout.Title>
       <SectionPageLayout.Content>
-        <div className='grid w-full grid-cols-1 items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3'>
+        <div className='grid w-full auto-rows-fr grid-cols-1 items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3'>
           {workspaceRows.map((row, index) => {
             const workspaceSubscription = subscriptions.find(
               (item) => item.workspace?.id === row.workspace.id
@@ -512,9 +512,9 @@ export function ChatGPTBusinessPage() {
             return (
               <Card
                 key={row.workspace.id}
-                className={`h-full w-full shadow-sm transition-shadow hover:shadow-md ${cardPalette[index % cardPalette.length]}`}
+                className={`flex h-full min-h-[620px] w-full flex-col shadow-sm transition-shadow hover:shadow-md ${cardPalette[index % cardPalette.length]}`}
               >
-                <CardHeader className='flex min-h-28 flex-row items-start justify-between gap-4'>
+                <CardHeader className='!flex min-h-28 flex-row items-start justify-between gap-4'>
                   <div className='min-w-0'>
                     <CardTitle>{row.workspace.name}</CardTitle>
                     {workspaceDescription ? (
@@ -556,7 +556,7 @@ export function ChatGPTBusinessPage() {
                     {billingLabel}
                   </span>
                 </CardHeader>
-                <CardContent className='space-y-4 text-sm'>
+                <CardContent className='flex-1 space-y-4 text-sm'>
                   {(() => {
                     if (workspaceSubscription) {
                       return (
