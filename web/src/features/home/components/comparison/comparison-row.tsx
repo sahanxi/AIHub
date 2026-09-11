@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/lib/utils'
 
+import { ComparisonCell } from './comparison-cell'
 import type { ComparisonRowKey } from './comparison-config'
 import { comparisonTheme as theme } from './comparison-theme'
 
@@ -12,127 +13,21 @@ interface ComparisonRowProps {
   className?: string
 }
 
-function ComparisonCell(props: {
-  title: string
-  description: string
-  tone: 'aihub' | 'competitor'
-  icon: LucideIcon
-}) {
-  const Icon = props.icon
-  const titleColor =
-    props.tone === 'aihub' ? theme.aihubConclusion : theme.competitorConclusion
-  const descColor =
-    props.tone === 'aihub' ? theme.aihubDescription : theme.competitorDescription
-  const iconBg =
-    props.tone === 'aihub' ? theme.aihubIconBg : theme.competitorIconBg
-  const iconColor =
-    props.tone === 'aihub' ? theme.aihubIcon : theme.competitorIcon
-
-  return (
-    <div className='flex items-center justify-center gap-3 px-2 py-2.5 md:gap-3.5 md:py-3'>
-      <span
-        className='flex size-9 shrink-0 items-center justify-center rounded-full md:size-10'
-        style={{ backgroundColor: iconBg }}
-      >
-        <Icon
-          className='size-4 stroke-[1.65] md:size-[18px]'
-          style={{ color: iconColor }}
-          aria-hidden='true'
-        />
-      </span>
-      <div className='flex min-w-0 flex-1 flex-col items-center justify-center text-center'>
-        <p
-          className='text-[14px] leading-[1.4] font-semibold md:text-[15px]'
-          style={{ color: titleColor }}
-        >
-          {props.title}
-        </p>
-        <p
-          className='mt-1 text-[12px] leading-[1.5] md:text-[13px] md:leading-[1.55]'
-          style={{ color: descColor }}
-        >
-          {props.description}
-        </p>
-      </div>
-    </div>
-  )
-}
-
 export function ComparisonRow(props: ComparisonRowProps) {
   const { t } = useTranslation()
   const Icon = props.icon
   const label = t(`home.comparison.${props.rowKey}.label`)
-  const aihubTitle = t(`home.comparison.${props.rowKey}.aihubTitle`)
-  const aihubDescription = t(`home.comparison.${props.rowKey}.aihubDescription`)
-  const competitorTitle = t(`home.comparison.${props.rowKey}.competitorTitle`)
-  const competitorDescription = t(
-    `home.comparison.${props.rowKey}.competitorDescription`
-  )
 
   return (
     <div
       className={cn('border-t first:border-t-0', props.className)}
       style={{ borderColor: theme.rowBorder }}
     >
-      <div className='hidden grid-cols-[16%_42%_42%] items-center lg:grid'>
-        <div
-          className='flex h-full items-center justify-center gap-2.5 border-r px-3 py-2.5 md:px-4 md:py-3'
-          style={{
-            background: theme.labelColumnBg,
-            borderColor: theme.labelColumnBorder,
-          }}
-        >
+      <div className='space-y-3 px-4 py-4'>
+        <div className='flex items-start gap-2.5'>
           <span
             className='flex size-8 shrink-0 items-center justify-center rounded-full'
-            style={{ backgroundColor: 'rgba(255,255,255,0.55)' }}
-          >
-            <Icon
-              className='size-4 stroke-[1.6]'
-              style={{ color: theme.labelIcon }}
-              aria-hidden='true'
-            />
-          </span>
-          <span
-            className='text-center text-[13px] leading-snug font-medium md:text-sm'
-            style={{ color: theme.labelText }}
-          >
-            {label}
-          </span>
-        </div>
-
-        <div
-          className='flex h-full items-center justify-center border-r px-2 md:px-3'
-          style={{
-            background: theme.aihubColumnBg,
-            borderColor: theme.aihubColumnBorder,
-          }}
-        >
-          <ComparisonCell
-            tone='aihub'
-            icon={Icon}
-            title={aihubTitle}
-            description={aihubDescription}
-          />
-        </div>
-
-        <div
-          className='flex h-full items-center justify-center px-2 md:px-3'
-          style={{ background: theme.competitorColumnBg }}
-        >
-          <ComparisonCell
-            tone='competitor'
-            icon={Icon}
-            title={competitorTitle}
-            description={competitorDescription}
-          />
-        </div>
-      </div>
-
-      <div className='space-y-3 px-4 py-3.5 lg:hidden'>
-        <div className='flex items-center justify-center gap-2.5'>
-          <span
-            className='flex size-8 shrink-0 items-center justify-center rounded-full'
-            style={{ backgroundColor: 'rgba(255,255,255,0.55)' }}
+            style={{ backgroundColor: 'rgba(255,255,255,0.72)' }}
           >
             <Icon
               className='size-4 stroke-[1.6]'
@@ -141,7 +36,7 @@ export function ComparisonRow(props: ComparisonRowProps) {
             />
           </span>
           <h3
-            className='text-[15px] font-semibold'
+            className='pt-0.5 text-[15px] font-semibold'
             style={{ color: theme.title }}
           >
             {label}
@@ -151,12 +46,13 @@ export function ComparisonRow(props: ComparisonRowProps) {
         <div
           className='rounded-2xl border p-3'
           style={{
-            background: theme.aihubColumnBg,
-            borderColor: theme.aihubColumnBorder,
+            background: theme.aihubCardBg,
+            borderColor: theme.aihubCardBorder,
+            boxShadow: theme.aihubCardGlow,
           }}
         >
           <p
-            className='mb-2 text-center text-[11px] font-semibold tracking-wide uppercase'
+            className='mb-2 text-[11px] font-semibold tracking-wide uppercase'
             style={{ color: theme.titleBrand }}
           >
             {t('home.comparison.aihub')}
@@ -164,8 +60,10 @@ export function ComparisonRow(props: ComparisonRowProps) {
           <ComparisonCell
             tone='aihub'
             icon={Icon}
-            title={aihubTitle}
-            description={aihubDescription}
+            emphasized
+            title={t(`home.comparison.${props.rowKey}.aihubTitle`)}
+            description={t(`home.comparison.${props.rowKey}.aihubDescription`)}
+            className='px-0 py-0'
           />
         </div>
 
@@ -184,7 +82,7 @@ export function ComparisonRow(props: ComparisonRowProps) {
           }}
         >
           <p
-            className='mb-2 text-center text-[11px] font-semibold tracking-wide uppercase'
+            className='mb-2 text-[11px] font-semibold tracking-wide uppercase'
             style={{ color: theme.competitorSubtitle }}
           >
             {t('home.comparison.competitor')}
@@ -192,8 +90,11 @@ export function ComparisonRow(props: ComparisonRowProps) {
           <ComparisonCell
             tone='competitor'
             icon={Icon}
-            title={competitorTitle}
-            description={competitorDescription}
+            title={t(`home.comparison.${props.rowKey}.competitorTitle`)}
+            description={t(
+              `home.comparison.${props.rowKey}.competitorDescription`
+            )}
+            className='px-0 py-0'
           />
         </div>
       </div>

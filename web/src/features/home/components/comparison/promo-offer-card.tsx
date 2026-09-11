@@ -28,7 +28,7 @@ function PromoTitle() {
   if (nineMatch) {
     return (
       <h3
-        className='text-[clamp(1.5rem,2.6vw,2rem)] leading-tight font-bold tracking-tight'
+        className='text-[clamp(1.75rem,3vw,2.25rem)] leading-tight font-bold tracking-tight'
         style={{ color: theme.promoTitle }}
       >
         {nineMatch[1]}
@@ -52,7 +52,7 @@ function PromoTitle() {
   if (percentMatch) {
     return (
       <h3
-        className='text-[clamp(1.5rem,2.6vw,2rem)] leading-tight font-bold tracking-tight'
+        className='text-[clamp(1.75rem,3vw,2.25rem)] leading-tight font-bold tracking-tight'
         style={{ color: theme.promoTitle }}
       >
         <span
@@ -72,7 +72,7 @@ function PromoTitle() {
 
   return (
     <h3
-      className='text-[clamp(1.5rem,2.6vw,2rem)] leading-tight font-bold tracking-tight'
+      className='text-[clamp(1.75rem,3vw,2.25rem)] leading-tight font-bold tracking-tight'
       style={{ color: theme.promoTitle }}
     >
       {title}
@@ -86,7 +86,7 @@ export function PromoOfferCard(props: PromoOfferCardProps) {
   return (
     <article
       className={cn(
-        'relative mt-6 overflow-hidden rounded-[26px] border p-4 transition-[box-shadow,transform] duration-200 hover:-translate-y-px md:p-5 lg:p-6',
+        'relative mt-8 overflow-hidden rounded-[30px] border p-6 transition-[box-shadow,transform] duration-200 hover:-translate-y-px md:p-8 lg:p-10',
         props.className
       )}
       style={{
@@ -97,19 +97,19 @@ export function PromoOfferCard(props: PromoOfferCardProps) {
     >
       <div
         aria-hidden='true'
-        className='pointer-events-none absolute -top-12 -right-8 h-36 w-36 rounded-full blur-3xl'
-        style={{ backgroundColor: 'rgba(91, 155, 255, 0.14)' }}
+        className='pointer-events-none absolute -top-16 -right-10 h-48 w-48 rounded-full blur-3xl'
+        style={{ backgroundColor: 'rgba(91, 155, 255, 0.10)' }}
       />
       <div
         aria-hidden='true'
-        className='pointer-events-none absolute right-20 -bottom-8 h-28 w-28 rounded-full blur-3xl'
-        style={{ backgroundColor: 'rgba(163, 196, 255, 0.16)' }}
+        className='pointer-events-none absolute right-24 -bottom-10 h-40 w-40 rounded-full blur-3xl'
+        style={{ backgroundColor: 'rgba(163, 196, 255, 0.12)' }}
       />
 
-      <div className='relative grid grid-cols-1 items-center gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)_190px] lg:gap-5'>
-        <div className='space-y-3'>
+      <div className='relative grid grid-cols-1 items-center gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_220px] lg:gap-6'>
+        <div className='space-y-5'>
           <span
-            className='inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide'
+            className='inline-flex rounded-full px-3 py-1 text-xs font-semibold tracking-wide'
             style={{
               background: theme.promoBadgeBg,
               color: theme.promoBadgeText,
@@ -120,20 +120,20 @@ export function PromoOfferCard(props: PromoOfferCardProps) {
           <div>
             <PromoTitle />
             <p
-              className='mt-2 max-w-md text-[13px] leading-[1.6] md:text-sm'
+              className='mt-3 max-w-md text-sm leading-[1.7] md:text-[15px]'
               style={{ color: theme.promoBody }}
             >
               {t('home.promo.description')}
             </p>
             <p
-              className='mt-1 max-w-md text-[11px] leading-relaxed md:text-xs'
+              className='mt-2 max-w-md text-xs leading-relaxed md:text-[13px]'
               style={{ color: theme.promoSecondary }}
             >
               {t('home.promo.secondary')}
             </p>
           </div>
           <Button
-            className='h-10 rounded-[14px] px-5 text-sm font-medium'
+            className='h-11 rounded-[15px] px-6 text-sm font-medium'
             render={
               props.isAuthenticated ? (
                 <Link to='/dashboard' />
@@ -147,34 +147,38 @@ export function PromoOfferCard(props: PromoOfferCardProps) {
           </Button>
         </div>
 
-        <div className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2'>
+        <div className='grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2'>
           {PROMO_BENEFIT_KEYS.map((benefitKey) => {
             const BenefitIcon = PROMO_BENEFIT_ICONS[benefitKey]
             const colors = theme.benefitColors[benefitKey]
             return (
               <div
                 key={benefitKey}
-                className='flex min-w-0 items-center justify-center gap-2.5 px-1 py-1.5'
+                className='flex min-w-0 items-center gap-3 rounded-2xl border px-3 py-2.5 transition-transform duration-200 hover:-translate-y-px'
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.82)',
+                  borderColor: theme.cardBorder,
+                }}
               >
                 <span
-                  className='flex size-8 shrink-0 items-center justify-center rounded-full'
+                  className='flex size-9 shrink-0 items-center justify-center rounded-full'
                   style={{ backgroundColor: colors.bg }}
                 >
                   <BenefitIcon
-                    className='size-3.5 stroke-[1.7]'
+                    className='size-4 stroke-[1.7]'
                     style={{ color: colors.icon }}
                     aria-hidden='true'
                   />
                 </span>
-                <div className='min-w-0 flex-1 text-center sm:text-left'>
+                <div className='min-w-0 flex-1'>
                   <p
-                    className='truncate text-[13px] leading-none font-semibold'
+                    className='truncate text-sm leading-none font-semibold'
                     style={{ color: theme.title }}
                   >
                     {t(`home.promo.benefit.${benefitKey}.title`)}
                   </p>
                   <p
-                    className='mt-1 truncate text-[11px] leading-none'
+                    className='mt-1.5 truncate text-xs leading-none'
                     style={{ color: theme.promoBody }}
                   >
                     {t(`home.promo.benefit.${benefitKey}.description`)}
@@ -187,7 +191,7 @@ export function PromoOfferCard(props: PromoOfferCardProps) {
 
         <GiftBoxIllustration
           tagLabel={t('home.promo.giftTag')}
-          className='mx-auto h-28 w-full max-w-[190px] lg:mx-0 lg:h-32 lg:justify-self-end'
+          className='mx-auto h-40 w-full max-w-[220px] lg:mx-0 lg:h-44 lg:justify-self-end'
         />
       </div>
     </article>

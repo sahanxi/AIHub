@@ -2,15 +2,22 @@ import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/lib/utils'
 
+import { AihubMark } from './aihub-mark'
+import { ComparisonCell } from './comparison-cell'
 import { COMPARISON_ROWS } from './comparison-config'
 import { ComparisonRow } from './comparison-row'
-import { comparisonTheme as theme } from './comparison-theme'
+import {
+  COMPARISON_GRID_COLUMNS,
+  comparisonTheme as theme,
+} from './comparison-theme'
 import { PromoOfferCard } from './promo-offer-card'
 
 interface HomeComparisonSectionProps {
   isAuthenticated?: boolean
   className?: string
 }
+
+const ROW_COUNT = COMPARISON_ROWS.length
 
 export function HomeComparisonSection(props: HomeComparisonSectionProps) {
   const { t } = useTranslation()
@@ -51,9 +58,7 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
         </header>
 
         <div
-          className={cn(
-            'overflow-hidden rounded-[28px] border backdrop-blur-sm transition-shadow duration-200'
-          )}
+          className='overflow-hidden rounded-[28px] border lg:overflow-visible'
           style={{
             background: theme.cardBackground,
             borderColor: theme.cardBorder,
@@ -61,44 +66,90 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
           }}
         >
           <div
-            className='hidden border-b lg:grid lg:grid-cols-[16%_42%_42%] lg:items-center'
-            style={{ borderColor: theme.rowBorder }}
+            className='hidden lg:grid lg:overflow-visible'
+            style={{
+              gridTemplateColumns: COMPARISON_GRID_COLUMNS,
+              gridTemplateRows: `auto repeat(${ROW_COUNT}, minmax(0, auto))`,
+            }}
           >
             <div
-              className='flex items-center justify-center border-r px-5 py-3 text-center text-sm font-medium'
+              className='col-start-1 row-span-full grid grid-rows-subgrid border-r'
               style={{
+                gridRow: `1 / span ${ROW_COUNT + 1}`,
                 background: theme.labelColumnBg,
                 borderColor: theme.labelColumnBorder,
-                color: theme.labelText,
               }}
             >
-              {t('home.comparison.itemLabel')}
+              <div
+                className='flex items-center border-b px-4 py-4 text-sm font-semibold'
+                style={{
+                  borderColor: theme.rowBorder,
+                  color: theme.labelText,
+                }}
+              >
+                {t('home.comparison.itemLabel')}
+              </div>
+              {COMPARISON_ROWS.map((row) => {
+                const Icon = row.icon
+                return (
+                  <div
+                    key={row.key}
+                    className='flex items-start gap-3 border-b px-4 py-3.5 last:border-b-0'
+                    style={{ borderColor: theme.rowBorder }}
+                  >
+                    <span
+                      className='flex size-9 shrink-0 items-center justify-center rounded-full'
+                      style={{ backgroundColor: 'rgba(255,255,255,0.72)' }}
+                    >
+                      <Icon
+                        className='size-4 stroke-[1.6]'
+                        style={{ color: theme.labelIcon }}
+                        aria-hidden='true'
+                      />
+                    </span>
+                    <span
+                      className='pt-1 text-sm leading-snug font-medium'
+                      style={{ color: theme.labelText }}
+                    >
+                      {t(`home.comparison.${row.key}.label`)}
+                    </span>
+                  </div>
+                )
+              })}
             </div>
+
             <div
-              className='border-r px-6 py-3'
+              className='relative z-10 col-start-2 -my-5 grid grid-rows-subgrid overflow-hidden rounded-[22px] border'
               style={{
-                background: theme.aihubColumnBg,
-                borderColor: theme.aihubColumnBorder,
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.85)',
+                gridRow: `1 / span ${ROW_COUNT + 1}`,
+                background: theme.aihubCardBg,
+                borderColor: theme.aihubCardBorder,
+                boxShadow: theme.aihubCardGlow,
               }}
             >
-              <div className='flex items-center justify-between gap-3'>
-                <div className='flex-1 text-center'>
-                  <p
-                    className='text-lg font-bold tracking-tight'
-                    style={{ color: theme.aihubTitle }}
-                  >
-                    {t('home.comparison.aihub')}
-                  </p>
-                  <p
-                    className='mt-0.5 text-sm'
-                    style={{ color: theme.aihubSubtitle }}
-                  >
-                    {t('home.comparison.aihubSubtitle')}
-                  </p>
+              <div
+                className='flex items-start justify-between gap-3 border-b px-6 py-5'
+                style={{ borderColor: 'rgba(168, 200, 245, 0.55)' }}
+              >
+                <div className='flex min-w-0 items-start gap-3'>
+                  <AihubMark className='flex size-11 shrink-0 items-center justify-center rounded-2xl' />
+                  <div className='min-w-0 pt-0.5'>
+                    <p
+                      className='text-xl font-bold tracking-tight md:text-[1.35rem]'
+                      style={{ color: theme.aihubTitle }}
+                    >
+                      {t('home.comparison.aihub')}
+                    </p>
+                    <p
+                      className='mt-1 text-sm leading-snug'
+                      style={{ color: theme.aihubSubtitle }}
+                    >
+                      {t('home.comparison.aihubSubtitle')}
+                    </p>
+                  </div>
                 </div>
                 <span
-                  className='shrink-0 rounded-full px-3 py-1 text-xs font-semibold text-white'
+                  className='mt-1 shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold text-white'
                   style={{
                     background: theme.badgeGradient,
                     boxShadow: theme.badgeShadow,
@@ -107,27 +158,67 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
                   {t('home.comparison.aihubBadge')}
                 </span>
               </div>
+              {COMPARISON_ROWS.map((row) => (
+                <div
+                  key={row.key}
+                  className='border-b last:border-b-0'
+                  style={{ borderColor: 'rgba(168, 200, 245, 0.45)' }}
+                >
+                  <ComparisonCell
+                    tone='aihub'
+                    icon={row.icon}
+                    emphasized
+                    title={t(`home.comparison.${row.key}.aihubTitle`)}
+                    description={t(`home.comparison.${row.key}.aihubDescription`)}
+                  />
+                </div>
+              ))}
             </div>
+
             <div
-              className='px-6 py-3 text-center'
-              style={{ background: theme.competitorColumnBg }}
+              className='col-start-3 row-span-full grid grid-rows-subgrid'
+              style={{
+                gridRow: `1 / span ${ROW_COUNT + 1}`,
+                background: theme.competitorColumnBg,
+              }}
             >
-              <p
-                className='text-lg font-bold tracking-tight'
-                style={{ color: theme.competitorTitle }}
+              <div
+                className='border-b px-5 py-4'
+                style={{ borderColor: theme.rowBorder }}
               >
-                {t('home.comparison.competitor')}
-              </p>
-              <p
-                className='mt-0.5 text-sm'
-                style={{ color: theme.competitorSubtitle }}
-              >
-                {t('home.comparison.competitorSubtitle')}
-              </p>
+                <p
+                  className='text-lg font-bold tracking-tight'
+                  style={{ color: theme.competitorTitle }}
+                >
+                  {t('home.comparison.competitor')}
+                </p>
+                <p
+                  className='mt-1 text-sm leading-snug'
+                  style={{ color: theme.competitorSubtitle }}
+                >
+                  {t('home.comparison.competitorSubtitle')}
+                </p>
+              </div>
+              {COMPARISON_ROWS.map((row) => (
+                <div
+                  key={row.key}
+                  className='border-b last:border-b-0'
+                  style={{ borderColor: theme.rowBorder }}
+                >
+                  <ComparisonCell
+                    tone='competitor'
+                    icon={row.icon}
+                    title={t(`home.comparison.${row.key}.competitorTitle`)}
+                    description={t(
+                      `home.comparison.${row.key}.competitorDescription`
+                    )}
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
-          <div>
+          <div className='lg:hidden'>
             {COMPARISON_ROWS.map((row) => (
               <ComparisonRow
                 key={row.key}
