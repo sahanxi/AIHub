@@ -6,13 +6,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog'
 import { SectionPageLayout } from '@/components/layout'
 import { LoadingState } from '@/components/loading-state'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { startGatewayCheckout } from '@/features/wallet/lib/payment'
@@ -528,11 +522,19 @@ export function ChatGPTBusinessPage() {
                       )}
                     </div>
                   ) : (
-                    <CardDescription>
-                      {workspacePrice && workspaceAvailable
-                        ? `${formatMoney(workspacePrice.price_amount, workspacePrice.currency)} ${workspacePrice.display_unit || ''}`.trim()
-                        : t('Currently unavailable')}
-                    </CardDescription>
+                    <div className='mt-1'>
+                      <span
+                        className={
+                          workspaceAvailable
+                            ? 'text-success text-sm font-medium'
+                            : 'text-muted-foreground text-sm font-medium'
+                        }
+                      >
+                        {workspaceAvailable
+                          ? t('Available')
+                          : t('Currently unavailable')}
+                      </span>
+                    </div>
                   )}
                 </CardHeader>
                 <CardContent className='space-y-4 text-sm'>
@@ -638,15 +640,64 @@ export function ChatGPTBusinessPage() {
                     }
                     if (!workspaceAvailable) {
                       return (
-                        <p className='text-muted-foreground'>
-                          {row.pricing_required
-                            ? t('Pricing configuration required')
-                            : t('Currently unavailable')}
-                        </p>
+                        <>
+                          {workspacePrice ? (
+                            <div className='border-b pb-4'>
+                              <span className='text-3xl font-semibold'>
+                                {formatMoney(
+                                  workspacePrice.price_amount,
+                                  workspacePrice.currency
+                                )}
+                              </span>
+                              <span className='text-muted-foreground ml-2 text-sm'>
+                                {workspacePrice.display_unit ||
+                                  t(
+                                    `subscription.billing.${workspacePrice.billing_cadence.toLowerCase()}`
+                                  )}
+                              </span>
+                            </div>
+                          ) : null}
+                          <p className='text-muted-foreground'>
+                            {row.pricing_required
+                              ? t('Pricing configuration required')
+                              : t('Currently unavailable')}
+                          </p>
+                        </>
                       )
                     }
                     return (
                       <>
+                        {workspacePrice ? (
+                          <div className='border-b pb-4'>
+                            <span className='text-3xl font-semibold'>
+                              {formatMoney(
+                                workspacePrice.price_amount,
+                                workspacePrice.currency
+                              )}
+                            </span>
+                            <span className='text-muted-foreground ml-2 text-sm'>
+                              {workspacePrice.display_unit ||
+                                t(
+                                  `subscription.billing.${workspacePrice.billing_cadence.toLowerCase()}`
+                                )}
+                            </span>
+                          </div>
+                        ) : null}
+                        <div className='text-muted-foreground'>
+                          {t(
+                            `subscription.billing.${(row.workspace.billing_cadence || workspacePrice?.billing_cadence || 'monthly').toLowerCase()}`
+                          )}
+                        </div>
+                        <div className='space-y-2 border-t pt-4'>
+                          <p className='font-medium'>
+                            {t('subscription.currentBenefits')}
+                          </p>
+                          <ul className='text-muted-foreground space-y-1'>
+                            {benefitItems.map((benefit) => (
+                              <li key={benefit}>✓ {benefit}</li>
+                            ))}
+                          </ul>
+                        </div>
                         <p className='text-muted-foreground text-sm'>
                           {t('Business seat first payment may be prorated')}
                         </p>
