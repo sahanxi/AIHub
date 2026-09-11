@@ -7,120 +7,148 @@ export function GiftBoxIllustration(props: GiftBoxIllustrationProps) {
   return (
     <div className={props.className} aria-hidden='true'>
       <svg
-        viewBox='0 0 220 200'
+        viewBox='0 0 240 220'
         fill='none'
         xmlns='http://www.w3.org/2000/svg'
         className='h-full w-full'
       >
         <defs>
-          <linearGradient id='gift-body' x1='50' y1='90' x2='170' y2='180'>
-            <stop offset='0%' stopColor='#F8FBFF' />
-            <stop offset='100%' stopColor='#EAF3FF' />
+          <linearGradient id='gift-scene-bg' x1='20' y1='20' x2='220' y2='220'>
+            <stop offset='0%' stopColor='#F3F8FF' />
+            <stop offset='100%' stopColor='#E6F0FF' />
           </linearGradient>
-          <linearGradient id='gift-lid' x1='60' y1='48' x2='160' y2='98'>
+          <linearGradient id='gift-box-white' x1='70' y1='70' x2='170' y2='170'>
             <stop offset='0%' stopColor='#FFFFFF' />
-            <stop offset='100%' stopColor='#EEF4FF' />
+            <stop offset='100%' stopColor='#F3F7FD' />
           </linearGradient>
-          <linearGradient id='gift-ribbon-v' x1='108' y1='40' x2='112' y2='180'>
-            <stop offset='0%' stopColor='#4B83F6' />
-            <stop offset='100%' stopColor='#2F6DE8' />
+          <linearGradient id='gift-box-side' x1='150' y1='90' x2='210' y2='170'>
+            <stop offset='0%' stopColor='#EEF4FC' />
+            <stop offset='100%' stopColor='#E0EAF7' />
           </linearGradient>
-          <linearGradient id='gift-ribbon-h' x1='40' y1='108' x2='180' y2='112'>
-            <stop offset='0%' stopColor='#4B83F6' />
-            <stop offset='100%' stopColor='#2F6DE8' />
-          </linearGradient>
-          <linearGradient id='gift-bow' x1='88' y1='28' x2='132' y2='58'>
-            <stop offset='0%' stopColor='#66A3FF' />
+          <linearGradient id='gift-ribbon-blue' x1='0' y1='0' x2='0' y2='1'>
+            <stop offset='0%' stopColor='#5B9BFF' />
             <stop offset='100%' stopColor='#2F7DF6' />
           </linearGradient>
-          <filter id='gift-shadow' x='-20%' y='-10%' width='140%' height='140%'>
+          <linearGradient id='gift-bow-blue' x1='90' y1='40' x2='150' y2='90'>
+            <stop offset='0%' stopColor='#6BA8FF' />
+            <stop offset='100%' stopColor='#2F7DF6' />
+          </linearGradient>
+          <filter id='gift-drop-shadow' x='-30%' y='-20%' width='160%' height='160%'>
             <feDropShadow
               dx='0'
-              dy='10'
-              stdDeviation='12'
+              dy='14'
+              stdDeviation='14'
               floodColor='#2F7DF6'
-              floodOpacity='0.18'
+              floodOpacity='0.16'
             />
           </filter>
         </defs>
 
+        <rect x='0' y='0' width='240' height='220' rx='24' fill='url(#gift-scene-bg)' />
+
         <path
-          d='M34 126 C24 98 42 72 72 66 C88 62 100 72 110 82 C120 72 132 62 148 66 C178 72 196 98 186 126'
-          fill='#2F7DF6'
-          opacity='0.08'
-        />
-        <path
-          d='M156 34 C170 22 184 28 190 42 C196 56 184 70 168 72'
-          stroke='#A8C8FF'
-          strokeWidth='2.5'
+          d='M34 58 C48 42 62 48 70 62'
+          stroke='#8CB8FF'
+          strokeWidth='4'
           strokeLinecap='round'
           opacity='0.55'
         />
         <path
-          d='M64 38 C50 26 36 32 30 46 C24 60 36 74 52 76'
-          stroke='#A8C8FF'
-          strokeWidth='2.5'
+          d='M188 48 C204 34 218 42 222 58'
+          stroke='#8CB8FF'
+          strokeWidth='4'
           strokeLinecap='round'
           opacity='0.45'
         />
+        <path
+          d='M28 118 C18 96 34 78 58 72'
+          stroke='#A8C8FF'
+          strokeWidth='3.5'
+          strokeLinecap='round'
+          opacity='0.35'
+        />
+        <ellipse cx='120' cy='188' rx='58' ry='10' fill='#2F7DF6' opacity='0.08' />
 
-        <g filter='url(#gift-shadow)'>
+        <g transform='translate(118 118) rotate(-8)' filter='url(#gift-drop-shadow)'>
           <path
-            d='M48 96 L172 96 L184 168 L36 168 Z'
-            fill='url(#gift-body)'
-            stroke='#D9E8FF'
-            strokeWidth='1.5'
+            d='M52 34 L118 34 L132 92 L38 92 Z'
+            fill='url(#gift-box-side)'
+            stroke='#D8E6F7'
+            strokeWidth='1.2'
           />
           <path
-            d='M48 96 L110 68 L172 96 L110 124 Z'
-            fill='url(#gift-lid)'
-            stroke='#D9E8FF'
-            strokeWidth='1.5'
+            d='M38 92 L132 92 L142 148 L28 148 Z'
+            fill='url(#gift-box-white)'
+            stroke='#D8E6F7'
+            strokeWidth='1.2'
           />
           <path
-            d='M110 68 L110 168'
-            stroke='url(#gift-ribbon-v)'
-            strokeWidth='16'
+            d='M38 92 L85 68 L132 92 L85 116 Z'
+            fill='#FFFFFF'
+            stroke='#D8E6F7'
+            strokeWidth='1.2'
+          />
+          <path
+            d='M82 34 L82 148'
+            stroke='url(#gift-ribbon-blue)'
+            strokeWidth='14'
             strokeLinecap='round'
           />
           <path
-            d='M48 96 L172 96'
-            stroke='url(#gift-ribbon-h)'
-            strokeWidth='16'
+            d='M38 92 L132 92'
+            stroke='url(#gift-ribbon-blue)'
+            strokeWidth='14'
             strokeLinecap='round'
           />
-          <ellipse cx='110' cy='68' rx='22' ry='11' fill='url(#gift-bow)' />
+          <ellipse cx='82' cy='34' rx='24' ry='12' fill='url(#gift-bow-blue)' />
           <path
-            d='M88 52 C82 42 88 34 98 34 C104 34 108 38 110 44 C112 38 116 34 122 34 C132 34 138 42 132 52 C128 58 118 62 110 62 C102 62 92 58 88 52 Z'
-            fill='url(#gift-bow)'
+            d='M58 24 C52 14 58 8 68 8 C74 8 78 12 82 18 C86 12 90 8 96 8 C106 8 112 14 106 24 C102 30 92 34 82 34 C72 34 62 30 58 24 Z'
+            fill='url(#gift-bow-blue)'
           />
-          <ellipse cx='98' cy='48' rx='8' ry='5' fill='#A8C8FF' opacity='0.65' />
-          <ellipse cx='122' cy='48' rx='8' ry='5' fill='#A8C8FF' opacity='0.65' />
+          <circle cx='68' cy='18' r='7' fill='#8CB8FF' opacity='0.55' />
+          <circle cx='96' cy='18' r='7' fill='#8CB8FF' opacity='0.55' />
+
+          <g transform='translate(46 104) rotate(6)'>
+            <rect
+              x='0'
+              y='0'
+              width='78'
+              height='34'
+              rx='10'
+              fill='#FFF2DF'
+              stroke='#EED9BC'
+              strokeWidth='1'
+            />
+            <circle cx='10' cy='10' r='2' fill='#D8C2A3' />
+            <circle cx='68' cy='10' r='2' fill='#D8C2A3' />
+            <text
+              x='39'
+              y='22'
+              textAnchor='middle'
+              fill='#B87924'
+              fontSize='11'
+              fontWeight='600'
+              fontFamily='system-ui, sans-serif'
+            >
+              {props.tagLabel}
+            </text>
+          </g>
         </g>
 
-        <g transform='translate(132 54) rotate(14)'>
-          <rect
-            x='0'
-            y='0'
-            width='72'
-            height='30'
-            rx='15'
-            fill='#FFF0DD'
-            stroke='#F2DFC5'
-            strokeWidth='1'
-          />
-          <text
-            x='36'
-            y='19'
-            textAnchor='middle'
-            fill='#B87924'
-            fontSize='10'
-            fontWeight='600'
-            fontFamily='system-ui, sans-serif'
-          >
-            {props.tagLabel}
-          </text>
-        </g>
+        <path
+          d='M176 72 C188 60 202 64 208 76'
+          stroke='#7EB0FF'
+          strokeWidth='3.5'
+          strokeLinecap='round'
+          opacity='0.5'
+        />
+        <path
+          d='M52 146 C40 158 26 154 20 142'
+          stroke='#7EB0FF'
+          strokeWidth='3.5'
+          strokeLinecap='round'
+          opacity='0.4'
+        />
       </svg>
     </div>
   )

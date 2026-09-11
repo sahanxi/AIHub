@@ -65,9 +65,9 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
             style={{ borderColor: theme.rowBorder }}
           >
             <div
-              className='border-r px-5 py-4 text-sm font-medium'
+              className='flex items-center justify-center border-r px-5 py-3 text-center text-sm font-medium'
               style={{
-                backgroundColor: theme.labelColumnBg,
+                background: theme.labelColumnBg,
                 borderColor: theme.labelColumnBorder,
                 color: theme.labelText,
               }}
@@ -75,7 +75,7 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
               {t('home.comparison.itemLabel')}
             </div>
             <div
-              className='border-r px-6 py-4'
+              className='border-r px-6 py-3'
               style={{
                 background: theme.aihubColumnBg,
                 borderColor: theme.aihubColumnBorder,
@@ -83,7 +83,7 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
               }}
             >
               <div className='flex items-center justify-between gap-3'>
-                <div>
+                <div className='flex-1 text-center'>
                   <p
                     className='text-lg font-bold tracking-tight'
                     style={{ color: theme.aihubTitle }}
@@ -109,7 +109,7 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
               </div>
             </div>
             <div
-              className='px-6 py-4'
+              className='px-6 py-3 text-center'
               style={{ background: theme.competitorColumnBg }}
             >
               <p
