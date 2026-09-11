@@ -464,12 +464,12 @@ export function ChatGPTBusinessPage() {
     ]
   }
   const cardPalette = [
-    'border-slate-200 bg-slate-50/90',
-    'border-blue-200 bg-blue-50/70',
-    'border-violet-200 bg-violet-50/70',
-    'border-emerald-200 bg-emerald-50/70',
-    'border-amber-200 bg-amber-50/70',
-    'border-rose-200 bg-rose-50/70',
+    'border-slate-300 bg-slate-100',
+    'border-blue-300 bg-blue-100/80',
+    'border-violet-300 bg-violet-100/80',
+    'border-emerald-300 bg-emerald-100/80',
+    'border-amber-300 bg-amber-100/80',
+    'border-rose-300 bg-rose-100/80',
   ]
 
   return (
@@ -512,7 +512,7 @@ export function ChatGPTBusinessPage() {
             return (
               <Card
                 key={row.workspace.id}
-                className={`flex h-full min-h-[620px] w-full flex-col shadow-sm transition-shadow hover:shadow-md ${cardPalette[index % cardPalette.length]}`}
+                className={`flex h-[560px] min-h-0 w-full flex-col overflow-y-auto shadow-sm transition-shadow hover:shadow-md ${cardPalette[index % cardPalette.length]}`}
               >
                 <CardHeader className='!flex min-h-28 flex-row items-start justify-between gap-4'>
                   <div className='min-w-0'>
@@ -712,14 +712,16 @@ export function ChatGPTBusinessPage() {
                         </div>
                         {!workspaceQuote ? (
                           <>
-                            <div className='space-y-2'>
+                            <div className='rounded-xl border border-blue-200 bg-white/80 p-3 shadow-sm'>
                               <Label
                                 htmlFor={`chatgpt-email-${row.workspace.id}`}
+                                className='text-base font-semibold text-slate-900'
                               >
                                 {t('ChatGPT Login Email')}
                               </Label>
                               <Input
                                 id={`chatgpt-email-${row.workspace.id}`}
+                                className='mt-2 h-12 border-blue-300 bg-white text-base shadow-sm ring-2 ring-blue-100 focus-visible:ring-blue-400'
                                 type='email'
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
