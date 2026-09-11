@@ -150,6 +150,12 @@ describe('homepage API example card', () => {
   })
 
   it('auto-plays from cURL to Python', () => {
+    // The suite defaults to reduced motion, which intentionally disables
+    // auto-play. Opt back in so this test exercises the animated path.
+    const matchMedia = window.matchMedia.bind(window)
+    vi.spyOn(window, 'matchMedia').mockImplementation(
+      (query) => ({ ...matchMedia(query), matches: false }) as MediaQueryList
+    )
     vi.useFakeTimers()
     render(<ApiExample />)
 

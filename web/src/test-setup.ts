@@ -17,10 +17,15 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import '@testing-library/jest-dom/vitest'
-import { cleanup } from '@testing-library/react'
+import { cleanup, configure } from '@testing-library/react'
 import i18next from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import { afterEach, beforeAll } from 'vitest'
+
+// Render-heavy suites resolve their `findBy*` queries in well under a second
+// in isolation, but the 1s default expires when the full suite saturates the
+// CPU across workers.
+configure({ asyncUtilTimeout: 15000 })
 
 beforeAll(async () => {
   await i18next.use(initReactI18next).init({
@@ -41,7 +46,10 @@ afterEach(() => {
 Object.defineProperty(window, 'matchMedia', {
   configurable: true,
   value: (query: string): MediaQueryList => ({
-    matches: false,
+    // Report reduced motion so `useReducedMotion()` renders the static branch.
+    // Otherwise stagger variants start at `opacity: 0` and `toBeVisible()`
+    // races the entrance animation.
+    matches: query.includes('prefers-reduced-motion'),
     media: query,
     onchange: null,
     addListener: () => undefined,

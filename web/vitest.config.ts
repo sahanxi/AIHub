@@ -37,6 +37,10 @@ export default defineConfig({
     setupFiles: ['./src/test-setup.ts'],
     clearMocks: true,
     restoreMocks: true,
+    // Render-heavy suites finish well inside the 5s default in isolation, but
+    // that budget expires when the whole suite saturates the CPU in parallel.
+    testTimeout: 20000,
+    hookTimeout: 20000,
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
   },
 })
