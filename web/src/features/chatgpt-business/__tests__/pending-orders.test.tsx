@@ -118,14 +118,39 @@ test('shows all workspaces and marks the selected workspace subscription', async
     message: '',
     data: {
       enabled: true,
-      product: { id: 1, code: 'BUSINESS_STANDARD', name: 'Business Standard', enabled: true },
+      product: {
+        id: 1,
+        code: 'BUSINESS_STANDARD',
+        name: 'Business Standard',
+        enabled: true,
+      },
       price: null,
       workspace: null,
       pricing_required: false,
       currently_available: true,
       workspaces: [
-        { workspace: { id: 1, name: 'Standard', status: 'ACTIVE' }, price: { price_amount: '1.00', currency: 'USD', billing_cadence: 'MONTHLY', display_unit: '/ month' }, pricing_required: false, currently_available: true },
-        { workspace: { id: 2, name: 'Premium', status: 'ACTIVE' }, price: { price_amount: '2.00', currency: 'USD', billing_cadence: 'MONTHLY', display_unit: '/ month' }, pricing_required: false, currently_available: true },
+        {
+          workspace: { id: 1, name: 'Standard', status: 'ACTIVE' },
+          price: {
+            price_amount: '1.00',
+            currency: 'USD',
+            billing_cadence: 'MONTHLY',
+            display_unit: '/ month',
+          },
+          pricing_required: false,
+          currently_available: true,
+        },
+        {
+          workspace: { id: 2, name: 'Premium', status: 'ACTIVE' },
+          price: {
+            price_amount: '2.00',
+            currency: 'USD',
+            billing_cadence: 'MONTHLY',
+            display_unit: '/ month',
+          },
+          pricing_required: false,
+          currently_available: true,
+        },
       ],
     },
   })
@@ -136,22 +161,44 @@ test('shows all workspaces and marks the selected workspace subscription', async
       subscription: null,
       workspace: null,
       price: null,
-      subscriptions: [{
-        subscription: { id: 7, user_id: 1, workspace_id: 1, status: 'ACTIVE', chatgpt_email: 'buyer@example.com', prepaid_through: 1_789_056_000 },
-        workspace: { id: 1, name: 'Standard', status: 'ACTIVE' },
-        price: { price_amount: '1.00', currency: 'USD', billing_cadence: 'MONTHLY', display_unit: '/ month' },
-      }],
+      subscriptions: [
+        {
+          subscription: {
+            id: 7,
+            user_id: 1,
+            workspace_id: 1,
+            status: 'ACTIVE',
+            chatgpt_email: 'buyer@example.com',
+            prepaid_through: 1_789_056_000,
+          },
+          workspace: { id: 1, name: 'Standard', status: 'ACTIVE' },
+          price: {
+            price_amount: '1.00',
+            currency: 'USD',
+            billing_cadence: 'MONTHLY',
+            display_unit: '/ month',
+          },
+        },
+      ],
     },
   })
-  apiMocks.getBusinessPendingOrders.mockResolvedValue({ success: true, message: '', data: [] })
+  apiMocks.getBusinessPendingOrders.mockResolvedValue({
+    success: true,
+    message: '',
+    data: [],
+  })
 
   render(<ChatGPTBusinessPage />)
 
-  expect(await screen.findByRole('button', { name: /Standard.*Subscribed/ })).toBeInTheDocument()
-  expect(screen.getByRole('button', { name: /Premium.*Available/ })).toBeInTheDocument()
   expect(
-    screen.getByText('Standard', { selector: '[data-slot="card-title"]' })
+    await screen.findByText('Standard', {
+      selector: '[data-slot="card-title"]',
+    })
   ).toBeInTheDocument()
+  expect(
+    screen.getByText('Premium', { selector: '[data-slot="card-title"]' })
+  ).toBeInTheDocument()
+  expect(screen.getByText('Subscribed')).toBeInTheDocument()
   expect(
     screen.queryByText('Business Standard', {
       selector: '[data-slot="card-title"]',

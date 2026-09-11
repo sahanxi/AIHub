@@ -32,7 +32,6 @@ import {
 import { BusinessSubscriptionStatusBadge } from './status-display'
 import type {
   BusinessCatalog,
-  BusinessCatalogWorkspace,
   BusinessQuote,
   BusinessSeatOrder,
   BusinessSelfSubscription,
@@ -201,59 +200,19 @@ function PendingOrdersList(props: {
   )
 }
 
-function WorkspaceList(props: {
-  workspaces: BusinessCatalogWorkspace[]
-  subscriptions: BusinessSelfSubscription[]
-  selectedWorkspaceId: number | null
-  onSelect: (workspaceId: number) => void
-}) {
-  const { t } = useTranslation()
-  if (props.workspaces.length === 0) return null
-
-  return (
-    <div className='space-y-2 border-b pb-4'>
-      <Label>{t('Available workspaces')}</Label>
-      <div className='grid gap-2'>
-        {props.workspaces.map((row) => {
-          const workspaceSubscription = props.subscriptions.find(
-            (item) => item.workspace?.id === row.workspace.id
-          )
-          const isSelected = row.workspace.id === props.selectedWorkspaceId
-          const canSelect = row.currently_available || Boolean(workspaceSubscription)
-          let statusLabel = t('Currently unavailable')
-          if (workspaceSubscription) {
-            statusLabel = t('Subscribed')
-          } else if (row.currently_available) {
-            statusLabel = `${t('Available')}${row.price ? ` · ${formatMoney(row.price.price_amount, row.price.currency)}` : ''}`
-          }
-          return (
-            <button
-              key={row.workspace.id}
-              type='button'
-              aria-pressed={isSelected}
-              disabled={!canSelect}
-              onClick={() => props.onSelect(row.workspace.id)}
-              className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors ${isSelected ? 'border-primary bg-primary/5' : 'hover:bg-muted/40'} disabled:cursor-not-allowed disabled:opacity-60`}
-            >
-              <span className='min-w-0 truncate font-medium'>{row.workspace.name}</span>
-              <span className='shrink-0 text-xs'>
-                {statusLabel}
-              </span>
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
 export function ChatGPTBusinessPage() {
   const { t } = useTranslation()
   const [loading, setLoading] = useState(true)
   const [catalog, setCatalog] = useState<BusinessCatalog | null>(null)
-  const [subscriptions, setSubscriptions] = useState<BusinessSelfSubscription[]>([])
+  const [subscriptions, setSubscriptions] = useState<
+    BusinessSelfSubscription[]
+  >([])
   const [email, setEmail] = useState('')
   const [quote, setQuote] = useState<BusinessQuote | null>(null)
+  const [quoteWorkspaceId, setQuoteWorkspaceId] = useState<number | null>(null)
+  const [quoteSubscriptionId, setQuoteSubscriptionId] = useState<number | null>(
+    null
+  )
   const [pendingOrders, setPendingOrders] = useState<BusinessSeatOrder[]>([])
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [orderToDelete, setOrderToDelete] = useState<BusinessSeatOrder | null>(
@@ -313,7 +272,7 @@ export function ChatGPTBusinessPage() {
         getBusinessSelf(),
       ])
       const currentSubscriptions = isApiSuccess(selfRes)
-        ? selfRes.data.subscriptions ?? []
+        ? (selfRes.data.subscriptions ?? [])
         : []
       if (isApiSuccess(catalogRes)) {
         setCatalog(catalogRes.data)
@@ -374,7 +333,7 @@ export function ChatGPTBusinessPage() {
         }
         const orderRes = await createBusinessOrder({
           quote_id: quote.id,
-          subscription_id: selectedSubscription?.subscription.id,
+          subscription_id: quoteSubscriptionId ?? undefined,
         })
         if (!isApiSuccess(orderRes)) {
           toast.error(orderRes.message || t('Unable to create order'))
@@ -393,26 +352,24 @@ export function ChatGPTBusinessPage() {
     }
   }
 
-  const handleGetQuote = async () => {
+  const handleGetQuote = async (workspaceId: number) => {
     if (!email.trim()) {
       toast.error(t('ChatGPT login email is required'))
       return
     }
     setCheckoutLoading(true)
     try {
-      if (!selectedWorkspaceId) {
-        toast.error(t('Select a workspace'))
-        return
-      }
       const res = await createBusinessQuote({
         chatgpt_email: email.trim(),
-        workspace_id: selectedWorkspaceId,
+        workspace_id: workspaceId,
       })
       if (!isApiSuccess(res)) {
         toast.error(res.message || t('Unable to create quote'))
         return
       }
       setQuote(res.data)
+      setQuoteWorkspaceId(workspaceId)
+      setQuoteSubscriptionId(null)
       await loadPendingOrders()
     } catch {
       toast.error(t('Unable to create quote'))
@@ -421,22 +378,21 @@ export function ChatGPTBusinessPage() {
     }
   }
 
-  const handleRenewQuote = async () => {
-    if (!selectedSubscription) {
-      return
-    }
+  const handleRenewQuote = async (subscription: BusinessSelfSubscription) => {
     setCheckoutLoading(true)
     try {
       const res = await createBusinessQuote({
-        chatgpt_email: selectedSubscription.subscription.chatgpt_email,
+        chatgpt_email: subscription.subscription.chatgpt_email,
         order_type: 'RENEWAL',
-        workspace_id: selectedSubscription.subscription.workspace_id,
+        workspace_id: subscription.subscription.workspace_id,
       })
       if (!isApiSuccess(res)) {
         toast.error(res.message || t('Unable to create quote'))
         return
       }
       setQuote(res.data)
+      setQuoteWorkspaceId(subscription.subscription.workspace_id)
+      setQuoteSubscriptionId(subscription.subscription.id)
     } catch {
       toast.error(t('Unable to create quote'))
     } finally {
@@ -467,13 +423,12 @@ export function ChatGPTBusinessPage() {
     }
   }
 
-  const handleCancelSubscription = async () => {
+  const handleCancelSubscription = async (
+    subscription: BusinessSelfSubscription
+  ) => {
     setCancelLoading(true)
     try {
-      if (!selectedSubscription) return
-      const res = await cancelBusinessSubscription(
-        selectedSubscription.subscription.id
-      )
+      const res = await cancelBusinessSubscription(subscription.subscription.id)
       if (!isApiSuccess(res)) throw new Error(res.message)
       toast.success(t('Subscription cancellation scheduled'))
       setCancelConfirmOpen(false)
@@ -503,39 +458,17 @@ export function ChatGPTBusinessPage() {
   }
 
   const catalogWorkspaces = catalog?.workspaces ?? []
-  const selectedCatalogWorkspace = catalogWorkspaces.find(
-    (row) => row.workspace.id === selectedWorkspaceId
-  )
-  const subscription = selectedSubscription?.subscription ?? null
-  const workspace = selectedSubscription?.workspace ?? null
-  const displayWorkspace =
-    selectedCatalogWorkspace?.workspace ??
-    workspace ??
-    catalog?.workspace ??
-    null
-  const displayName =
-    displayWorkspace?.name ?? catalog?.product?.name ?? t('Business Standard')
-  const subscriptionDescription =
-    displayWorkspace?.subscription_description?.trim() ?? ''
-  const price =
-    selectedSubscription?.price ??
-    selectedCatalogWorkspace?.price ??
-    catalog?.price ??
-    null
-  const workspaceAvailable =
-    selectedCatalogWorkspace?.currently_available ??
-    catalog?.currently_available
-  const priceLabel =
-    price && workspaceAvailable
-      ? `${formatMoney(price.price_amount, price.currency)} ${price.display_unit || ''}`.trim()
-      : t('Currently unavailable')
-  const benefitItems = (
-    subscriptionDescription || t('subscription.defaultDescription')
-  )
-    .split(/\n|。|；|;/)
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .slice(0, 3)
+  let workspaceRows = catalogWorkspaces
+  if (workspaceRows.length === 0 && catalog?.workspace) {
+    workspaceRows = [
+      {
+        workspace: catalog.workspace,
+        price: catalog.price,
+        pricing_required: catalog.pricing_required,
+        currently_available: catalog.currently_available,
+      },
+    ]
+  }
 
   return (
     <SectionPageLayout>
@@ -550,209 +483,249 @@ export function ChatGPTBusinessPage() {
         </div>
       </SectionPageLayout.Title>
       <SectionPageLayout.Content>
-        <div className='mx-auto flex w-full max-w-2xl flex-col gap-6'>
-          {subscription ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {displayName}
-                </CardTitle>
-                {subscriptionDescription ? (
-                  <p className='text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap'>
-                    {subscriptionDescription}
-                  </p>
-                ) : null}
-                <div className='mt-1'>
-                  <BusinessSubscriptionStatusBadge
-                    status={subscription.status}
-                    t={t}
-                  />
-                </div>
-              </CardHeader>
-              <CardContent className='space-y-3 text-sm'>
-                <WorkspaceList
-                  workspaces={catalogWorkspaces}
-                  subscriptions={subscriptions}
-                  selectedWorkspaceId={selectedWorkspaceId}
-                  onSelect={(workspaceId) => {
-                    setSelectedWorkspaceId(workspaceId)
-                    setQuote(null)
-                  }}
-                />
-                {price ? (
-                  <div className='border-b pb-4'>
-                    <span className='text-3xl font-semibold'>
-                      {formatMoney(price.price_amount, price.currency)}
-                    </span>
-                    <span className='text-muted-foreground ml-2 text-sm'>
-                      {price.display_unit ||
-                        t(
-                          `subscription.billing.${price.billing_cadence.toLowerCase()}`
-                        )}
-                    </span>
-                  </div>
-                ) : null}
-                <div className='text-muted-foreground'>
-                  {t(
-                    `subscription.billing.${(workspace?.billing_cadence || price?.billing_cadence || 'monthly').toLowerCase()}`
+        <div className='flex w-full flex-col items-start gap-6'>
+          {workspaceRows.map((row) => {
+            const workspaceSubscription = subscriptions.find(
+              (item) => item.workspace?.id === row.workspace.id
+            )
+            const workspacePrice =
+              workspaceSubscription?.price ?? row.price ?? null
+            const workspaceAvailable =
+              row.currently_available || Boolean(workspaceSubscription)
+            const workspaceDescription =
+              row.workspace.subscription_description?.trim() ?? ''
+            const benefitItems = (
+              workspaceDescription || t('subscription.defaultDescription')
+            )
+              .split(/\n|。|；|;/)
+              .map((item) => item.trim())
+              .filter(Boolean)
+              .slice(0, 3)
+            const workspaceQuote =
+              quoteWorkspaceId === row.workspace.id ? quote : null
+
+            return (
+              <Card key={row.workspace.id} className='w-full max-w-2xl'>
+                <CardHeader>
+                  <CardTitle>{row.workspace.name}</CardTitle>
+                  {workspaceDescription ? (
+                    <p className='text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap'>
+                      {workspaceDescription}
+                    </p>
+                  ) : null}
+                  {workspaceSubscription ? (
+                    <div className='mt-1'>
+                      {workspaceSubscription.subscription.status ===
+                      'ACTIVE' ? (
+                        <span className='text-success text-sm font-medium'>
+                          {t('Subscribed')}
+                        </span>
+                      ) : (
+                        <BusinessSubscriptionStatusBadge
+                          status={workspaceSubscription.subscription.status}
+                          t={t}
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <CardDescription>
+                      {workspacePrice && workspaceAvailable
+                        ? `${formatMoney(workspacePrice.price_amount, workspacePrice.currency)} ${workspacePrice.display_unit || ''}`.trim()
+                        : t('Currently unavailable')}
+                    </CardDescription>
                   )}
-                </div>
-                <div>
-                  <span className='text-muted-foreground'>
-                    {subscription.status === 'CANCELLED'
-                      ? t('subscription.validUntil')
-                      : t('subscription.nextRenewal')}
-                    :{' '}
-                  </span>
-                  {formatDate(subscription.prepaid_through)}
-                </div>
-                <div className='space-y-2 border-t pt-4'>
-                  <p className='font-medium'>
-                    {t('subscription.currentBenefits')}
-                  </p>
-                  <ul className='text-muted-foreground space-y-1'>
-                    {benefitItems.map((benefit) => (
-                      <li key={benefit}>✓ {benefit}</li>
-                    ))}
-                  </ul>
-                </div>
-                {(subscription.status === 'ACTIVE' ||
-                  subscription.status === 'EXPIRING') && (
-                  <div className='flex flex-wrap gap-2'>
-                    <Button
-                      onClick={() => void handleRenewQuote()}
-                      disabled={checkoutLoading}
-                    >
-                      {t('Complete renewal')}
-                    </Button>
-                    <Button
-                      variant='outline'
-                      onClick={() => setCancelConfirmOpen(true)}
-                      disabled={cancelLoading}
-                    >
-                      {t('Cancel subscription')}
-                    </Button>
-                  </div>
-                )}
-                {quote && subscription.status !== 'PENDING_CAPACITY' ? (
-                  <BillingDisclosure
-                    quote={quote}
-                    productName={
-                      displayName
+                </CardHeader>
+                <CardContent className='space-y-4 text-sm'>
+                  {(() => {
+                    if (workspaceSubscription) {
+                      return (
+                        <>
+                          {workspacePrice ? (
+                            <div className='border-b pb-4'>
+                              <span className='text-3xl font-semibold'>
+                                {formatMoney(
+                                  workspacePrice.price_amount,
+                                  workspacePrice.currency
+                                )}
+                              </span>
+                              <span className='text-muted-foreground ml-2 text-sm'>
+                                {workspacePrice.display_unit ||
+                                  t(
+                                    `subscription.billing.${workspacePrice.billing_cadence.toLowerCase()}`
+                                  )}
+                              </span>
+                            </div>
+                          ) : null}
+                          <div className='text-muted-foreground'>
+                            {t(
+                              `subscription.billing.${(row.workspace.billing_cadence || workspacePrice?.billing_cadence || 'monthly').toLowerCase()}`
+                            )}
+                          </div>
+                          <div>
+                            <span className='text-muted-foreground'>
+                              {workspaceSubscription.subscription.status ===
+                              'CANCELLED'
+                                ? t('subscription.validUntil')
+                                : t('subscription.nextRenewal')}
+                              :{' '}
+                            </span>
+                            {formatDate(
+                              workspaceSubscription.subscription.prepaid_through
+                            )}
+                          </div>
+                          <div className='space-y-2 border-t pt-4'>
+                            <p className='font-medium'>
+                              {t('subscription.currentBenefits')}
+                            </p>
+                            <ul className='text-muted-foreground space-y-1'>
+                              {benefitItems.map((benefit) => (
+                                <li key={benefit}>✓ {benefit}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          {(workspaceSubscription.subscription.status ===
+                            'ACTIVE' ||
+                            workspaceSubscription.subscription.status ===
+                              'EXPIRING') && (
+                            <div className='flex flex-wrap gap-2'>
+                              <Button
+                                onClick={() => {
+                                  setSelectedWorkspaceId(row.workspace.id)
+                                  void handleRenewQuote(workspaceSubscription)
+                                }}
+                                disabled={checkoutLoading}
+                              >
+                                {t('Complete renewal')}
+                              </Button>
+                              <Button
+                                variant='outline'
+                                onClick={() => {
+                                  setSelectedWorkspaceId(row.workspace.id)
+                                  setCancelConfirmOpen(true)
+                                }}
+                                disabled={cancelLoading}
+                              >
+                                {t('Cancel subscription')}
+                              </Button>
+                            </div>
+                          )}
+                          {workspaceQuote &&
+                          workspaceSubscription.subscription.status !==
+                            'PENDING_CAPACITY' ? (
+                            <BillingDisclosure
+                              quote={workspaceQuote}
+                              productName={row.workspace.name}
+                            />
+                          ) : null}
+                          {workspaceQuote ? (
+                            <Button
+                              onClick={() => void handlePay()}
+                              disabled={checkoutLoading}
+                            >
+                              {t('Continue to Alipay')}
+                            </Button>
+                          ) : null}
+                          {workspaceSubscription.subscription.status ===
+                            'PENDING_CAPACITY' ||
+                          workspaceSubscription.subscription.status ===
+                            'PENDING_ACTIVATION' ? (
+                            <p className='text-muted-foreground'>
+                              {t('Payment successful. Activation pending.')}
+                            </p>
+                          ) : null}
+                        </>
+                      )
                     }
-                  />
-                ) : null}
-                {quote ? (
-                  <Button
-                    onClick={() => void handlePay()}
-                    disabled={checkoutLoading}
-                  >
-                    {t('Continue to Alipay')}
-                  </Button>
-                ) : null}
-                {subscription.status === 'PENDING_CAPACITY' ||
-                subscription.status === 'PENDING_ACTIVATION' ? (
-                  <p className='text-muted-foreground'>
-                    {t('Payment successful. Activation pending.')}
-                  </p>
-                ) : null}
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {displayName}
-                </CardTitle>
-                {subscriptionDescription ? (
-                  <p className='text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap'>
-                    {subscriptionDescription}
-                  </p>
-                ) : null}
-                <CardDescription>{priceLabel}</CardDescription>
-              </CardHeader>
-              <CardContent className='space-y-4'>
-                <WorkspaceList
-                  workspaces={catalogWorkspaces}
-                  subscriptions={subscriptions}
-                  selectedWorkspaceId={selectedWorkspaceId}
-                  onSelect={(workspaceId) => {
-                    setSelectedWorkspaceId(workspaceId)
-                    setQuote(null)
-                  }}
-                />
-                {!workspaceAvailable ? (
-                  <p className='text-muted-foreground'>
-                    {selectedCatalogWorkspace?.pricing_required ||
-                    catalog?.pricing_required
-                      ? t('Pricing configuration required')
-                      : t('Currently unavailable')}
-                  </p>
-                ) : (
-                  <>
-                    <p className='text-muted-foreground text-sm'>
-                      {t('Business seat first payment may be prorated')}
-                    </p>
-                    <p className='text-muted-foreground text-sm'>
-                      {t('AIHub will never ask for your ChatGPT password.')}
-                    </p>
-                    {!quote ? (
+                    if (!workspaceAvailable) {
+                      return (
+                        <p className='text-muted-foreground'>
+                          {row.pricing_required
+                            ? t('Pricing configuration required')
+                            : t('Currently unavailable')}
+                        </p>
+                      )
+                    }
+                    return (
                       <>
-                        <div className='space-y-2'>
-                          <Label htmlFor='chatgpt-email'>
-                            {t('ChatGPT Login Email')}
-                          </Label>
-                          <Input
-                            id='chatgpt-email'
-                            type='email'
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder='you@example.com'
-                          />
-                        </div>
-                        <PendingOrdersList
-                          orders={visiblePendingOrders}
-                          loading={checkoutLoading || deleteLoading}
-                          onPay={(orderId) => void handlePay(orderId)}
-                          onDelete={setOrderToDelete}
-                        />
-                        <Button
-                          onClick={() => void handleGetQuote()}
-                          disabled={checkoutLoading}
-                        >
-                          {t('Next')}
-                        </Button>
+                        <p className='text-muted-foreground text-sm'>
+                          {t('Business seat first payment may be prorated')}
+                        </p>
+                        <p className='text-muted-foreground text-sm'>
+                          {t('AIHub will never ask for your ChatGPT password.')}
+                        </p>
+                        {!workspaceQuote ? (
+                          <>
+                            <div className='space-y-2'>
+                              <Label
+                                htmlFor={`chatgpt-email-${row.workspace.id}`}
+                              >
+                                {t('ChatGPT Login Email')}
+                              </Label>
+                              <Input
+                                id={`chatgpt-email-${row.workspace.id}`}
+                                type='email'
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder='you@example.com'
+                              />
+                            </div>
+                            <PendingOrdersList
+                              orders={visiblePendingOrders}
+                              loading={checkoutLoading || deleteLoading}
+                              onPay={(orderId) => void handlePay(orderId)}
+                              onDelete={setOrderToDelete}
+                            />
+                            <Button
+                              onClick={() => {
+                                setSelectedWorkspaceId(row.workspace.id)
+                                void handleGetQuote(row.workspace.id)
+                              }}
+                              disabled={checkoutLoading}
+                            >
+                              {t('Next')}
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <BillingDisclosure
+                              quote={workspaceQuote}
+                              productName={row.workspace.name}
+                            />
+                            <div className='flex gap-2'>
+                              <Button
+                                variant='outline'
+                                onClick={() => {
+                                  setQuote(null)
+                                  setQuoteWorkspaceId(null)
+                                }}
+                                disabled={checkoutLoading}
+                              >
+                                {t('Back')}
+                              </Button>
+                              <Button
+                                onClick={() => void handlePay()}
+                                disabled={checkoutLoading}
+                              >
+                                {t('Continue to Alipay')}
+                              </Button>
+                            </div>
+                          </>
+                        )}
                       </>
-                    ) : (
-                      <>
-                        <BillingDisclosure
-                          quote={quote}
-                          productName={
-                            displayName
-                          }
-                        />
-                        <div className='flex gap-2'>
-                          <Button
-                            variant='outline'
-                            onClick={() => setQuote(null)}
-                            disabled={checkoutLoading}
-                          >
-                            {t('Back')}
-                          </Button>
-                          <Button
-                            onClick={() => void handlePay()}
-                            disabled={checkoutLoading}
-                          >
-                            {t('Continue to Alipay')}
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                    )
+                  })()}
+                </CardContent>
+              </Card>
+            )
+          })}
+          {workspaceRows.length === 0 ? (
+            <PendingOrdersList
+              orders={visiblePendingOrders}
+              loading={checkoutLoading || deleteLoading}
+              onPay={(orderId) => void handlePay(orderId)}
+              onDelete={setOrderToDelete}
+            />
+          ) : null}
         </div>
         <ConfirmDialog
           open={cancelConfirmOpen}
@@ -766,7 +739,10 @@ export function ChatGPTBusinessPage() {
           confirmText={t('Cancel subscription')}
           destructive
           isLoading={cancelLoading}
-          handleConfirm={() => void handleCancelSubscription()}
+          handleConfirm={() =>
+            selectedSubscription &&
+            void handleCancelSubscription(selectedSubscription)
+          }
         />
         <ConfirmDialog
           open={payConfirmOpen}
