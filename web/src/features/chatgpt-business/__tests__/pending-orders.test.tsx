@@ -97,7 +97,7 @@ test('confirms deletion and removes the pending order after the API succeeds', a
   const user = userEvent.setup()
   render(<ChatGPTBusinessPage />)
 
-  expect(await screen.findByText('b***@example.com')).toBeInTheDocument()
+  expect(await screen.findByText('¥197.08')).toBeInTheDocument()
   await user.click(screen.getByRole('button', { name: 'Delete' }))
 
   const dialog = await screen.findByRole('alertdialog')
@@ -108,6 +108,45 @@ test('confirms deletion and removes the pending order after the API succeeds', a
     expect(apiMocks.deleteBusinessPendingOrder).toHaveBeenCalledWith(41)
   )
   await waitFor(() =>
-    expect(screen.queryByText('b***@example.com')).not.toBeInTheDocument()
+    expect(screen.queryByText('¥197.08')).not.toBeInTheDocument()
   )
+})
+
+test('shows all workspaces and marks the selected workspace subscription', async () => {
+  apiMocks.getBusinessCatalog.mockResolvedValue({
+    success: true,
+    message: '',
+    data: {
+      enabled: true,
+      product: { id: 1, code: 'BUSINESS_STANDARD', name: 'Business Standard', enabled: true },
+      price: null,
+      workspace: null,
+      pricing_required: false,
+      currently_available: true,
+      workspaces: [
+        { workspace: { id: 1, name: 'Standard', status: 'ACTIVE' }, price: { price_amount: '1.00', currency: 'USD', billing_cadence: 'MONTHLY', display_unit: '/ month' }, pricing_required: false, currently_available: true },
+        { workspace: { id: 2, name: 'Premium', status: 'ACTIVE' }, price: { price_amount: '2.00', currency: 'USD', billing_cadence: 'MONTHLY', display_unit: '/ month' }, pricing_required: false, currently_available: true },
+      ],
+    },
+  })
+  apiMocks.getBusinessSelf.mockResolvedValue({
+    success: true,
+    message: '',
+    data: {
+      subscription: null,
+      workspace: null,
+      price: null,
+      subscriptions: [{
+        subscription: { id: 7, user_id: 1, workspace_id: 1, status: 'ACTIVE', chatgpt_email: 'buyer@example.com', prepaid_through: 1_789_056_000 },
+        workspace: { id: 1, name: 'Standard', status: 'ACTIVE' },
+        price: { price_amount: '1.00', currency: 'USD', billing_cadence: 'MONTHLY', display_unit: '/ month' },
+      }],
+    },
+  })
+  apiMocks.getBusinessPendingOrders.mockResolvedValue({ success: true, message: '', data: [] })
+
+  render(<ChatGPTBusinessPage />)
+
+  expect(await screen.findByRole('button', { name: /Standard.*Subscribed/ })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /Premium.*Available/ })).toBeInTheDocument()
 })

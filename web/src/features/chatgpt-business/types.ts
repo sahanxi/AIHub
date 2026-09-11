@@ -100,6 +100,13 @@ export interface BusinessSubscription {
   workspace_id: number
   seat_id?: number | null
   last_order_id?: number | null
+  current_price_version_id?: number
+}
+
+export interface BusinessSelfSubscription {
+  subscription: BusinessSubscription
+  workspace: BusinessWorkspace | null
+  price: BusinessPriceVersion | null
 }
 
 export interface BusinessSeatPoolStats {

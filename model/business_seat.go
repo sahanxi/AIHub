@@ -706,10 +706,27 @@ var (
 )
 
 func GetCurrentBusinessSeatSubscriptionByUserId(userId int) (*BusinessSeatSubscription, error) {
-	var sub BusinessSeatSubscription
+	list, err := ListCurrentBusinessSeatSubscriptionsByUserId(userId)
+	if err != nil {
+		return nil, err
+	}
+	if len(list) == 0 {
+		return nil, ErrBusinessSubscriptionNotFound
+	}
+	return &list[0], nil
+}
+
+func ListCurrentBusinessSeatSubscriptionsByUserId(userId int) ([]BusinessSeatSubscription, error) {
+	var list []BusinessSeatSubscription
 	err := DB.Where("user_id = ? AND status IN ?", userId, businessSeatCurrentLifecycleStatuses).
-		Order("id desc").
-		First(&sub).Error
+		Order("id desc").Find(&list).Error
+	return list, err
+}
+
+func GetCurrentBusinessSeatSubscriptionByUserIdAndWorkspaceId(userId, workspaceId int) (*BusinessSeatSubscription, error) {
+	var sub BusinessSeatSubscription
+	err := DB.Where("user_id = ? AND workspace_id = ? AND status IN ?", userId, workspaceId, businessSeatCurrentLifecycleStatuses).
+		Order("id desc").First(&sub).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrBusinessSubscriptionNotFound
@@ -759,14 +776,19 @@ func GetBusinessSeatSubscriptionForUser(userId int) (*BusinessSeatSubscription, 
 }
 
 func HasOpenBusinessSeatSubscription(userId int) (bool, error) {
-	sub, err := GetCurrentBusinessSeatSubscriptionByUserId(userId)
+	list, err := ListCurrentBusinessSeatSubscriptionsByUserId(userId)
 	if err != nil {
-		if errors.Is(err, ErrBusinessSubscriptionNotFound) {
-			return false, nil
-		}
 		return false, err
 	}
-	return sub != nil, nil
+	return len(list) > 0, nil
+}
+
+func HasOpenBusinessSeatSubscriptionForWorkspace(userId, workspaceId int) (bool, error) {
+	_, err := GetCurrentBusinessSeatSubscriptionByUserIdAndWorkspaceId(userId, workspaceId)
+	if errors.Is(err, ErrBusinessSubscriptionNotFound) {
+		return false, nil
+	}
+	return err == nil, err
 }
 
 func MaskBusinessEmail(email string) string {

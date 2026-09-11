@@ -39,6 +39,9 @@ func (s *OrderService) CreateOrderFromQuote(userId, quoteId int, subscriptionId 
 		if sub.UserId != userId {
 			return nil, errors.New("subscription not owned by user")
 		}
+		if sub.WorkspaceId != quote.WorkspaceId {
+			return nil, errors.New("subscription does not match quote workspace")
+		}
 	}
 
 	var order *model.BusinessSeatOrder

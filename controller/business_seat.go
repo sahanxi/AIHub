@@ -131,7 +131,21 @@ func GetBusinessSeatCatalog(c *gin.Context) {
 }
 
 func CancelBusinessSeatSubscription(c *gin.Context) {
-	sub, err := model.GetCurrentBusinessSeatSubscriptionByUserId(c.GetInt("id"))
+	userId := c.GetInt("id")
+	var req struct {
+		SubscriptionId *int `json:"subscription_id"`
+	}
+	_ = c.ShouldBindJSON(&req)
+	var sub *model.BusinessSeatSubscription
+	var err error
+	if req.SubscriptionId != nil {
+		sub, err = model.GetBusinessSeatSubscriptionById(*req.SubscriptionId)
+		if err == nil && sub.UserId != userId {
+			err = model.ErrBusinessSubscriptionNotFound
+		}
+	} else {
+		sub, err = model.GetCurrentBusinessSeatSubscriptionByUserId(userId)
+	}
 	if err != nil {
 		common.ApiErrorMsg(c, "No active subscription")
 		return
@@ -140,21 +154,45 @@ func CancelBusinessSeatSubscription(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
-	model.RecordBusinessSeatAudit(c.GetInt("id"), "SUBSCRIPTION_CANCELLED_BY_USER", "subscription", sub.Id, "next cycle")
+	model.RecordBusinessSeatAudit(userId, "SUBSCRIPTION_CANCELLED_BY_USER", "subscription", sub.Id, "next cycle")
 	common.ApiSuccess(c, gin.H{"success": true})
 }
 
 func GetBusinessSeatSelf(c *gin.Context) {
 	userId := c.GetInt("id")
-	sub, err := model.GetBusinessSeatSubscriptionForUser(userId)
+	currentSubs, err := model.ListCurrentBusinessSeatSubscriptionsByUserId(userId)
 	if err != nil {
-		common.ApiSuccess(c, gin.H{"subscription": nil})
+		common.ApiError(c, err)
 		return
 	}
-	ws, _ := model.GetBusinessWorkspaceById(sub.WorkspaceId)
-	display := *sub
-	display.ChatgptEmail = model.MaskBusinessEmail(sub.ChatgptEmail)
-	common.ApiSuccess(c, gin.H{"subscription": display, "workspace": ws})
+
+	subscriptions := make([]gin.H, 0, len(currentSubs))
+	for i := range currentSubs {
+		sub := currentSubs[i]
+		ws, _ := model.GetBusinessWorkspaceById(sub.WorkspaceId)
+		var price *model.BusinessPriceVersion
+		if sub.CurrentPriceVersionId > 0 {
+			var current model.BusinessPriceVersion
+			if err := model.DB.First(&current, sub.CurrentPriceVersionId).Error; err == nil {
+				price = &current
+			}
+		}
+		display := sub
+		display.ChatgptEmail = model.MaskBusinessEmail(sub.ChatgptEmail)
+		subscriptions = append(subscriptions, gin.H{"subscription": display, "workspace": ws, "price": price})
+	}
+
+	resp := gin.H{"subscription": nil, "workspace": nil, "price": nil, "subscriptions": subscriptions}
+	if len(subscriptions) > 0 {
+		resp["subscription"] = subscriptions[0]["subscription"]
+		resp["workspace"] = subscriptions[0]["workspace"]
+		resp["price"] = subscriptions[0]["price"]
+	} else if sub, historicalErr := model.GetBusinessSeatSubscriptionForUser(userId); historicalErr == nil {
+		ws, _ := model.GetBusinessWorkspaceById(sub.WorkspaceId)
+		resp["subscription"] = sub
+		resp["workspace"] = ws
+	}
+	common.ApiSuccess(c, resp)
 }
 
 func CreateBusinessSeatQuote(c *gin.Context) {
@@ -193,7 +231,13 @@ func CreateBusinessSeatQuote(c *gin.Context) {
 	var err error
 	switch req.OrderType {
 	case model.BusinessOrderTypeRenewal:
-		sub, subErr := model.GetCurrentBusinessSeatSubscriptionByUserId(userId)
+		var sub *model.BusinessSeatSubscription
+		var subErr error
+		if req.WorkspaceId > 0 {
+			sub, subErr = model.GetCurrentBusinessSeatSubscriptionByUserIdAndWorkspaceId(userId, req.WorkspaceId)
+		} else {
+			sub, subErr = model.GetCurrentBusinessSeatSubscriptionByUserId(userId)
+		}
 		if subErr != nil {
 			common.ApiErrorMsg(c, "No subscription to renew")
 			return
@@ -203,8 +247,11 @@ func CreateBusinessSeatQuote(c *gin.Context) {
 		subSvc := businessseat.NewSubscriptionService()
 		quote, err = subSvc.CreateReactivationQuote(userId, req.ChatgptEmail)
 	default:
-		if open, subErr := model.HasOpenBusinessSeatSubscription(userId); subErr == nil && open {
-			common.ApiErrorMsg(c, "You already have an active business seat subscription")
+		if open, subErr := model.HasOpenBusinessSeatSubscriptionForWorkspace(userId, req.WorkspaceId); subErr != nil {
+			common.ApiError(c, subErr)
+			return
+		} else if open {
+			common.ApiErrorMsg(c, "You already have an active subscription for this workspace")
 			return
 		}
 		quote, err = quoteSvc.CreateQuote(businessseat.QuoteInput{
@@ -283,14 +330,17 @@ func CreateBusinessSeatOrder(c *gin.Context) {
 		return
 	}
 	subscriptionId := req.SubscriptionId
-	if subscriptionId == nil {
-		quote, qErr := model.GetBusinessQuoteById(req.QuoteId)
-		if qErr == nil && quote.OrderType == model.BusinessOrderTypeRenewal {
-			sub, subErr := model.GetCurrentBusinessSeatSubscriptionByUserId(userId)
+	quote, qErr := model.GetBusinessQuoteById(req.QuoteId)
+	if qErr == nil && quote.OrderType == model.BusinessOrderTypeRenewal {
+		if subscriptionId == nil {
+			sub, subErr := model.GetCurrentBusinessSeatSubscriptionByUserIdAndWorkspaceId(userId, quote.WorkspaceId)
 			if subErr == nil {
 				subscriptionId = &sub.Id
 			}
 		}
+	} else {
+		// New subscriptions must not be attached to another workspace's subscription.
+		subscriptionId = nil
 	}
 	orderSvc := businessseat.NewOrderService()
 	order, err := orderSvc.CreateOrderFromQuote(userId, req.QuoteId, subscriptionId)

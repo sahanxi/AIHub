@@ -15,13 +15,6 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-} from '@/components/ui/select'
 import { startGatewayCheckout } from '@/features/wallet/lib/payment'
 import { useSystemConfigStore } from '@/stores/system-config-store'
 
@@ -42,8 +35,7 @@ import type {
   BusinessCatalogWorkspace,
   BusinessQuote,
   BusinessSeatOrder,
-  BusinessSubscription,
-  BusinessWorkspace,
+  BusinessSelfSubscription,
 } from './types'
 
 function formatMoney(amount: string, currency: string) {
@@ -83,12 +75,6 @@ function formatPeriod(start: number, end: number) {
   return `${formatDate(start)} – ${formatDate(end)}`
 }
 
-function maskEmail(email: string) {
-  const at = email.indexOf('@')
-  if (at <= 1) return email
-  return `${email.slice(0, 1)}***${email.slice(at)}`
-}
-
 function BillingDisclosure(props: {
   quote: BusinessQuote
   productName: string
@@ -103,9 +89,6 @@ function BillingDisclosure(props: {
       <div>
         <p className='text-lg font-semibold'>{t('Billing details')}</p>
         <p className='text-muted-foreground text-sm'>{productName}</p>
-        <p className='text-muted-foreground text-sm'>
-          {maskEmail(quote.chatgpt_email)}
-        </p>
       </div>
 
       <div>
@@ -187,9 +170,6 @@ function PendingOrdersList(props: {
               <p className='font-medium'>
                 {formatMoney(order.total_amount, order.currency)}
               </p>
-              <p className='text-muted-foreground'>
-                {maskEmail(order.chatgpt_email ?? '')}
-              </p>
               {order.created_at || order.cycle_start_at ? (
                 <p className='text-muted-foreground text-xs'>
                   {t('Created At')}:{' '}
@@ -221,14 +201,57 @@ function PendingOrdersList(props: {
   )
 }
 
+function WorkspaceList(props: {
+  workspaces: BusinessCatalogWorkspace[]
+  subscriptions: BusinessSelfSubscription[]
+  selectedWorkspaceId: number | null
+  onSelect: (workspaceId: number) => void
+}) {
+  const { t } = useTranslation()
+  if (props.workspaces.length === 0) return null
+
+  return (
+    <div className='space-y-2 border-b pb-4'>
+      <Label>{t('Available workspaces')}</Label>
+      <div className='grid gap-2'>
+        {props.workspaces.map((row) => {
+          const workspaceSubscription = props.subscriptions.find(
+            (item) => item.workspace?.id === row.workspace.id
+          )
+          const isSelected = row.workspace.id === props.selectedWorkspaceId
+          const canSelect = row.currently_available || Boolean(workspaceSubscription)
+          let statusLabel = t('Currently unavailable')
+          if (workspaceSubscription) {
+            statusLabel = t('Subscribed')
+          } else if (row.currently_available) {
+            statusLabel = `${t('Available')}${row.price ? ` · ${formatMoney(row.price.price_amount, row.price.currency)}` : ''}`
+          }
+          return (
+            <button
+              key={row.workspace.id}
+              type='button'
+              aria-pressed={isSelected}
+              disabled={!canSelect}
+              onClick={() => props.onSelect(row.workspace.id)}
+              className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors ${isSelected ? 'border-primary bg-primary/5' : 'hover:bg-muted/40'} disabled:cursor-not-allowed disabled:opacity-60`}
+            >
+              <span className='min-w-0 truncate font-medium'>{row.workspace.name}</span>
+              <span className='shrink-0 text-xs'>
+                {statusLabel}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export function ChatGPTBusinessPage() {
   const { t } = useTranslation()
   const [loading, setLoading] = useState(true)
   const [catalog, setCatalog] = useState<BusinessCatalog | null>(null)
-  const [subscription, setSubscription] = useState<BusinessSubscription | null>(
-    null
-  )
-  const [workspace, setWorkspace] = useState<BusinessWorkspace | null>(null)
+  const [subscriptions, setSubscriptions] = useState<BusinessSelfSubscription[]>([])
   const [email, setEmail] = useState('')
   const [quote, setQuote] = useState<BusinessQuote | null>(null)
   const [pendingOrders, setPendingOrders] = useState<BusinessSeatOrder[]>([])
@@ -245,6 +268,9 @@ export function ChatGPTBusinessPage() {
   >()
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<number | null>(
     null
+  )
+  const selectedSubscription = subscriptions.find(
+    (item) => item.workspace?.id === selectedWorkspaceId
   )
   const usdToCnyRate =
     useSystemConfigStore((s) => s.config.currency.usdExchangeRate) || 1
@@ -286,10 +312,16 @@ export function ChatGPTBusinessPage() {
         getBusinessCatalog(),
         getBusinessSelf(),
       ])
+      const currentSubscriptions = isApiSuccess(selfRes)
+        ? selfRes.data.subscriptions ?? []
+        : []
       if (isApiSuccess(catalogRes)) {
         setCatalog(catalogRes.data)
         const rows = catalogRes.data.workspaces ?? []
-        if (rows.length > 0) {
+        const subscribedWorkspaceId = currentSubscriptions[0]?.workspace?.id
+        if (subscribedWorkspaceId) {
+          setSelectedWorkspaceId(subscribedWorkspaceId)
+        } else if (rows.length > 0) {
           const preferred =
             rows.find((row) => row.currently_available) ?? rows[0]
           setSelectedWorkspaceId(preferred.workspace.id)
@@ -298,13 +330,8 @@ export function ChatGPTBusinessPage() {
         }
       }
       if (isApiSuccess(selfRes)) {
-        setSubscription(selfRes.data.subscription)
-        setWorkspace(selfRes.data.workspace)
-        if (!selfRes.data.subscription) {
-          await loadPendingOrders()
-        } else {
-          setPendingOrders([])
-        }
+        setSubscriptions(currentSubscriptions)
+        await loadPendingOrders()
       }
     } finally {
       setLoading(false)
@@ -347,7 +374,7 @@ export function ChatGPTBusinessPage() {
         }
         const orderRes = await createBusinessOrder({
           quote_id: quote.id,
-          subscription_id: subscription?.id,
+          subscription_id: selectedSubscription?.subscription.id,
         })
         if (!isApiSuccess(orderRes)) {
           toast.error(orderRes.message || t('Unable to create order'))
@@ -395,14 +422,15 @@ export function ChatGPTBusinessPage() {
   }
 
   const handleRenewQuote = async () => {
-    if (!subscription) {
+    if (!selectedSubscription) {
       return
     }
     setCheckoutLoading(true)
     try {
       const res = await createBusinessQuote({
-        chatgpt_email: subscription.chatgpt_email,
+        chatgpt_email: selectedSubscription.subscription.chatgpt_email,
         order_type: 'RENEWAL',
+        workspace_id: selectedSubscription.subscription.workspace_id,
       })
       if (!isApiSuccess(res)) {
         toast.error(res.message || t('Unable to create quote'))
@@ -442,12 +470,17 @@ export function ChatGPTBusinessPage() {
   const handleCancelSubscription = async () => {
     setCancelLoading(true)
     try {
-      const res = await cancelBusinessSubscription()
+      if (!selectedSubscription) return
+      const res = await cancelBusinessSubscription(
+        selectedSubscription.subscription.id
+      )
       if (!isApiSuccess(res)) throw new Error(res.message)
       toast.success(t('Subscription cancellation scheduled'))
       setCancelConfirmOpen(false)
       const selfRes = await getBusinessSelf()
-      if (isApiSuccess(selfRes)) setSubscription(selfRes.data.subscription)
+      if (isApiSuccess(selfRes)) {
+        setSubscriptions(selfRes.data.subscriptions ?? [])
+      }
     } catch {
       toast.error(t('Unable to cancel subscription'))
     } finally {
@@ -473,16 +506,20 @@ export function ChatGPTBusinessPage() {
   const selectedCatalogWorkspace = catalogWorkspaces.find(
     (row) => row.workspace.id === selectedWorkspaceId
   )
-  const selectedCatalogWorkspaceName =
-    selectedCatalogWorkspace?.workspace.name ?? null
+  const subscription = selectedSubscription?.subscription ?? null
+  const workspace = selectedSubscription?.workspace ?? null
   const displayWorkspace =
-    workspace ??
     selectedCatalogWorkspace?.workspace ??
+    workspace ??
     catalog?.workspace ??
     null
   const subscriptionDescription =
     displayWorkspace?.subscription_description?.trim() ?? ''
-  const price = selectedCatalogWorkspace?.price ?? catalog?.price ?? null
+  const price =
+    selectedSubscription?.price ??
+    selectedCatalogWorkspace?.price ??
+    catalog?.price ??
+    null
   const workspaceAvailable =
     selectedCatalogWorkspace?.currently_available ??
     catalog?.currently_available
@@ -490,6 +527,13 @@ export function ChatGPTBusinessPage() {
     price && workspaceAvailable
       ? `${formatMoney(price.price_amount, price.currency)} ${price.display_unit || ''}`.trim()
       : t('Currently unavailable')
+  const benefitItems = (
+    subscriptionDescription || t('subscription.defaultDescription')
+  )
+    .split(/\n|。|；|;/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 3)
 
   return (
     <SectionPageLayout>
@@ -524,17 +568,51 @@ export function ChatGPTBusinessPage() {
                 </div>
               </CardHeader>
               <CardContent className='space-y-3 text-sm'>
-                <div>
-                  <span className='text-muted-foreground'>
-                    {t('ChatGPT Account')}:{' '}
-                  </span>
-                  {subscription.chatgpt_email}
+                <WorkspaceList
+                  workspaces={catalogWorkspaces}
+                  subscriptions={subscriptions}
+                  selectedWorkspaceId={selectedWorkspaceId}
+                  onSelect={(workspaceId) => {
+                    setSelectedWorkspaceId(workspaceId)
+                    setQuote(null)
+                  }}
+                />
+                {price ? (
+                  <div className='border-b pb-4'>
+                    <span className='text-3xl font-semibold'>
+                      {formatMoney(price.price_amount, price.currency)}
+                    </span>
+                    <span className='text-muted-foreground ml-2 text-sm'>
+                      {price.display_unit ||
+                        t(
+                          `subscription.billing.${price.billing_cadence.toLowerCase()}`
+                        )}
+                    </span>
+                  </div>
+                ) : null}
+                <div className='text-muted-foreground'>
+                  {t(
+                    `subscription.billing.${(workspace?.billing_cadence || price?.billing_cadence || 'monthly').toLowerCase()}`
+                  )}
                 </div>
                 <div>
                   <span className='text-muted-foreground'>
-                    {t('Paid through')}:{' '}
+                    {subscription.status === 'CANCELLED'
+                      ? t('subscription.validUntil')
+                      : t('subscription.nextRenewal')}
+                    :{' '}
                   </span>
                   {formatDate(subscription.prepaid_through)}
+                </div>
+                <div className='space-y-2 border-t pt-4'>
+                  <p className='font-medium'>
+                    {t('subscription.currentBenefits')}
+                  </p>
+                  <ul className='text-muted-foreground space-y-1'>
+                    {benefitItems.map((benefit) => (
+                      <li key={benefit}>✓ {benefit}</li>
+                    ))}
+                  </ul>
                 </div>
                 {(subscription.status === 'ACTIVE' ||
                   subscription.status === 'EXPIRING') && (
@@ -592,51 +670,15 @@ export function ChatGPTBusinessPage() {
                 <CardDescription>{priceLabel}</CardDescription>
               </CardHeader>
               <CardContent className='space-y-4'>
-                {catalogWorkspaces.length > 1 ? (
-                  <div className='space-y-2'>
-                    <Label>{t('Workspace')}</Label>
-                    <Select
-                      value={
-                        selectedWorkspaceId != null
-                          ? String(selectedWorkspaceId)
-                          : undefined
-                      }
-                      onValueChange={(value) =>
-                        value && setSelectedWorkspaceId(Number(value))
-                      }
-                    >
-                      <SelectTrigger className='w-full'>
-                        <span className='truncate'>
-                          {selectedCatalogWorkspaceName ??
-                            t('Select workspace')}
-                        </span>
-                      </SelectTrigger>
-                      <SelectContent alignItemWithTrigger={false}>
-                        <SelectGroup>
-                          {catalogWorkspaces.map(
-                            (row: BusinessCatalogWorkspace) => (
-                              <SelectItem
-                                key={row.workspace.id}
-                                value={String(row.workspace.id)}
-                              >
-                                {row.workspace.name}
-                                {(() => {
-                                  if (!row.currently_available) {
-                                    return ` (${t('Currently unavailable')})`
-                                  }
-                                  if (row.price) {
-                                    return ` · ${formatMoney(row.price.price_amount, row.price.currency)}`
-                                  }
-                                  return ''
-                                })()}
-                              </SelectItem>
-                            )
-                          )}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ) : null}
+                <WorkspaceList
+                  workspaces={catalogWorkspaces}
+                  subscriptions={subscriptions}
+                  selectedWorkspaceId={selectedWorkspaceId}
+                  onSelect={(workspaceId) => {
+                    setSelectedWorkspaceId(workspaceId)
+                    setQuote(null)
+                  }}
+                />
                 {!workspaceAvailable ? (
                   <p className='text-muted-foreground'>
                     {selectedCatalogWorkspace?.pricing_required ||

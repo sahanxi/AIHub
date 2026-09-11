@@ -9,6 +9,7 @@ import type {
   BusinessSeatOrder,
   BusinessSeatPoolStats,
   BusinessSeatTask,
+  BusinessSelfSubscription,
   BusinessSubscription,
   BusinessWorkspace,
 } from './types'
@@ -30,18 +31,20 @@ export async function getBusinessSelf(): Promise<
   ApiResponse<{
     subscription: BusinessSubscription | null
     workspace: BusinessWorkspace | null
+    price: BusinessPriceVersion | null
+    subscriptions?: BusinessSelfSubscription[]
   }>
 > {
   const res = await api.get('/api/business-seat/self')
   return res.data
 }
 
-export async function cancelBusinessSubscription(): Promise<
+export async function cancelBusinessSubscription(subscriptionId?: number): Promise<
   ApiResponse<{ success: boolean }>
 > {
   const res = await api.post(
     '/api/business-seat/subscription/cancel',
-    undefined,
+    subscriptionId ? { subscription_id: subscriptionId } : undefined,
     {
       skipBusinessError: true,
     }

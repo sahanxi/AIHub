@@ -698,6 +698,19 @@ const overviewKeys = {
 }
 const unknownTranslations = { en: 'Unknown', zh: '未知', 'zh-TW': '未知', fr: 'Inconnu', ja: '不明', ru: 'Неизвестно', vi: 'Không xác định' }
 for (const [locale, value] of Object.entries(unknownTranslations)) overviewKeys[locale].Unknown = value
+const workspaceListTranslations = {
+  en: ['Available workspaces', 'Subscribed'],
+  zh: ['可用工作区', '已订阅'],
+  'zh-TW': ['可用工作區', '已訂閱'],
+  fr: ['Espaces de travail disponibles', 'Abonné'],
+  ja: ['利用可能なワークスペース', '購読済み'],
+  ru: ['Доступные рабочие пространства', 'Подписка активна'],
+  vi: ['Workspace khả dụng', 'Đã đăng ký'],
+}
+for (const [locale, [available, subscribed]] of Object.entries(workspaceListTranslations)) {
+  overviewKeys[locale]['Available workspaces'] = available
+  overviewKeys[locale].Subscribed = subscribed
+}
 for (const [locale, values] of Object.entries(overviewKeys)) Object.assign(newKeys[locale], values)
 for (const [locale, values] of Object.entries(requestedKeys)) Object.assign(newKeys[locale], values)
 
