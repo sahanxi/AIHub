@@ -463,6 +463,14 @@ export function ChatGPTBusinessPage() {
       },
     ]
   }
+  const cardPalette = [
+    'border-slate-200 bg-slate-50/90',
+    'border-blue-200 bg-blue-50/70',
+    'border-violet-200 bg-violet-50/70',
+    'border-emerald-200 bg-emerald-50/70',
+    'border-amber-200 bg-amber-50/70',
+    'border-rose-200 bg-rose-50/70',
+  ]
 
   return (
     <SectionPageLayout>
@@ -477,7 +485,7 @@ export function ChatGPTBusinessPage() {
         </div>
       </SectionPageLayout.Title>
       <SectionPageLayout.Content>
-        <div className='grid w-full grid-cols-1 items-start gap-6 md:grid-cols-2 xl:grid-cols-3'>
+        <div className='grid w-full grid-cols-1 items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3'>
           {workspaceRows.map((row, index) => {
             const workspaceSubscription = subscriptions.find(
               (item) => item.workspace?.id === row.workspace.id
@@ -497,55 +505,56 @@ export function ChatGPTBusinessPage() {
               .slice(0, 3)
             const workspaceQuote =
               quoteWorkspaceId === row.workspace.id ? quote : null
-
-            const cardPalette = [
-              'border-slate-200 bg-slate-50/80',
-              'border-blue-100 bg-blue-50/60',
-              'border-violet-100 bg-violet-50/60',
-              'border-emerald-100 bg-emerald-50/60',
-            ]
+            const billingLabel = t(
+              `subscription.billing.${(row.workspace.billing_cadence || workspacePrice?.billing_cadence || 'monthly').toLowerCase()}`
+            )
 
             return (
               <Card
                 key={row.workspace.id}
-                className={`w-full shadow-sm transition-shadow hover:shadow-md ${cardPalette[index % cardPalette.length]}`}
+                className={`h-full w-full shadow-sm transition-shadow hover:shadow-md ${cardPalette[index % cardPalette.length]}`}
               >
-                <CardHeader>
-                  <CardTitle>{row.workspace.name}</CardTitle>
-                  {workspaceDescription ? (
-                    <p className='text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap'>
-                      {workspaceDescription}
-                    </p>
-                  ) : null}
-                  {workspaceSubscription ? (
-                    <div className='mt-1'>
-                      {workspaceSubscription.subscription.status ===
-                      'ACTIVE' ? (
-                        <span className='text-success text-sm font-medium'>
-                          {t('Subscribed')}
+                <CardHeader className='flex min-h-28 flex-row items-start justify-between gap-4'>
+                  <div className='min-w-0'>
+                    <CardTitle>{row.workspace.name}</CardTitle>
+                    {workspaceDescription ? (
+                      <p className='text-muted-foreground mt-1 text-sm leading-relaxed whitespace-pre-wrap'>
+                        {workspaceDescription}
+                      </p>
+                    ) : null}
+                    {workspaceSubscription ? (
+                      <div className='mt-2'>
+                        {workspaceSubscription.subscription.status ===
+                        'ACTIVE' ? (
+                          <span className='text-success text-sm font-medium'>
+                            {t('Subscribed')}
+                          </span>
+                        ) : (
+                          <BusinessSubscriptionStatusBadge
+                            status={workspaceSubscription.subscription.status}
+                            t={t}
+                          />
+                        )}
+                      </div>
+                    ) : (
+                      <div className='mt-2'>
+                        <span
+                          className={
+                            workspaceAvailable
+                              ? 'text-success text-sm font-medium'
+                              : 'text-muted-foreground text-sm font-medium'
+                          }
+                        >
+                          {workspaceAvailable
+                            ? t('Available')
+                            : t('Currently unavailable')}
                         </span>
-                      ) : (
-                        <BusinessSubscriptionStatusBadge
-                          status={workspaceSubscription.subscription.status}
-                          t={t}
-                        />
-                      )}
-                    </div>
-                  ) : (
-                    <div className='mt-1'>
-                      <span
-                        className={
-                          workspaceAvailable
-                            ? 'text-success text-sm font-medium'
-                            : 'text-muted-foreground text-sm font-medium'
-                        }
-                      >
-                        {workspaceAvailable
-                          ? t('Available')
-                          : t('Currently unavailable')}
-                      </span>
-                    </div>
-                  )}
+                      </div>
+                    )}
+                  </div>
+                  <span className='shrink-0 rounded-full bg-white/80 px-3 py-1.5 text-xs font-semibold text-sky-700 shadow-sm ring-1 ring-sky-200/70'>
+                    {billingLabel}
+                  </span>
                 </CardHeader>
                 <CardContent className='space-y-4 text-sm'>
                   {(() => {
@@ -568,11 +577,6 @@ export function ChatGPTBusinessPage() {
                               </span>
                             </div>
                           ) : null}
-                          <div className='text-muted-foreground'>
-                            {t(
-                              `subscription.billing.${(row.workspace.billing_cadence || workspacePrice?.billing_cadence || 'monthly').toLowerCase()}`
-                            )}
-                          </div>
                           <div>
                             <span className='text-muted-foreground'>
                               {workspaceSubscription.subscription.status ===
@@ -693,11 +697,9 @@ export function ChatGPTBusinessPage() {
                             </span>
                           </div>
                         ) : null}
-                        <div className='text-muted-foreground'>
-                          {t(
-                            `subscription.billing.${(row.workspace.billing_cadence || workspacePrice?.billing_cadence || 'monthly').toLowerCase()}`
-                          )}
-                        </div>
+                        <p className='text-muted-foreground text-sm'>
+                          {t('Business seat first payment may be prorated')}
+                        </p>
                         <div className='space-y-2 border-t pt-4'>
                           <p className='font-medium'>
                             {t('subscription.currentBenefits')}
@@ -708,9 +710,6 @@ export function ChatGPTBusinessPage() {
                             ))}
                           </ul>
                         </div>
-                        <p className='text-muted-foreground text-sm'>
-                          {t('Business seat first payment may be prorated')}
-                        </p>
                         {!workspaceQuote ? (
                           <>
                             <div className='space-y-2'>
