@@ -128,7 +128,7 @@ export function useSidebarData(): SidebarData {
             icon: Wallet,
           },
           {
-            title: t('ChatGPT Business'),
+            title: t('ChatGPT Subscription'),
             url: '/chatgpt-business',
             icon: Briefcase,
           },
@@ -174,7 +174,7 @@ export function useSidebarData(): SidebarData {
             icon: CreditCard,
           },
           {
-            title: t('ChatGPT Business'),
+            title: t('ChatGPT Subscription'),
             url: '/chatgpt-business/admin',
             icon: Briefcase,
             requiredRole: ROLE.ADMIN,

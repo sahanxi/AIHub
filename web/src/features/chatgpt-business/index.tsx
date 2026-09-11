@@ -477,8 +477,8 @@ export function ChatGPTBusinessPage() {
         </div>
       </SectionPageLayout.Title>
       <SectionPageLayout.Content>
-        <div className='flex w-full flex-col items-start gap-6'>
-          {workspaceRows.map((row) => {
+        <div className='grid w-full grid-cols-1 items-start gap-6 md:grid-cols-2 xl:grid-cols-3'>
+          {workspaceRows.map((row, index) => {
             const workspaceSubscription = subscriptions.find(
               (item) => item.workspace?.id === row.workspace.id
             )
@@ -498,8 +498,18 @@ export function ChatGPTBusinessPage() {
             const workspaceQuote =
               quoteWorkspaceId === row.workspace.id ? quote : null
 
+            const cardPalette = [
+              'border-slate-200 bg-slate-50/80',
+              'border-blue-100 bg-blue-50/60',
+              'border-violet-100 bg-violet-50/60',
+              'border-emerald-100 bg-emerald-50/60',
+            ]
+
             return (
-              <Card key={row.workspace.id} className='w-full max-w-2xl'>
+              <Card
+                key={row.workspace.id}
+                className={`w-full shadow-sm transition-shadow hover:shadow-md ${cardPalette[index % cardPalette.length]}`}
+              >
                 <CardHeader>
                   <CardTitle>{row.workspace.name}</CardTitle>
                   {workspaceDescription ? (
@@ -700,9 +710,6 @@ export function ChatGPTBusinessPage() {
                         </div>
                         <p className='text-muted-foreground text-sm'>
                           {t('Business seat first payment may be prorated')}
-                        </p>
-                        <p className='text-muted-foreground text-sm'>
-                          {t('AIHub will never ask for your ChatGPT password.')}
                         </p>
                         {!workspaceQuote ? (
                           <>
