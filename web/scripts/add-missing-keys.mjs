@@ -11,6 +11,9 @@ function stableStringify(obj) {
 
 const newKeys = {
   en: {
+    'Complete your subscription': 'Complete your subscription',
+    'Review your payment details and complete the transaction securely with Alipay.':
+      'Review your payment details and complete the transaction securely with Alipay.',
     'Alipay Payment': 'Alipay Payment',
     'You will be redirected to Alipay to complete payment securely.':
       'You will be redirected to Alipay to complete payment securely.',
@@ -87,6 +90,9 @@ const newKeys = {
     'No workspaces yet': 'No workspaces yet',
   },
   zh: {
+    'Complete your subscription': '完成订阅支付',
+    'Review your payment details and complete the transaction securely with Alipay.':
+      '确认账单信息后，使用支付宝安全完成本次交易。',
     'Alipay Payment': '支付宝支付',
     'You will be redirected to Alipay to complete payment securely.':
       '即将前往支付宝安全完成支付。',
@@ -160,6 +166,9 @@ const newKeys = {
     'No workspaces yet': '暂无工作区',
   },
   'zh-TW': {
+    'Complete your subscription': '完成訂閱付款',
+    'Review your payment details and complete the transaction securely with Alipay.':
+      '確認帳單資訊後，使用支付寶安全完成本次交易。',
     'Alipay Payment': '支付寶付款',
     'You will be redirected to Alipay to complete payment securely.':
       '即將前往支付寶安全完成付款。',
@@ -233,6 +242,9 @@ const newKeys = {
     'No workspaces yet': '尚無工作區',
   },
   fr: {
+    'Complete your subscription': 'Finalisez votre abonnement',
+    'Review your payment details and complete the transaction securely with Alipay.':
+      'Vérifiez les détails de votre paiement et finalisez la transaction en toute sécurité avec Alipay.',
     'Alipay Payment': 'Paiement Alipay',
     'You will be redirected to Alipay to complete payment securely.':
       'Vous serez redirigé vers Alipay pour finaliser le paiement en toute sécurité.',
@@ -312,6 +324,9 @@ const newKeys = {
     'No workspaces yet': 'Aucun espace pour l’instant',
   },
   ja: {
+    'Complete your subscription': 'サブスクリプションを完了',
+    'Review your payment details and complete the transaction securely with Alipay.':
+      '支払い内容を確認し、Alipayで安全に取引を完了してください。',
     'Alipay Payment': 'Alipayで支払う',
     'You will be redirected to Alipay to complete payment securely.':
       '安全に支払いを完了するため、Alipayに移動します。',
@@ -388,6 +403,9 @@ const newKeys = {
     'No workspaces yet': 'ワークスペースがありません',
   },
   ru: {
+    'Complete your subscription': 'Завершите подписку',
+    'Review your payment details and complete the transaction securely with Alipay.':
+      'Проверьте детали оплаты и безопасно завершите транзакцию через Alipay.',
     'Alipay Payment': 'Оплата через Alipay',
     'You will be redirected to Alipay to complete payment securely.':
       'Вы будете перенаправлены в Alipay для безопасного завершения оплаты.',
@@ -465,6 +483,9 @@ const newKeys = {
     'No workspaces yet': 'Рабочих областей пока нет',
   },
   vi: {
+    'Complete your subscription': 'Hoàn tất đăng ký',
+    'Review your payment details and complete the transaction securely with Alipay.':
+      'Kiểm tra chi tiết thanh toán và hoàn tất giao dịch an toàn với Alipay.',
     'Alipay Payment': 'Thanh toán Alipay',
     'You will be redirected to Alipay to complete payment securely.':
       'Bạn sẽ được chuyển đến Alipay để hoàn tất thanh toán an toàn.',

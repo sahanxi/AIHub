@@ -1,3 +1,4 @@
+import { useNavigate } from '@tanstack/react-router'
 import {
   ArrowRightIcon,
   CalendarDaysIcon,
@@ -5,7 +6,7 @@ import {
   MailIcon,
   RefreshCwIcon,
 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -16,9 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { startGatewayCheckout } from '@/features/wallet/lib/payment'
 import { getLobeIcon } from '@/lib/lobe-icon'
-import { useSystemConfigStore } from '@/stores/system-config-store'
 
 import {
   createBusinessOrder,
@@ -29,9 +28,7 @@ import {
   getBusinessPendingOrders,
   getBusinessSelf,
   isApiSuccess,
-  payBusinessOrderAlipay,
 } from './api'
-import { PaymentCheckoutDialog } from './components/payment-checkout-dialog'
 import { BusinessSubscriptionStatusBadge } from './status-display'
 import type {
   BusinessCatalog,
@@ -44,25 +41,6 @@ function formatMoney(amount: string, currency: string) {
   if (currency === 'CNY') return `¥${amount}`
   if (currency === 'USD') return `$${amount}`
   return `${currency} ${amount}`
-}
-
-function formatSettlementCNY(amount: number): string {
-  if (!Number.isFinite(amount)) return '-'
-  return `¥${new Intl.NumberFormat(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount)}`
-}
-
-function settlePreviewCNY(
-  amount: string,
-  currency: string,
-  usdToCnyRate: number
-): number {
-  const value = Number.parseFloat(amount)
-  if (!Number.isFinite(value)) return Number.NaN
-  if (currency === 'CNY') return value
-  return value * usdToCnyRate
 }
 
 function formatDate(ts: number) {
@@ -205,6 +183,7 @@ function PendingOrdersList(props: {
 
 export function ChatGPTBusinessPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [catalog, setCatalog] = useState<BusinessCatalog | null>(null)
   const [subscriptions, setSubscriptions] = useState<
@@ -224,42 +203,12 @@ export function ChatGPTBusinessPage() {
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [cancelLoading, setCancelLoading] = useState(false)
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false)
-  const [payConfirmOpen, setPayConfirmOpen] = useState(false)
-  const [pendingPayOrderId, setPendingPayOrderId] = useState<
-    number | undefined
-  >()
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<number | null>(
     null
   )
   const selectedSubscription = subscriptions.find(
     (item) => item.workspace?.id === selectedWorkspaceId
   )
-  const usdToCnyRate =
-    useSystemConfigStore((s) => s.config.currency.usdExchangeRate) || 1
-
-  const payConfirmAmount = useMemo(() => {
-    if (pendingPayOrderId) {
-      const order = pendingOrders.find((item) => item.id === pendingPayOrderId)
-      if (order) {
-        return {
-          display: formatMoney(order.total_amount, order.currency),
-          settle: formatSettlementCNY(
-            settlePreviewCNY(order.total_amount, order.currency, usdToCnyRate)
-          ),
-        }
-      }
-    }
-    if (quote) {
-      return {
-        display: formatMoney(quote.total_amount, quote.currency),
-        settle: formatSettlementCNY(
-          settlePreviewCNY(quote.total_amount, quote.currency, usdToCnyRate)
-        ),
-      }
-    }
-    return null
-  }, [pendingPayOrderId, pendingOrders, quote, usdToCnyRate])
-
   const loadPendingOrders = useCallback(async () => {
     const res = await getBusinessPendingOrders()
     if (isApiSuccess(res)) {
@@ -304,36 +253,12 @@ export function ChatGPTBusinessPage() {
     void load()
   }, [load])
 
-  const startPayment = async (orderId: number) => {
-    const payRes = await payBusinessOrderAlipay({ order_id: orderId })
-    if (!isApiSuccess(payRes) || !payRes.data.url) {
-      const message =
-        payRes.message === 'Order not payable'
-          ? t('Order not payable')
-          : payRes.message || t('Unable to start payment')
-      toast.error(message)
-      return false
-    }
-    toast.success(t('Redirecting to payment page...'))
-    return startGatewayCheckout(
-      payRes.data.url,
-      payRes.data as Record<string, unknown>
-    )
-  }
-
   const handlePay = async (existingOrderId?: number) => {
-    setPendingPayOrderId(existingOrderId)
-    setPayConfirmOpen(true)
-  }
-
-  const confirmPay = async () => {
     setCheckoutLoading(true)
     try {
-      let orderId = pendingPayOrderId
+      let orderId = existingOrderId
       if (!orderId) {
-        if (!quote) {
-          return
-        }
+        if (!quote) return
         const orderRes = await createBusinessOrder({
           quote_id: quote.id,
           subscription_id: quoteSubscriptionId ?? undefined,
@@ -344,12 +269,10 @@ export function ChatGPTBusinessPage() {
         }
         orderId = orderRes.data.id
       }
-      const paid = await startPayment(orderId)
-      if (paid) {
-        setPayConfirmOpen(false)
-      }
-    } catch {
-      toast.error(t('Unable to start payment'))
+      await navigate({
+        to: '/chatgpt-business/payment',
+        search: { order_id: orderId },
+      })
     } finally {
       setCheckoutLoading(false)
     }
@@ -871,18 +794,6 @@ export function ChatGPTBusinessPage() {
             selectedSubscription &&
             void handleCancelSubscription(selectedSubscription)
           }
-        />
-        <PaymentCheckoutDialog
-          open={payConfirmOpen}
-          onOpenChange={(open) => {
-            setPayConfirmOpen(open)
-            if (!open) {
-              setPendingPayOrderId(undefined)
-            }
-          }}
-          amount={payConfirmAmount}
-          loading={checkoutLoading}
-          onConfirm={() => void confirmPay()}
         />
         <ConfirmDialog
           open={orderToDelete !== null}
