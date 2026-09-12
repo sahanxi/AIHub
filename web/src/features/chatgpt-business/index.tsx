@@ -31,6 +31,7 @@ import {
   isApiSuccess,
   payBusinessOrderAlipay,
 } from './api'
+import { PaymentCheckoutDialog } from './components/payment-checkout-dialog'
 import { BusinessSubscriptionStatusBadge } from './status-display'
 import type {
   BusinessCatalog,
@@ -445,16 +446,6 @@ export function ChatGPTBusinessPage() {
     }
   }
 
-  const visiblePendingOrders = useMemo(() => {
-    const normalizedEmail = email.trim().toLowerCase()
-    if (!normalizedEmail) {
-      return pendingOrders
-    }
-    return pendingOrders.filter(
-      (order) => order.chatgpt_email?.trim().toLowerCase() === normalizedEmail
-    )
-  }, [email, pendingOrders])
-
   if (loading) {
     return <LoadingState />
   }
@@ -515,6 +506,12 @@ export function ChatGPTBusinessPage() {
         </div>
       </SectionPageLayout.Title>
       <SectionPageLayout.Content>
+        <PendingOrdersList
+          orders={pendingOrders}
+          loading={checkoutLoading || deleteLoading}
+          onPay={(orderId) => void handlePay(orderId)}
+          onDelete={setOrderToDelete}
+        />
         <div className='grid w-full auto-rows-fr grid-cols-1 items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3'>
           {workspaceRows.map((row, index) => {
             const workspaceSubscription = subscriptions.find(
@@ -532,7 +529,6 @@ export function ChatGPTBusinessPage() {
               .split(/\n|。|；|;/)
               .map((item) => item.trim())
               .filter(Boolean)
-              .slice(0, 3)
             const workspaceQuote =
               quoteWorkspaceId === row.workspace.id ? quote : null
             const billingLabel = t(
@@ -712,7 +708,7 @@ export function ChatGPTBusinessPage() {
                               onClick={() => void handlePay()}
                               disabled={checkoutLoading}
                             >
-                              {t('Continue to Alipay')}
+                              {t('Alipay Payment')}
                             </Button>
                           ) : null}
                           {workspaceSubscription.subscription.status ===
@@ -813,12 +809,6 @@ export function ChatGPTBusinessPage() {
                                 />
                               </div>
                             </div>
-                            <PendingOrdersList
-                              orders={visiblePendingOrders}
-                              loading={checkoutLoading || deleteLoading}
-                              onPay={(orderId) => void handlePay(orderId)}
-                              onDelete={setOrderToDelete}
-                            />
                             <Button
                               className={`mt-auto h-11 w-full rounded-xl text-base font-semibold shadow-lg ${cardTheme.primary}`}
                               onClick={() => {
@@ -852,7 +842,7 @@ export function ChatGPTBusinessPage() {
                                 onClick={() => void handlePay()}
                                 disabled={checkoutLoading}
                               >
-                                {t('Continue to Alipay')}
+                                {t('Alipay Payment')}
                               </Button>
                             </div>
                           </>
@@ -864,14 +854,6 @@ export function ChatGPTBusinessPage() {
               </Card>
             )
           })}
-          {workspaceRows.length === 0 ? (
-            <PendingOrdersList
-              orders={visiblePendingOrders}
-              loading={checkoutLoading || deleteLoading}
-              onPay={(orderId) => void handlePay(orderId)}
-              onDelete={setOrderToDelete}
-            />
-          ) : null}
         </div>
         <ConfirmDialog
           open={cancelConfirmOpen}
@@ -890,44 +872,18 @@ export function ChatGPTBusinessPage() {
             void handleCancelSubscription(selectedSubscription)
           }
         />
-        <ConfirmDialog
+        <PaymentCheckoutDialog
           open={payConfirmOpen}
           onOpenChange={(open) => {
-            if (!open && !checkoutLoading) {
-              setPayConfirmOpen(false)
+            setPayConfirmOpen(open)
+            if (!open) {
               setPendingPayOrderId(undefined)
             }
           }}
-          title={t('Confirm Payment')}
-          desc={t('Review your payment details')}
-          confirmText={t('Continue to Alipay')}
-          isLoading={checkoutLoading}
-          handleConfirm={() => void confirmPay()}
-        >
-          {payConfirmAmount ? (
-            <div className='space-y-3 text-sm'>
-              <div className='flex items-center justify-between gap-4'>
-                <span className='text-muted-foreground'>
-                  {t('Amount due today')}
-                </span>
-                <span className='font-semibold'>
-                  {payConfirmAmount.display}
-                </span>
-              </div>
-              <div className='flex items-center justify-between gap-4'>
-                <span className='text-muted-foreground'>{t('You Pay')}</span>
-                <div className='text-right'>
-                  <div className='text-lg font-semibold'>
-                    {payConfirmAmount.settle}
-                  </div>
-                  <div className='text-muted-foreground text-xs'>
-                    {t('Settled in CNY via Alipay')}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : null}
-        </ConfirmDialog>
+          amount={payConfirmAmount}
+          loading={checkoutLoading}
+          onConfirm={() => void confirmPay()}
+        />
         <ConfirmDialog
           open={orderToDelete !== null}
           onOpenChange={(open) => {

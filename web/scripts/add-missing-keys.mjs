@@ -11,6 +11,9 @@ function stableStringify(obj) {
 
 const newKeys = {
   en: {
+    'Alipay Payment': 'Alipay Payment',
+    'You will be redirected to Alipay to complete payment securely.':
+      'You will be redirected to Alipay to complete payment securely.',
     'Business seat status.ACTIVE': 'Active',
     'Business seat status.AVAILABLE': 'Available',
     'Business seat status.DISABLED': 'Disabled',
@@ -84,6 +87,9 @@ const newKeys = {
     'No workspaces yet': 'No workspaces yet',
   },
   zh: {
+    'Alipay Payment': '支付宝支付',
+    'You will be redirected to Alipay to complete payment securely.':
+      '即将前往支付宝安全完成支付。',
     'Business seat status.ACTIVE': '使用中',
     'Business seat status.AVAILABLE': '可用',
     'Business seat status.DISABLED': '已禁用',
@@ -154,6 +160,9 @@ const newKeys = {
     'No workspaces yet': '暂无工作区',
   },
   'zh-TW': {
+    'Alipay Payment': '支付寶付款',
+    'You will be redirected to Alipay to complete payment securely.':
+      '即將前往支付寶安全完成付款。',
     'Business seat status.ACTIVE': '使用中',
     'Business seat status.AVAILABLE': '可用',
     'Business seat status.DISABLED': '已停用',
@@ -224,6 +233,9 @@ const newKeys = {
     'No workspaces yet': '尚無工作區',
   },
   fr: {
+    'Alipay Payment': 'Paiement Alipay',
+    'You will be redirected to Alipay to complete payment securely.':
+      'Vous serez redirigé vers Alipay pour finaliser le paiement en toute sécurité.',
     'Business seat status.ACTIVE': 'Actif',
     'Business seat status.AVAILABLE': 'Disponible',
     'Business seat status.DISABLED': 'Désactivé',
@@ -300,6 +312,9 @@ const newKeys = {
     'No workspaces yet': 'Aucun espace pour l’instant',
   },
   ja: {
+    'Alipay Payment': 'Alipayで支払う',
+    'You will be redirected to Alipay to complete payment securely.':
+      '安全に支払いを完了するため、Alipayに移動します。',
     'Business seat status.ACTIVE': '利用中',
     'Business seat status.AVAILABLE': '利用可能',
     'Business seat status.DISABLED': '無効',
@@ -373,6 +388,9 @@ const newKeys = {
     'No workspaces yet': 'ワークスペースがありません',
   },
   ru: {
+    'Alipay Payment': 'Оплата через Alipay',
+    'You will be redirected to Alipay to complete payment securely.':
+      'Вы будете перенаправлены в Alipay для безопасного завершения оплаты.',
     'Business seat status.ACTIVE': 'Активен',
     'Business seat status.AVAILABLE': 'Доступен',
     'Business seat status.DISABLED': 'Отключён',
@@ -447,6 +465,9 @@ const newKeys = {
     'No workspaces yet': 'Рабочих областей пока нет',
   },
   vi: {
+    'Alipay Payment': 'Thanh toán Alipay',
+    'You will be redirected to Alipay to complete payment securely.':
+      'Bạn sẽ được chuyển đến Alipay để hoàn tất thanh toán an toàn.',
     'Business seat status.ACTIVE': 'Đang dùng',
     'Business seat status.AVAILABLE': 'Còn trống',
     'Business seat status.DISABLED': 'Đã tắt',

@@ -210,3 +210,73 @@ test('shows all workspaces and marks the selected workspace subscription', async
     })
   ).not.toBeInTheDocument()
 })
+
+test('shows pending orders even when their workspace has a pending subscription', async () => {
+  apiMocks.getBusinessCatalog.mockResolvedValue({
+    success: true,
+    message: '',
+    data: {
+      enabled: true,
+      product: {
+        id: 1,
+        code: 'BUSINESS_STANDARD',
+        name: 'Business',
+        enabled: true,
+      },
+      price: null,
+      workspace: null,
+      pricing_required: false,
+      currently_available: true,
+      workspaces: [
+        {
+          workspace: { id: 1, name: 'Standard', status: 'ACTIVE' },
+          price: null,
+          pricing_required: false,
+          currently_available: true,
+        },
+      ],
+    },
+  })
+  apiMocks.getBusinessSelf.mockResolvedValue({
+    success: true,
+    message: '',
+    data: {
+      subscription: null,
+      workspace: null,
+      price: null,
+      subscriptions: [
+        {
+          subscription: {
+            id: 7,
+            user_id: 1,
+            workspace_id: 1,
+            status: 'PENDING_PAYMENT',
+            chatgpt_email: 'buyer@example.com',
+            prepaid_through: 1_789_056_000,
+          },
+          workspace: { id: 1, name: 'Standard', status: 'ACTIVE' },
+          price: null,
+        },
+      ],
+    },
+  })
+  apiMocks.getBusinessPendingOrders.mockResolvedValue({
+    success: true,
+    message: '',
+    data: [
+      {
+        id: 42,
+        order_no: 'BS-42',
+        total_amount: '0.62',
+        currency: 'USD',
+        status: 'CREATED',
+        prepaid_through: 1_789_056_000,
+      },
+    ],
+  })
+
+  render(<ChatGPTBusinessPage />)
+
+  expect(await screen.findByText('$0.62')).toBeInTheDocument()
+  expect(screen.getByText('Pending orders')).toBeInTheDocument()
+})

@@ -71,7 +71,6 @@ import {
   WorkspaceGraceMinutesField,
   WorkspaceRenewalLeadDaysField,
   WorkspaceNameField,
-  WorkspaceSubscriptionAlignmentPreview,
   WorkspaceSubscriptionDescriptionField,
   WorkspaceProviderField,
   WorkspaceSeatCountField,
@@ -402,44 +401,6 @@ export function ChatGPTBusinessAdminPage() {
       toast.error(res.message || t('Action failed'))
     }
   }
-
-  const createWorkspaceSummaryInput = useMemo(
-    () => ({
-      provider: wsProvider,
-      billingCadence: wsCadence,
-      billingAnchorAt: wsAnchor
-        ? Math.floor(wsAnchor.getTime() / 1000)
-        : undefined,
-      billingTimezone: wsTimezone,
-      seatCount: Number(wsSeats) || 0,
-      graceMinutes: Number(wsGrace) || 0,
-    }),
-    [wsAnchor, wsCadence, wsGrace, wsProvider, wsSeats, wsTimezone]
-  )
-
-  const editWorkspaceSummaryInput = useMemo(() => {
-    if (!editWorkspace) {
-      return createWorkspaceSummaryInput
-    }
-    return {
-      provider: editWorkspace.provider,
-      billingCadence: editWorkspace.billing_cadence,
-      billingAnchorAt: editAnchor
-        ? Math.floor(editAnchor.getTime() / 1000)
-        : editWorkspace.billing_anchor_at,
-      billingTimezone: editTimezone || editWorkspace.billing_timezone,
-      seatCount:
-        editWorkspace.pool?.total ?? editWorkspace.total_standard_seats,
-      graceMinutes:
-        Number(editGrace) || editWorkspace.cycle_start_grace_minutes,
-    }
-  }, [
-    createWorkspaceSummaryInput,
-    editAnchor,
-    editGrace,
-    editTimezone,
-    editWorkspace,
-  ])
 
   if (loading) return <LoadingState />
 
@@ -1361,11 +1322,6 @@ export function ChatGPTBusinessAdminPage() {
               value={wsDescription}
               onChange={setWsDescription}
             />
-            <WorkspaceSubscriptionAlignmentPreview
-              t={t}
-              summaryInput={createWorkspaceSummaryInput}
-              formatTimestamp={formatTs}
-            />
             <WorkspaceProviderField
               t={t}
               value={wsProvider}
@@ -1422,11 +1378,6 @@ export function ChatGPTBusinessAdminPage() {
               t={t}
               value={editDescription}
               onChange={setEditDescription}
-            />
-            <WorkspaceSubscriptionAlignmentPreview
-              t={t}
-              summaryInput={editWorkspaceSummaryInput}
-              formatTimestamp={formatTs}
             />
             <WorkspaceBillingAnchorField
               t={t}
