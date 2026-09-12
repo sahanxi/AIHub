@@ -20,7 +20,6 @@ import { Label } from '@/components/ui/label'
 import { getLobeIcon } from '@/lib/lobe-icon'
 
 import {
-  createBusinessOrder,
   createBusinessQuote,
   cancelBusinessSubscription,
   deleteBusinessPendingOrder,
@@ -29,157 +28,17 @@ import {
   getBusinessSelf,
   isApiSuccess,
 } from './api'
+import { saveBusinessCheckoutSession } from './checkout-session'
+import { formatDate, formatMoney } from './format'
+import { PendingOrdersPanel } from './pending-orders-panel'
 import { BusinessSubscriptionStatusBadge } from './status-display'
 import type {
   BusinessCatalog,
   BusinessQuote,
   BusinessSeatOrder,
   BusinessSelfSubscription,
+  BusinessWorkspace,
 } from './types'
-
-function formatMoney(amount: string, currency: string) {
-  if (currency === 'CNY') return `¥${amount}`
-  if (currency === 'USD') return `$${amount}`
-  return `${currency} ${amount}`
-}
-
-function formatDate(ts: number) {
-  return new Date(ts * 1000).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-}
-
-function formatPeriod(start: number, end: number) {
-  return `${formatDate(start)} – ${formatDate(end)}`
-}
-
-function BillingDisclosure(props: {
-  quote: BusinessQuote
-  productName: string
-}) {
-  const { t } = useTranslation()
-  const { quote, productName } = props
-  const serviceFrom = quote.quote_at ?? quote.cycle_start_at
-  const leadDays = quote.renewal_lead_days ?? 3
-
-  return (
-    <div className='bg-card space-y-5 rounded-xl border p-5'>
-      <div>
-        <p className='text-lg font-semibold'>{t('Billing details')}</p>
-        <p className='text-muted-foreground text-sm'>{productName}</p>
-      </div>
-
-      <div>
-        <p className='text-muted-foreground text-xs tracking-wide uppercase'>
-          {t('Amount due today')}
-        </p>
-        <p className='text-3xl font-semibold tracking-tight'>
-          {formatMoney(quote.total_amount, quote.currency)}
-        </p>
-      </div>
-
-      <div className='grid gap-3 text-sm'>
-        <div className='flex justify-between gap-4'>
-          <span className='text-muted-foreground'>{t('Current period')}</span>
-          <span>{formatPeriod(serviceFrom, quote.cycle_end_at)}</span>
-        </div>
-        <div className='flex justify-between gap-4'>
-          <span className='text-muted-foreground'>
-            {t('Next billing period')}
-          </span>
-          <span>
-            {formatPeriod(quote.next_cycle_start_at, quote.next_cycle_end_at)}
-          </span>
-        </div>
-        <div className='flex justify-between gap-4'>
-          <span className='text-muted-foreground'>
-            {t('Full period price')}
-          </span>
-          <span>{formatMoney(quote.next_cycle_amount, quote.currency)}</span>
-        </div>
-        {quote.renewal_window_opens_at ? (
-          <div className='flex justify-between gap-4'>
-            <span className='text-muted-foreground'>
-              {t('Renewal available from')}
-            </span>
-            <span>{formatDate(quote.renewal_window_opens_at)}</span>
-          </div>
-        ) : null}
-        {quote.renewal_payment_deadline_at ? (
-          <div className='flex justify-between gap-4'>
-            <span className='text-muted-foreground'>{t('Payment due by')}</span>
-            <span>{formatDate(quote.renewal_payment_deadline_at)}</span>
-          </div>
-        ) : null}
-      </div>
-
-      <p className='text-muted-foreground text-sm leading-relaxed'>
-        {quote.quote_type === 'MID_CYCLE_PRORATED_ONLY'
-          ? t('Business seat first payment proration disclosure', {
-              count: leadDays,
-            })
-          : t('Business seat cycle start disclosure', { count: leadDays })}
-      </p>
-    </div>
-  )
-}
-
-function PendingOrdersList(props: {
-  orders: BusinessSeatOrder[]
-  loading: boolean
-  onPay: (orderId: number) => void
-  onDelete: (order: BusinessSeatOrder) => void
-}) {
-  const { t } = useTranslation()
-  if (props.orders.length === 0) {
-    return null
-  }
-
-  return (
-    <div className='bg-muted/20 space-y-3 rounded-xl border p-4'>
-      <p className='text-sm font-medium'>{t('Pending orders')}</p>
-      <div className='space-y-2'>
-        {props.orders.map((order) => (
-          <div
-            key={order.id}
-            className='bg-background flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between'
-          >
-            <div className='space-y-1 text-sm'>
-              <p className='font-medium'>
-                {formatMoney(order.total_amount, order.currency)}
-              </p>
-              {order.created_at || order.cycle_start_at ? (
-                <p className='text-muted-foreground text-xs'>
-                  {t('Created At')}:{' '}
-                  {formatDate(order.created_at ?? order.cycle_start_at ?? 0)}
-                </p>
-              ) : null}
-            </div>
-            <div className='flex gap-2'>
-              <Button
-                size='sm'
-                onClick={() => props.onPay(order.id)}
-                disabled={props.loading}
-              >
-                {t('Complete payment')}
-              </Button>
-              <Button
-                size='sm'
-                variant='destructive'
-                onClick={() => props.onDelete(order)}
-                disabled={props.loading}
-              >
-                {t('Delete')}
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
 
 export function ChatGPTBusinessPage() {
   const { t } = useTranslation()
@@ -190,11 +49,6 @@ export function ChatGPTBusinessPage() {
     BusinessSelfSubscription[]
   >([])
   const [email, setEmail] = useState('')
-  const [quote, setQuote] = useState<BusinessQuote | null>(null)
-  const [quoteWorkspaceId, setQuoteWorkspaceId] = useState<number | null>(null)
-  const [quoteSubscriptionId, setQuoteSubscriptionId] = useState<number | null>(
-    null
-  )
   const [pendingOrders, setPendingOrders] = useState<BusinessSeatOrder[]>([])
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [orderToDelete, setOrderToDelete] = useState<BusinessSeatOrder | null>(
@@ -253,22 +107,9 @@ export function ChatGPTBusinessPage() {
     void load()
   }, [load])
 
-  const handlePay = async (existingOrderId?: number) => {
+  const handlePay = async (orderId: number) => {
     setCheckoutLoading(true)
     try {
-      let orderId = existingOrderId
-      if (!orderId) {
-        if (!quote) return
-        const orderRes = await createBusinessOrder({
-          quote_id: quote.id,
-          subscription_id: quoteSubscriptionId ?? undefined,
-        })
-        if (!isApiSuccess(orderRes)) {
-          toast.error(orderRes.message || t('Unable to create order'))
-          return
-        }
-        orderId = orderRes.data.id
-      }
       await navigate({
         to: '/chatgpt-business/payment',
         search: { order_id: orderId },
@@ -278,7 +119,21 @@ export function ChatGPTBusinessPage() {
     }
   }
 
-  const handleGetQuote = async (workspaceId: number) => {
+  const goToCheckout = (
+    quote: BusinessQuote,
+    workspace: BusinessWorkspace,
+    subscriptionId?: number | null
+  ) => {
+    saveBusinessCheckoutSession({
+      quote,
+      workspace,
+      productName: workspace.name,
+      subscriptionId,
+    })
+    void navigate({ to: '/chatgpt-business/checkout' })
+  }
+
+  const handleGetQuote = async (workspace: BusinessWorkspace) => {
     if (!email.trim()) {
       toast.error(t('ChatGPT login email is required'))
       return
@@ -287,15 +142,13 @@ export function ChatGPTBusinessPage() {
     try {
       const res = await createBusinessQuote({
         chatgpt_email: email.trim(),
-        workspace_id: workspaceId,
+        workspace_id: workspace.id,
       })
       if (!isApiSuccess(res)) {
         toast.error(res.message || t('Unable to create quote'))
         return
       }
-      setQuote(res.data)
-      setQuoteWorkspaceId(workspaceId)
-      setQuoteSubscriptionId(null)
+      goToCheckout(res.data, workspace)
       await loadPendingOrders()
     } catch {
       toast.error(t('Unable to create quote'))
@@ -316,9 +169,11 @@ export function ChatGPTBusinessPage() {
         toast.error(res.message || t('Unable to create quote'))
         return
       }
-      setQuote(res.data)
-      setQuoteWorkspaceId(subscription.subscription.workspace_id)
-      setQuoteSubscriptionId(subscription.subscription.id)
+      if (!subscription.workspace) {
+        toast.error(t('Unable to create quote'))
+        return
+      }
+      goToCheckout(res.data, subscription.workspace, subscription.subscription.id)
     } catch {
       toast.error(t('Unable to create quote'))
     } finally {
@@ -419,22 +274,20 @@ export function ChatGPTBusinessPage() {
   return (
     <SectionPageLayout>
       <SectionPageLayout.Title>
-        <div>
-          <h1 className='text-2xl font-semibold tracking-tight'>
-            {t('ChatGPT Subscription')}
-          </h1>
-          <p className='text-muted-foreground text-sm'>
-            {t('Manage your ChatGPT subscription and workspace access')}
-          </p>
-        </div>
+        {t('ChatGPT Subscription')}
       </SectionPageLayout.Title>
-      <SectionPageLayout.Content>
-        <PendingOrdersList
+      <SectionPageLayout.Actions>
+        <PendingOrdersPanel
           orders={pendingOrders}
           loading={checkoutLoading || deleteLoading}
           onPay={(orderId) => void handlePay(orderId)}
           onDelete={setOrderToDelete}
         />
+      </SectionPageLayout.Actions>
+      <SectionPageLayout.Content>
+        <p className='text-muted-foreground mb-4 text-sm'>
+          {t('Manage your ChatGPT subscription and workspace access')}
+        </p>
         <div className='grid w-full auto-rows-fr grid-cols-1 items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3'>
           {workspaceRows.map((row, index) => {
             const workspaceSubscription = subscriptions.find(
@@ -452,8 +305,6 @@ export function ChatGPTBusinessPage() {
               .split(/\n|。|；|;/)
               .map((item) => item.trim())
               .filter(Boolean)
-            const workspaceQuote =
-              quoteWorkspaceId === row.workspace.id ? quote : null
             const billingLabel = t(
               `subscription.billing.${(row.workspace.billing_cadence || workspacePrice?.billing_cadence || 'monthly').toLowerCase()}`
             )
@@ -536,22 +387,25 @@ export function ChatGPTBusinessPage() {
                             </div>
                           ) : null}
                           <div
-                            className={`flex min-h-14 items-center gap-2 rounded-xl border px-3 ${cardTheme.accent}`}
+                            className={`rounded-xl border px-3 py-3 ${cardTheme.accent}`}
                           >
-                            <CalendarDaysIcon className='size-4 shrink-0 text-slate-500' />
-                            <span className='text-muted-foreground'>
-                              {workspaceSubscription.subscription.status ===
-                              'CANCELLED'
-                                ? t('subscription.validUntil')
-                                : t('subscription.nextRenewal')}
-                              :{' '}
-                            </span>
-                            <span className='font-semibold text-slate-800'>
-                              {formatDate(
-                                workspaceSubscription.subscription
-                                  .prepaid_through
-                              )}
-                            </span>
+                            <div className='flex gap-2'>
+                              <CalendarDaysIcon className='mt-0.5 size-4 shrink-0 text-slate-500' />
+                              <div className='min-w-0 space-y-1'>
+                                <p className='text-muted-foreground text-sm leading-snug'>
+                                  {workspaceSubscription.subscription.status ===
+                                  'CANCELLED'
+                                    ? t('subscription.validUntil')
+                                    : t('subscription.nextRenewal')}
+                                </p>
+                                <p className='font-semibold text-slate-800'>
+                                  {formatDate(
+                                    workspaceSubscription.subscription
+                                      .prepaid_through
+                                  )}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                           <div className='border-b border-slate-900/10 pb-3'>
                             <p className='mb-2 font-semibold text-slate-900'>
@@ -618,22 +472,6 @@ export function ChatGPTBusinessPage() {
                               </Button>
                             </div>
                           )}
-                          {workspaceQuote &&
-                          workspaceSubscription.subscription.status !==
-                            'PENDING_CAPACITY' ? (
-                            <BillingDisclosure
-                              quote={workspaceQuote}
-                              productName={row.workspace.name}
-                            />
-                          ) : null}
-                          {workspaceQuote ? (
-                            <Button
-                              onClick={() => void handlePay()}
-                              disabled={checkoutLoading}
-                            >
-                              {t('Alipay Payment')}
-                            </Button>
-                          ) : null}
                           {workspaceSubscription.subscription.status ===
                             'PENDING_CAPACITY' ||
                           workspaceSubscription.subscription.status ===
@@ -691,10 +529,14 @@ export function ChatGPTBusinessPage() {
                           </div>
                         ) : null}
                         <div
-                          className={`text-muted-foreground flex min-h-14 items-center gap-2 rounded-xl border px-3 leading-snug ${cardTheme.accent}`}
+                          className={`rounded-xl border px-3 py-3 ${cardTheme.accent}`}
                         >
-                          <CalendarDaysIcon className='size-4 shrink-0 text-slate-500' />
-                          {t('Business seat first payment may be prorated')}
+                          <div className='flex gap-2'>
+                            <CalendarDaysIcon className='mt-0.5 size-4 shrink-0 text-slate-500' />
+                            <p className='text-muted-foreground text-sm leading-relaxed'>
+                              {t('Business seat first payment may be prorated')}
+                            </p>
+                          </div>
                         </div>
                         <div className='border-b border-slate-900/10 pb-3'>
                           <p className='mb-2 font-semibold text-slate-900'>
@@ -709,67 +551,38 @@ export function ChatGPTBusinessPage() {
                             ))}
                           </ul>
                         </div>
-                        {!workspaceQuote ? (
-                          <>
-                            <div
-                              className={`rounded-xl border p-3 ${cardTheme.accent}`}
-                            >
-                              <Label
-                                htmlFor={`chatgpt-email-${row.workspace.id}`}
-                                className='text-sm font-semibold text-slate-900'
-                              >
-                                {t('ChatGPT Login Email')}
-                              </Label>
-                              <div className='relative mt-2'>
-                                <MailIcon className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-500' />
-                                <Input
-                                  id={`chatgpt-email-${row.workspace.id}`}
-                                  className='h-11 border-slate-300 bg-white pl-9 text-sm shadow-sm focus-visible:border-blue-400 focus-visible:ring-blue-200'
-                                  type='email'
-                                  value={email}
-                                  onChange={(e) => setEmail(e.target.value)}
-                                  placeholder='you@example.com'
-                                />
-                              </div>
-                            </div>
-                            <Button
-                              className={`mt-auto h-11 w-full rounded-xl text-base font-semibold shadow-lg ${cardTheme.primary}`}
-                              onClick={() => {
-                                setSelectedWorkspaceId(row.workspace.id)
-                                void handleGetQuote(row.workspace.id)
-                              }}
-                              disabled={checkoutLoading}
-                            >
-                              {t('Next')}
-                              <ArrowRightIcon className='size-4' />
-                            </Button>
-                          </>
-                        ) : (
-                          <>
-                            <BillingDisclosure
-                              quote={workspaceQuote}
-                              productName={row.workspace.name}
+                        <div
+                          className={`rounded-xl border p-3 ${cardTheme.accent}`}
+                        >
+                          <Label
+                            htmlFor={`chatgpt-email-${row.workspace.id}`}
+                            className='text-sm font-semibold text-slate-900'
+                          >
+                            {t('ChatGPT Login Email')}
+                          </Label>
+                          <div className='relative mt-2'>
+                            <MailIcon className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-500' />
+                            <Input
+                              id={`chatgpt-email-${row.workspace.id}`}
+                              className='h-11 border-slate-300 bg-white pl-9 text-sm shadow-sm focus-visible:border-blue-400 focus-visible:ring-blue-200'
+                              type='email'
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              placeholder='you@example.com'
                             />
-                            <div className='flex gap-2'>
-                              <Button
-                                variant='outline'
-                                onClick={() => {
-                                  setQuote(null)
-                                  setQuoteWorkspaceId(null)
-                                }}
-                                disabled={checkoutLoading}
-                              >
-                                {t('Back')}
-                              </Button>
-                              <Button
-                                onClick={() => void handlePay()}
-                                disabled={checkoutLoading}
-                              >
-                                {t('Alipay Payment')}
-                              </Button>
-                            </div>
-                          </>
-                        )}
+                          </div>
+                        </div>
+                        <Button
+                          className={`mt-auto h-11 w-full rounded-xl text-base font-semibold shadow-lg ${cardTheme.primary}`}
+                          onClick={() => {
+                            setSelectedWorkspaceId(row.workspace.id)
+                            void handleGetQuote(row.workspace)
+                          }}
+                          disabled={checkoutLoading}
+                        >
+                          {t('Next')}
+                          <ArrowRightIcon className='size-4' />
+                        </Button>
                       </>
                     )
                   })()}

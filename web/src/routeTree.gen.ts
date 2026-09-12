@@ -38,6 +38,7 @@ import { Route as authUserResetRouteImport } from './routes/(auth)/user/reset'
 import { Route as AuthenticatedChannelsIndexRouteImport } from './routes/_authenticated/channels/index'
 import { Route as AuthenticatedChatChatIdRouteImport } from './routes/_authenticated/chat/$chatId'
 import { Route as AuthenticatedChatgptBusinessIndexRouteImport } from './routes/_authenticated/chatgpt-business/index'
+import { Route as AuthenticatedChatgptBusinessCheckoutRouteImport } from './routes/_authenticated/chatgpt-business/checkout'
 import { Route as AuthenticatedChatgptBusinessPaymentRouteImport } from './routes/_authenticated/chatgpt-business/payment'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 import { Route as AuthenticatedDashboardSectionRouteImport } from './routes/_authenticated/dashboard/$section'
@@ -219,6 +220,12 @@ const AuthenticatedChatgptBusinessIndexRoute =
   AuthenticatedChatgptBusinessIndexRouteImport.update({
     id: '/chatgpt-business/',
     path: '/chatgpt-business/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedChatgptBusinessCheckoutRoute =
+  AuthenticatedChatgptBusinessCheckoutRouteImport.update({
+    id: '/chatgpt-business/checkout',
+    path: '/chatgpt-business/checkout',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedChatgptBusinessPaymentRoute =
@@ -461,6 +468,7 @@ export interface FileRoutesByFullPath {
   '/setup/': typeof SetupIndexRoute
   '/user/reset': typeof authUserResetRoute
   '/chat/$chatId': typeof AuthenticatedChatChatIdRoute
+  '/chatgpt-business/checkout': typeof AuthenticatedChatgptBusinessCheckoutRoute
   '/chatgpt-business/payment': typeof AuthenticatedChatgptBusinessPaymentRoute
   '/dashboard/$section': typeof AuthenticatedDashboardSectionRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
@@ -525,6 +533,7 @@ export interface FileRoutesByTo {
   '/setup': typeof SetupIndexRoute
   '/user/reset': typeof authUserResetRoute
   '/chat/$chatId': typeof AuthenticatedChatChatIdRoute
+  '/chatgpt-business/checkout': typeof AuthenticatedChatgptBusinessCheckoutRoute
   '/chatgpt-business/payment': typeof AuthenticatedChatgptBusinessPaymentRoute
   '/dashboard/$section': typeof AuthenticatedDashboardSectionRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
@@ -593,6 +602,7 @@ export interface FileRoutesById {
   '/setup/': typeof SetupIndexRoute
   '/(auth)/user/reset': typeof authUserResetRoute
   '/_authenticated/chat/$chatId': typeof AuthenticatedChatChatIdRoute
+  '/_authenticated/chatgpt-business/checkout': typeof AuthenticatedChatgptBusinessCheckoutRoute
   '/_authenticated/chatgpt-business/payment': typeof AuthenticatedChatgptBusinessPaymentRoute
   '/_authenticated/dashboard/$section': typeof AuthenticatedDashboardSectionRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
@@ -660,6 +670,7 @@ export interface FileRouteTypes {
     | '/setup/'
     | '/user/reset'
     | '/chat/$chatId'
+    | '/chatgpt-business/checkout'
     | '/chatgpt-business/payment'
     | '/dashboard/$section'
     | '/errors/$error'
@@ -724,6 +735,7 @@ export interface FileRouteTypes {
     | '/setup'
     | '/user/reset'
     | '/chat/$chatId'
+    | '/chatgpt-business/checkout'
     | '/chatgpt-business/payment'
     | '/dashboard/$section'
     | '/errors/$error'
@@ -791,6 +803,7 @@ export interface FileRouteTypes {
     | '/setup/'
     | '/(auth)/user/reset'
     | '/_authenticated/chat/$chatId'
+    | '/_authenticated/chatgpt-business/checkout'
     | '/_authenticated/chatgpt-business/payment'
     | '/_authenticated/dashboard/$section'
     | '/_authenticated/errors/$error'
@@ -1054,6 +1067,13 @@ declare module '@tanstack/react-router' {
       path: '/chatgpt-business'
       fullPath: '/chatgpt-business/'
       preLoaderRoute: typeof AuthenticatedChatgptBusinessIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/chatgpt-business/checkout': {
+      id: '/_authenticated/chatgpt-business/checkout'
+      path: '/chatgpt-business/checkout'
+      fullPath: '/chatgpt-business/checkout'
+      preLoaderRoute: typeof AuthenticatedChatgptBusinessCheckoutRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/chatgpt-business/payment': {
@@ -1398,6 +1418,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSystemSettingsRouteRoute: typeof AuthenticatedSystemSettingsRouteRouteWithChildren
   AuthenticatedChat2linkRoute: typeof AuthenticatedChat2linkRoute
   AuthenticatedChatChatIdRoute: typeof AuthenticatedChatChatIdRoute
+  AuthenticatedChatgptBusinessCheckoutRoute: typeof AuthenticatedChatgptBusinessCheckoutRoute
   AuthenticatedChatgptBusinessPaymentRoute: typeof AuthenticatedChatgptBusinessPaymentRoute
   AuthenticatedDashboardSectionRoute: typeof AuthenticatedDashboardSectionRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
@@ -1427,6 +1448,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedSystemSettingsRouteRouteWithChildren,
   AuthenticatedChat2linkRoute: AuthenticatedChat2linkRoute,
   AuthenticatedChatChatIdRoute: AuthenticatedChatChatIdRoute,
+  AuthenticatedChatgptBusinessCheckoutRoute:
+    AuthenticatedChatgptBusinessCheckoutRoute,
   AuthenticatedChatgptBusinessPaymentRoute:
     AuthenticatedChatgptBusinessPaymentRoute,
   AuthenticatedDashboardSectionRoute: AuthenticatedDashboardSectionRoute,

@@ -1044,6 +1044,72 @@ for (const [locale, values] of Object.entries(homeComparisonKeys))
 for (const [locale, values] of Object.entries(walletAndWorkspaceTranslations))
   Object.assign(newKeys[locale], values)
 
+const businessSeatCheckoutKeys = {
+  en: {
+    'Billing cadence': 'Billing cadence',
+    'Business seat first payment may be prorated':
+      'First payment is prorated based on the remaining time in the current workspace billing cycle.',
+    'Checkout session expired':
+      'This checkout session has expired. Please start again from the subscription page.',
+    'Quote valid until': 'Quote valid until',
+    'Service effective through': 'Service effective through',
+  },
+  zh: {
+    'Billing cadence': '计费周期',
+    'Business seat first payment may be prorated':
+      '首次费用按当前工作区计费周期剩余时间按比例计算',
+    'Checkout session expired': '结账信息已过期，请返回订阅页面重新操作。',
+    'Quote valid until': '报价有效期至',
+    'Service effective through': '服务生效至',
+  },
+  'zh-TW': {
+    'Billing cadence': '計費週期',
+    'Business seat first payment may be prorated':
+      '首次費用按當前工作區計費週期剩餘時間按比例計算',
+    'Checkout session expired': '結帳資訊已過期，請返回訂閱頁面重新操作。',
+    'Quote valid until': '報價有效期至',
+    'Service effective through': '服務生效至',
+  },
+  fr: {
+    'Billing cadence': 'Billing cadence',
+    'Business seat first payment may be prorated':
+      'First payment is prorated based on the remaining time in the current workspace billing cycle.',
+    'Checkout session expired':
+      'This checkout session has expired. Please start again from the subscription page.',
+    'Quote valid until': 'Quote valid until',
+    'Service effective through': 'Service effective through',
+  },
+  ja: {
+    'Billing cadence': 'Billing cadence',
+    'Business seat first payment may be prorated':
+      'First payment is prorated based on the remaining time in the current workspace billing cycle.',
+    'Checkout session expired':
+      'This checkout session has expired. Please start again from the subscription page.',
+    'Quote valid until': 'Quote valid until',
+    'Service effective through': 'Service effective through',
+  },
+  ru: {
+    'Billing cadence': 'Billing cadence',
+    'Business seat first payment may be prorated':
+      'First payment is prorated based on the remaining time in the current workspace billing cycle.',
+    'Checkout session expired':
+      'This checkout session has expired. Please start again from the subscription page.',
+    'Quote valid until': 'Quote valid until',
+    'Service effective through': 'Service effective through',
+  },
+  vi: {
+    'Billing cadence': 'Billing cadence',
+    'Business seat first payment may be prorated':
+      'First payment is prorated based on the remaining time in the current workspace billing cycle.',
+    'Checkout session expired':
+      'This checkout session has expired. Please start again from the subscription page.',
+    'Quote valid until': 'Quote valid until',
+    'Service effective through': 'Service effective through',
+  },
+}
+for (const [locale, values] of Object.entries(businessSeatCheckoutKeys))
+  Object.assign(newKeys[locale], values)
+
 async function main() {
   let totalAdded = 0
 
