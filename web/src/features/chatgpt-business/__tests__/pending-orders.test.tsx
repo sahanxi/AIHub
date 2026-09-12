@@ -199,6 +199,11 @@ test('shows all workspaces and marks the selected workspace subscription', async
     screen.getByText('Premium', { selector: '[data-slot="card-title"]' })
   ).toBeInTheDocument()
   expect(screen.getByText('Subscribed')).toBeInTheDocument()
+  const emailInputs = screen.getAllByLabelText('ChatGPT Login Email')
+  expect(emailInputs).toHaveLength(2)
+  expect(emailInputs[0]).toHaveValue('buyer@example.com')
+  expect(emailInputs[0]).toHaveAttribute('readonly')
+  expect(emailInputs[1]).not.toHaveAttribute('readonly')
   expect(
     screen.queryByText('Business Standard', {
       selector: '[data-slot="card-title"]',

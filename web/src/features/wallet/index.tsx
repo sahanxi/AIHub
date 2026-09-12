@@ -292,9 +292,20 @@ export function Wallet(props: WalletProps) {
   return (
     <>
       <SectionPageLayout>
-        <SectionPageLayout.Title>{t('Wallet')}</SectionPageLayout.Title>
+        <SectionPageLayout.Title>
+          <div className='space-y-1'>
+            <span className='text-2xl font-semibold tracking-tight'>
+              {t('Wallet')}
+            </span>
+            <p className='text-muted-foreground text-sm font-normal'>
+              {t(
+                'Manage your account balance and top up funds to use AIHub API services'
+              )}
+            </p>
+          </div>
+        </SectionPageLayout.Title>
         <SectionPageLayout.Content>
-          <div className='mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-5'>
+          <div className='relative mx-auto flex w-full max-w-7xl flex-col gap-5 sm:gap-6'>
             <WalletStatsCard user={user} loading={userLoading} />
 
             <div

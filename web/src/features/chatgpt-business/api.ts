@@ -39,9 +39,9 @@ export async function getBusinessSelf(): Promise<
   return res.data
 }
 
-export async function cancelBusinessSubscription(subscriptionId?: number): Promise<
-  ApiResponse<{ success: boolean }>
-> {
+export async function cancelBusinessSubscription(
+  subscriptionId?: number
+): Promise<ApiResponse<{ success: boolean }>> {
   const res = await api.post(
     '/api/business-seat/subscription/cancel',
     subscriptionId ? { subscription_id: subscriptionId } : undefined,
@@ -151,6 +151,15 @@ export async function createAdminBusinessWorkspace(body: {
   total_standard_seats: number
 }): Promise<ApiResponse<BusinessWorkspace>> {
   const res = await api.post('/api/business-seat/admin/workspaces', body)
+  return res.data
+}
+
+export async function deleteAdminBusinessWorkspace(
+  workspaceId: number
+): Promise<ApiResponse<{ success: boolean }>> {
+  const res = await api.delete(
+    `/api/business-seat/admin/workspaces/${workspaceId}`
+  )
   return res.data
 }
 

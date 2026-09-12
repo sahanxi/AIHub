@@ -127,17 +127,18 @@ const (
 )
 
 var (
-	ErrBusinessWorkspaceNotFound      = errors.New("business workspace not found")
-	ErrBusinessProductNotFound        = errors.New("business product not found")
-	ErrBusinessPriceVersionNotFound   = errors.New("business price version not found")
-	ErrBusinessQuoteNotFound          = errors.New("business quote not found")
-	ErrBusinessQuoteExpired           = errors.New("business quote expired")
-	ErrBusinessOrderNotFound          = errors.New("business seat order not found")
-	ErrBusinessSubscriptionNotFound   = errors.New("business seat subscription not found")
-	ErrBusinessSeatNotFound           = errors.New("business seat not found")
-	ErrBusinessNoAvailableSeat        = errors.New("no available business seat")
-	ErrBusinessPricingNotConfigured   = errors.New("business seat pricing not configured")
-	ErrBusinessBillingCadenceMismatch = errors.New("product billing cadence does not match workspace")
+	ErrBusinessWorkspaceNotFound         = errors.New("business workspace not found")
+	ErrBusinessProductNotFound           = errors.New("business product not found")
+	ErrBusinessPriceVersionNotFound      = errors.New("business price version not found")
+	ErrBusinessQuoteNotFound             = errors.New("business quote not found")
+	ErrBusinessQuoteExpired              = errors.New("business quote expired")
+	ErrBusinessOrderNotFound             = errors.New("business seat order not found")
+	ErrBusinessSubscriptionNotFound      = errors.New("business seat subscription not found")
+	ErrBusinessSeatNotFound              = errors.New("business seat not found")
+	ErrBusinessNoAvailableSeat           = errors.New("no available business seat")
+	ErrBusinessPricingNotConfigured      = errors.New("business seat pricing not configured")
+	ErrBusinessBillingCadenceMismatch    = errors.New("product billing cadence does not match workspace")
+	ErrBusinessWorkspaceHasSubscriptions = errors.New("workspace has active subscriptions")
 )
 
 type BusinessWorkspace struct {
@@ -381,7 +382,7 @@ func GetDefaultBusinessWorkspace() (*BusinessWorkspace, error) {
 
 func ListBusinessWorkspaces() ([]BusinessWorkspace, error) {
 	var list []BusinessWorkspace
-	err := DB.Order("id asc").Find(&list).Error
+	err := DB.Where("status = ?", BusinessWorkspaceStatusActive).Order("id asc").Find(&list).Error
 	return list, err
 }
 
@@ -418,6 +419,36 @@ func CountActiveBusinessSubscriptionsByWorkspace(workspaceId int) (int64, error)
 		Where("workspace_id = ? AND status IN ?", workspaceId, activeStatuses).
 		Count(&count).Error
 	return count, err
+}
+
+// DeleteBusinessWorkspace retires an empty workspace without removing its
+// billing history. Workspaces with a live subscription must be retained so
+// their ChatGPT access and renewal lifecycle remain intact.
+func DeleteBusinessWorkspace(workspaceId int) error {
+	if workspaceId <= 0 {
+		return ErrBusinessWorkspaceNotFound
+	}
+	return DB.Transaction(func(tx *gorm.DB) error {
+		var workspace BusinessWorkspace
+		if err := lockForUpdate(tx).First(&workspace, workspaceId).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return ErrBusinessWorkspaceNotFound
+			}
+			return err
+		}
+
+		var count int64
+		if err := tx.Model(&BusinessSeatSubscription{}).
+			Where("workspace_id = ? AND status IN ?", workspaceId, businessSeatCurrentLifecycleStatuses).
+			Count(&count).Error; err != nil {
+			return err
+		}
+		if count > 0 {
+			return ErrBusinessWorkspaceHasSubscriptions
+		}
+
+		return tx.Model(&workspace).Update("status", BusinessWorkspaceStatusDisabled).Error
+	})
 }
 
 func AddBusinessSeatsToWorkspace(workspaceId, addCount int) error {

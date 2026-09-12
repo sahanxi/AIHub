@@ -26,7 +26,8 @@ const newKeys = {
     'Business subscription status.PENDING_CAPACITY': 'Pending capacity',
     'Business subscription status.PENDING_PAYMENT': 'Pending payment',
     'Business subscription status.PENDING_REMOVAL': 'Pending removal',
-    'Business subscription status.REACTIVATION_REQUIRED': 'Reactivation required',
+    'Business subscription status.REACTIVATION_REQUIRED':
+      'Reactivation required',
     'Business subscription status.REMOVED': 'Removed',
     'Business task status.CANCELLED': 'Cancelled',
     'Business task status.DONE': 'Done',
@@ -44,7 +45,7 @@ const newKeys = {
     'Seat removal requested': 'Seat removal requested',
     'Select a workspace for pricing': 'Select a workspace for pricing',
     'Select workspace': 'Select workspace',
-    'Tasks': 'Tasks',
+    Tasks: 'Tasks',
     'This starts removal for the assigned member and releases the seat after confirmation.':
       'This starts removal for the assigned member and releases the seat after confirmation.',
     'Active Seats': 'Active Seats',
@@ -58,7 +59,8 @@ const newKeys = {
     'ChatGPT Email': 'ChatGPT Email',
     'Create Workspace': 'Create Workspace',
     'Grace Minutes': 'Grace Minutes',
-    'Grace minutes helper': 'Minutes after the billing anchor when new cycle orders are allowed.',
+    'Grace minutes helper':
+      'Minutes after the billing anchor when new cycle orders are allowed.',
     'Manage workspaces, pricing, and activations':
       'Manage workspaces, pricing, and activations',
     'Mark Invited': 'Mark Invited',
@@ -67,12 +69,12 @@ const newKeys = {
     'Renewal lead time': 'Renewal lead time',
     'Seat Number': 'Seat Number',
     'Total Seats': 'Total Seats',
-    'Workspace': 'Workspace',
+    Workspace: 'Workspace',
     'Workspace Name': 'Workspace Name',
     'Workspace subscription summary':
       '{{provider}} · {{cadence}} · anchor {{anchor}} · {{seats}} seats · grace {{grace}} min',
     'Available Seats': 'Available Seats',
-    'Timezone': 'Timezone',
+    Timezone: 'Timezone',
     'Timezone helper': 'IANA timezone used for billing anchor calculations.',
     'Paid Through': 'Paid Through',
     'Confirm Seat Added': 'Confirm Seat Added',
@@ -115,7 +117,7 @@ const newKeys = {
     'Seat removal requested': '已发起席位移除',
     'Select a workspace for pricing': '请选择要定价的工作区',
     'Select workspace': '选择工作区',
-    'Tasks': '任务',
+    Tasks: '任务',
     'This starts removal for the assigned member and releases the seat after confirmation.':
       '这将发起成员移除流程，确认后释放该席位。',
     'Active Seats': '使用中席位',
@@ -137,12 +139,12 @@ const newKeys = {
     'Renewal lead time': '续费提前期',
     'Seat Number': '席位编号',
     'Total Seats': '席位总数',
-    'Workspace': '工作区',
+    Workspace: '工作区',
     'Workspace Name': '工作区名称',
     'Workspace subscription summary':
       '{{provider}} · {{cadence}} · 锚点 {{anchor}} · {{seats}} 席位 · 宽限 {{grace}} 分钟',
     'Available Seats': '可用席位',
-    'Timezone': '时区',
+    Timezone: '时区',
     'Timezone helper': '用于计费锚点计算的 IANA 时区。',
     'Paid Through': '付费至',
     'Confirm Seat Added': '确认席位已添加',
@@ -185,7 +187,7 @@ const newKeys = {
     'Seat removal requested': '已發起席位移除',
     'Select a workspace for pricing': '請選擇要定價的工作區',
     'Select workspace': '選擇工作區',
-    'Tasks': '任務',
+    Tasks: '任務',
     'This starts removal for the assigned member and releases the seat after confirmation.':
       '這將發起成員移除流程，確認後釋放該席位。',
     'Active Seats': '使用中席位',
@@ -207,12 +209,12 @@ const newKeys = {
     'Renewal lead time': '續費提前期',
     'Seat Number': '席位編號',
     'Total Seats': '席位總數',
-    'Workspace': '工作區',
+    Workspace: '工作區',
     'Workspace Name': '工作區名稱',
     'Workspace subscription summary':
       '{{provider}} · {{cadence}} · 錨點 {{anchor}} · {{seats}} 席位 · 寬限 {{grace}} 分鐘',
     'Available Seats': '可用席位',
-    'Timezone': '時區',
+    Timezone: '時區',
     'Timezone helper': '用於計費錨點計算的 IANA 時區。',
     'Paid Through': '付費至',
     'Confirm Seat Added': '確認席位已新增',
@@ -237,7 +239,8 @@ const newKeys = {
     'Business subscription status.PENDING_CAPACITY': 'Capacité en attente',
     'Business subscription status.PENDING_PAYMENT': 'Paiement en attente',
     'Business subscription status.PENDING_REMOVAL': 'Suppression en attente',
-    'Business subscription status.REACTIVATION_REQUIRED': 'Réactivation requise',
+    'Business subscription status.REACTIVATION_REQUIRED':
+      'Réactivation requise',
     'Business subscription status.REMOVED': 'Supprimé',
     'Business task status.CANCELLED': 'Annulé',
     'Business task status.DONE': 'Terminé',
@@ -253,9 +256,10 @@ const newKeys = {
     'Remove seat assignment?': 'Retirer l’attribution du siège ?',
     'Seat Pool': 'Pool de sièges',
     'Seat removal requested': 'Retrait du siège demandé',
-    'Select a workspace for pricing': 'Sélectionnez un espace de travail pour la tarification',
+    'Select a workspace for pricing':
+      'Sélectionnez un espace de travail pour la tarification',
     'Select workspace': 'Sélectionner un espace de travail',
-    'Tasks': 'Tâches',
+    Tasks: 'Tâches',
     'This starts removal for the assigned member and releases the seat after confirmation.':
       'Cela lance le retrait du membre assigné et libère le siège après confirmation.',
     'Active Seats': 'Sièges actifs',
@@ -264,12 +268,14 @@ const newKeys = {
     'Activated At': 'Activé le',
     'Add Standard Seats': 'Ajouter des sièges standard',
     'Billing Anchor': 'Ancre de facturation',
-    'Billing anchor helper': 'Heure de début des cycles de facturation pour cet espace.',
+    'Billing anchor helper':
+      'Heure de début des cycles de facturation pour cet espace.',
     'Cash Collected': 'Encaissements',
     'ChatGPT Email': 'E-mail ChatGPT',
     'Create Workspace': 'Créer un espace de travail',
     'Grace Minutes': 'Minutes de grâce',
-    'Grace minutes helper': 'Minutes après l’ancre où les commandes de cycle sont autorisées.',
+    'Grace minutes helper':
+      'Minutes après l’ancre où les commandes de cycle sont autorisées.',
     'Manage workspaces, pricing, and activations':
       'Gérer les espaces, la tarification et les activations',
     'Mark Invited': 'Marquer invité',
@@ -278,13 +284,14 @@ const newKeys = {
     'Renewal lead time': 'Délai avant renouvellement',
     'Seat Number': 'Numéro de siège',
     'Total Seats': 'Total des sièges',
-    'Workspace': 'Espace de travail',
+    Workspace: 'Espace de travail',
     'Workspace Name': 'Nom de l’espace',
     'Workspace subscription summary':
       '{{provider}} · {{cadence}} · ancre {{anchor}} · {{seats}} sièges · grâce {{grace}} min',
     'Available Seats': 'Sièges disponibles',
-    'Timezone': 'Fuseau horaire',
-    'Timezone helper': 'Fuseau IANA utilisé pour le calcul de l’ancre de facturation.',
+    Timezone: 'Fuseau horaire',
+    'Timezone helper':
+      'Fuseau IANA utilisé pour le calcul de l’ancre de facturation.',
     'Paid Through': 'Payé jusqu’au',
     'Confirm Seat Added': 'Confirmer l’ajout du siège',
     'Copy Email': 'Copier l’e-mail',
@@ -308,7 +315,8 @@ const newKeys = {
     'Business subscription status.PENDING_CAPACITY': '席追加待ち',
     'Business subscription status.PENDING_PAYMENT': '支払い待ち',
     'Business subscription status.PENDING_REMOVAL': '削除待ち',
-    'Business subscription status.REACTIVATION_REQUIRED': '再アクティベーションが必要',
+    'Business subscription status.REACTIVATION_REQUIRED':
+      '再アクティベーションが必要',
     'Business subscription status.REMOVED': '削除済み',
     'Business task status.CANCELLED': 'キャンセル済み',
     'Business task status.DONE': '完了',
@@ -324,9 +332,10 @@ const newKeys = {
     'Remove seat assignment?': '席の割り当てを解除しますか？',
     'Seat Pool': '席プール',
     'Seat removal requested': '席の削除を開始しました',
-    'Select a workspace for pricing': '料金設定するワークスペースを選択してください',
+    'Select a workspace for pricing':
+      '料金設定するワークスペースを選択してください',
     'Select workspace': 'ワークスペースを選択',
-    'Tasks': 'タスク',
+    Tasks: 'タスク',
     'This starts removal for the assigned member and releases the seat after confirmation.':
       '割り当て済みメンバーの削除を開始し、確認後に席を解放します。',
     'Active Seats': '使用中の席',
@@ -349,12 +358,12 @@ const newKeys = {
     'Renewal lead time': '更新リードタイム',
     'Seat Number': '席番号',
     'Total Seats': '席数合計',
-    'Workspace': 'ワークスペース',
+    Workspace: 'ワークスペース',
     'Workspace Name': 'ワークスペース名',
     'Workspace subscription summary':
       '{{provider}} · {{cadence}} · アンカー {{anchor}} · {{seats}} 席 · 猶予 {{grace}} 分',
     'Available Seats': '利用可能な席',
-    'Timezone': 'タイムゾーン',
+    Timezone: 'タイムゾーン',
     'Timezone helper': '課金アンカー計算に使う IANA タイムゾーン。',
     'Paid Through': '支払い期限',
     'Confirm Seat Added': '席追加を確認',
@@ -379,7 +388,8 @@ const newKeys = {
     'Business subscription status.PENDING_CAPACITY': 'Ожидает места',
     'Business subscription status.PENDING_PAYMENT': 'Ожидает оплаты',
     'Business subscription status.PENDING_REMOVAL': 'Ожидает удаления',
-    'Business subscription status.REACTIVATION_REQUIRED': 'Требуется повторная активация',
+    'Business subscription status.REACTIVATION_REQUIRED':
+      'Требуется повторная активация',
     'Business subscription status.REMOVED': 'Удалена',
     'Business task status.CANCELLED': 'Отменена',
     'Business task status.DONE': 'Выполнена',
@@ -397,7 +407,7 @@ const newKeys = {
     'Seat removal requested': 'Запрошено удаление места',
     'Select a workspace for pricing': 'Выберите рабочую область для цены',
     'Select workspace': 'Выберите рабочую область',
-    'Tasks': 'Задачи',
+    Tasks: 'Задачи',
     'This starts removal for the assigned member and releases the seat after confirmation.':
       'Это запускает удаление назначенного участника и освобождает место после подтверждения.',
     'Active Seats': 'Активные места',
@@ -406,12 +416,14 @@ const newKeys = {
     'Activated At': 'Дата активации',
     'Add Standard Seats': 'Добавить стандартные места',
     'Billing Anchor': 'Якорь биллинга',
-    'Billing anchor helper': 'Время начала биллинговых циклов для этой рабочей области.',
+    'Billing anchor helper':
+      'Время начала биллинговых циклов для этой рабочей области.',
     'Cash Collected': 'Собрано средств',
     'ChatGPT Email': 'Email ChatGPT',
     'Create Workspace': 'Создать рабочую область',
     'Grace Minutes': 'Минуты отсрочки',
-    'Grace minutes helper': 'Минуты после якоря, когда разрешены заказы нового цикла.',
+    'Grace minutes helper':
+      'Минуты после якоря, когда разрешены заказы нового цикла.',
     'Manage workspaces, pricing, and activations':
       'Управление рабочими областями, ценами и активациями',
     'Mark Invited': 'Отметить приглашённым',
@@ -420,12 +432,12 @@ const newKeys = {
     'Renewal lead time': 'Срок до продления',
     'Seat Number': 'Номер места',
     'Total Seats': 'Всего мест',
-    'Workspace': 'Рабочая область',
+    Workspace: 'Рабочая область',
     'Workspace Name': 'Название рабочей области',
     'Workspace subscription summary':
       '{{provider}} · {{cadence}} · якорь {{anchor}} · {{seats}} мест · отсрочка {{grace}} мин',
     'Available Seats': 'Доступные места',
-    'Timezone': 'Часовой пояс',
+    Timezone: 'Часовой пояс',
     'Timezone helper': 'IANA-часовой пояс для расчёта якоря биллинга.',
     'Paid Through': 'Оплачено до',
     'Confirm Seat Added': 'Подтвердить добавление места',
@@ -468,7 +480,7 @@ const newKeys = {
     'Seat removal requested': 'Đã yêu cầu gỡ ghế',
     'Select a workspace for pricing': 'Chọn workspace để đặt giá',
     'Select workspace': 'Chọn workspace',
-    'Tasks': 'Tác vụ',
+    Tasks: 'Tác vụ',
     'This starts removal for the assigned member and releases the seat after confirmation.':
       'Thao tác này bắt đầu gỡ thành viên đã gán và giải phóng ghế sau khi xác nhận.',
     'Active Seats': 'Ghế đang dùng',
@@ -477,7 +489,8 @@ const newKeys = {
     'Activated At': 'Thời gian kích hoạt',
     'Add Standard Seats': 'Thêm ghế tiêu chuẩn',
     'Billing Anchor': 'Mốc chu kỳ thanh toán',
-    'Billing anchor helper': 'Thời điểm bắt đầu chu kỳ thanh toán của workspace.',
+    'Billing anchor helper':
+      'Thời điểm bắt đầu chu kỳ thanh toán của workspace.',
     'Cash Collected': 'Đã thu',
     'ChatGPT Email': 'Email ChatGPT',
     'Create Workspace': 'Tạo workspace',
@@ -491,12 +504,12 @@ const newKeys = {
     'Renewal lead time': 'Thời gian báo trước gia hạn',
     'Seat Number': 'Số ghế',
     'Total Seats': 'Tổng số ghế',
-    'Workspace': 'Workspace',
+    Workspace: 'Workspace',
     'Workspace Name': 'Tên workspace',
     'Workspace subscription summary':
       '{{provider}} · {{cadence}} · mốc {{anchor}} · {{seats}} ghế · ân hạn {{grace}} phút',
     'Available Seats': 'Ghế trống',
-    'Timezone': 'Múi giờ',
+    Timezone: 'Múi giờ',
     'Timezone helper': 'Múi giờ IANA dùng để tính mốc thanh toán.',
     'Paid Through': 'Thanh toán đến',
     'Confirm Seat Added': 'Xác nhận đã thêm ghế',
@@ -509,116 +522,141 @@ const newKeys = {
 
 const requestedKeys = {
   en: {
-    'subscription.defaultDescription': 'A ChatGPT Business subscription for teams and professional workflows.',
+    'subscription.defaultDescription':
+      'A ChatGPT Business subscription for teams and professional workflows.',
     'subscription.currentBenefits': 'Current subscription includes',
     'subscription.nextRenewal': 'Next renewal',
     'subscription.validUntil': 'Valid until',
     'subscription.billing.monthly': 'Billed monthly',
     'subscription.billing.yearly': 'Billed yearly',
     'ChatGPT Subscription': 'ChatGPT Subscription',
-    'Manage your ChatGPT subscription and workspace access': 'Manage your ChatGPT subscription and workspace access',
+    'Manage your ChatGPT subscription and workspace access':
+      'Manage your ChatGPT subscription and workspace access',
     'Cancel subscription': 'Cancel subscription',
-    'Subscription cancellation scheduled': 'Subscription cancellation scheduled',
+    'Subscription cancellation scheduled':
+      'Subscription cancellation scheduled',
     'Unable to cancel subscription': 'Unable to cancel subscription',
     'All statuses': 'All statuses',
     'Cancel subscription?': 'Cancel subscription?',
-    'Your subscription will remain active until the end of the current period.': 'Your subscription will remain active until the end of the current period.',
+    'Your subscription will remain active until the end of the current period.':
+      'Your subscription will remain active until the end of the current period.',
   },
   zh: {
-    'subscription.defaultDescription': '适合团队和专业工作场景的 ChatGPT Business 订阅。',
+    'subscription.defaultDescription':
+      '适合团队和专业工作场景的 ChatGPT Business 订阅。',
     'subscription.currentBenefits': '当前订阅包含',
     'subscription.nextRenewal': '下次续费',
     'subscription.validUntil': '有效期至',
     'subscription.billing.monthly': '按月计费',
     'subscription.billing.yearly': '按年计费',
     'ChatGPT Subscription': 'ChatGPT 订阅',
-    'Manage your ChatGPT subscription and workspace access': '管理 ChatGPT 订阅和工作区访问权限',
+    'Manage your ChatGPT subscription and workspace access':
+      '管理 ChatGPT 订阅和工作区访问权限',
     'Cancel subscription': '取消订阅',
     'Subscription cancellation scheduled': '已安排在下个周期取消订阅',
     'Unable to cancel subscription': '取消订阅失败',
     'All statuses': '全部状态',
     'Cancel subscription?': '确定取消订阅？',
-    'Your subscription will remain active until the end of the current period.': '订阅将在当前周期结束前继续有效。',
+    'Your subscription will remain active until the end of the current period.':
+      '订阅将在当前周期结束前继续有效。',
   },
   'zh-TW': {
-    'subscription.defaultDescription': '適合團隊與專業工作場景的 ChatGPT Business 訂閱。',
+    'subscription.defaultDescription':
+      '適合團隊與專業工作場景的 ChatGPT Business 訂閱。',
     'subscription.currentBenefits': '目前訂閱包含',
     'subscription.nextRenewal': '下次續費',
     'subscription.validUntil': '有效期至',
     'subscription.billing.monthly': '按月計費',
     'subscription.billing.yearly': '按年計費',
     'ChatGPT Subscription': 'ChatGPT 訂閱',
-    'Manage your ChatGPT subscription and workspace access': '管理 ChatGPT 訂閱與工作區存取權限',
+    'Manage your ChatGPT subscription and workspace access':
+      '管理 ChatGPT 訂閱與工作區存取權限',
     'Cancel subscription': '取消訂閱',
     'Subscription cancellation scheduled': '已安排在下個週期取消訂閱',
     'Unable to cancel subscription': '取消訂閱失敗',
     'All statuses': '全部狀態',
     'Cancel subscription?': '確定取消訂閱？',
-    'Your subscription will remain active until the end of the current period.': '訂閱將在目前週期結束前持續有效。',
+    'Your subscription will remain active until the end of the current period.':
+      '訂閱將在目前週期結束前持續有效。',
   },
   fr: {
-    'subscription.defaultDescription': 'Un abonnement ChatGPT Business pour les équipes et les usages professionnels.',
+    'subscription.defaultDescription':
+      'Un abonnement ChatGPT Business pour les équipes et les usages professionnels.',
     'subscription.currentBenefits': 'Votre abonnement comprend',
     'subscription.nextRenewal': 'Prochain renouvellement',
     'subscription.validUntil': "Valide jusqu'au",
     'subscription.billing.monthly': 'Facturé mensuellement',
     'subscription.billing.yearly': 'Facturé annuellement',
     'ChatGPT Subscription': 'Abonnement ChatGPT',
-    'Manage your ChatGPT subscription and workspace access': 'Gérez votre abonnement ChatGPT et vos accès aux espaces de travail',
+    'Manage your ChatGPT subscription and workspace access':
+      'Gérez votre abonnement ChatGPT et vos accès aux espaces de travail',
     'Cancel subscription': "Annuler l'abonnement",
-    'Subscription cancellation scheduled': "Annulation de l'abonnement planifiée",
+    'Subscription cancellation scheduled':
+      "Annulation de l'abonnement planifiée",
     'Unable to cancel subscription': "Impossible d'annuler l'abonnement",
     'All statuses': 'Tous les statuts',
     'Cancel subscription?': "Annuler l'abonnement ?",
-    'Your subscription will remain active until the end of the current period.': "Votre abonnement restera actif jusqu'à la fin de la période en cours.",
+    'Your subscription will remain active until the end of the current period.':
+      "Votre abonnement restera actif jusqu'à la fin de la période en cours.",
   },
   ja: {
-    'subscription.defaultDescription': 'チームやプロフェッショナルな業務に適した ChatGPT Business サブスクリプション。',
+    'subscription.defaultDescription':
+      'チームやプロフェッショナルな業務に適した ChatGPT Business サブスクリプション。',
     'subscription.currentBenefits': '現在のサブスクリプションに含まれるもの',
     'subscription.nextRenewal': '次回更新',
     'subscription.validUntil': '有効期限',
     'subscription.billing.monthly': '月払い',
     'subscription.billing.yearly': '年払い',
     'ChatGPT Subscription': 'ChatGPT サブスクリプション',
-    'Manage your ChatGPT subscription and workspace access': 'ChatGPT サブスクリプションとワークスペースへのアクセスを管理',
+    'Manage your ChatGPT subscription and workspace access':
+      'ChatGPT サブスクリプションとワークスペースへのアクセスを管理',
     'Cancel subscription': 'サブスクリプションをキャンセル',
     'Subscription cancellation scheduled': '次のサイクルでの解約を設定しました',
     'Unable to cancel subscription': 'サブスクリプションをキャンセルできません',
     'All statuses': 'すべてのステータス',
     'Cancel subscription?': 'サブスクリプションをキャンセルしますか？',
-    'Your subscription will remain active until the end of the current period.': '現在の期間が終了するまでサブスクリプションは有効です。',
+    'Your subscription will remain active until the end of the current period.':
+      '現在の期間が終了するまでサブスクリプションは有効です。',
   },
   ru: {
-    'subscription.defaultDescription': 'Подписка ChatGPT Business для команд и профессиональных задач.',
+    'subscription.defaultDescription':
+      'Подписка ChatGPT Business для команд и профессиональных задач.',
     'subscription.currentBenefits': 'В подписку входит',
     'subscription.nextRenewal': 'Следующее продление',
     'subscription.validUntil': 'Действует до',
     'subscription.billing.monthly': 'Ежемесячная оплата',
     'subscription.billing.yearly': 'Ежегодная оплата',
     'ChatGPT Subscription': 'Подписка ChatGPT',
-    'Manage your ChatGPT subscription and workspace access': 'Управляйте подпиской ChatGPT и доступом к рабочим пространствам',
+    'Manage your ChatGPT subscription and workspace access':
+      'Управляйте подпиской ChatGPT и доступом к рабочим пространствам',
     'Cancel subscription': 'Отменить подписку',
-    'Subscription cancellation scheduled': 'Отмена подписки запланирована на следующий период',
+    'Subscription cancellation scheduled':
+      'Отмена подписки запланирована на следующий период',
     'Unable to cancel subscription': 'Не удалось отменить подписку',
     'All statuses': 'Все статусы',
     'Cancel subscription?': 'Отменить подписку?',
-    'Your subscription will remain active until the end of the current period.': 'Подписка останется активной до конца текущего периода.',
+    'Your subscription will remain active until the end of the current period.':
+      'Подписка останется активной до конца текущего периода.',
   },
   vi: {
-    'subscription.defaultDescription': 'Gói ChatGPT Business dành cho nhóm và công việc chuyên nghiệp.',
+    'subscription.defaultDescription':
+      'Gói ChatGPT Business dành cho nhóm và công việc chuyên nghiệp.',
     'subscription.currentBenefits': 'Gói đăng ký hiện tại bao gồm',
     'subscription.nextRenewal': 'Gia hạn tiếp theo',
     'subscription.validUntil': 'Có hiệu lực đến',
     'subscription.billing.monthly': 'Thanh toán hàng tháng',
     'subscription.billing.yearly': 'Thanh toán hàng năm',
     'ChatGPT Subscription': 'Gói đăng ký ChatGPT',
-    'Manage your ChatGPT subscription and workspace access': 'Quản lý gói đăng ký ChatGPT và quyền truy cập workspace',
+    'Manage your ChatGPT subscription and workspace access':
+      'Quản lý gói đăng ký ChatGPT và quyền truy cập workspace',
     'Cancel subscription': 'Hủy gói đăng ký',
-    'Subscription cancellation scheduled': 'Đã lên lịch hủy gói vào chu kỳ tiếp theo',
+    'Subscription cancellation scheduled':
+      'Đã lên lịch hủy gói vào chu kỳ tiếp theo',
     'Unable to cancel subscription': 'Không thể hủy gói đăng ký',
     'All statuses': 'Tất cả trạng thái',
     'Cancel subscription?': 'Hủy gói đăng ký?',
-    'Your subscription will remain active until the end of the current period.': 'Gói đăng ký vẫn hoạt động đến hết chu kỳ hiện tại.',
+    'Your subscription will remain active until the end of the current period.':
+      'Gói đăng ký vẫn hoạt động đến hết chu kỳ hiện tại.',
   },
 }
 const overviewKeys = {
@@ -629,11 +667,14 @@ const overviewKeys = {
     'API calls today': 'API calls today',
     'Service status': 'Service status',
     Normal: 'Normal',
-    'Global nodes are operating normally': 'Global nodes are operating normally',
-    'Complete the basics to start using the AIHub API.': 'Complete the basics to start using the AIHub API.',
+    'Global nodes are operating normally':
+      'Global nodes are operating normally',
+    'Complete the basics to start using the AIHub API.':
+      'Complete the basics to start using the AIHub API.',
     'Continue setup': 'Continue setup',
     'Usage trend': 'Usage trend',
-    'Monitor API request volume and spend': 'Monitor API request volume and spend',
+    'Monitor API request volume and spend':
+      'Monitor API request volume and spend',
     Spend: 'Spend',
     'Usage trend chart': 'Usage trend chart',
     'Total requests': 'Total requests',
@@ -644,12 +685,14 @@ const overviewKeys = {
     'Default model': 'Default model',
     'Recent request': 'Recent request',
     'Model usage distribution': 'Model usage distribution',
-    'Main models used in the last 30 days': 'Main models used in the last 30 days',
+    'Main models used in the last 30 days':
+      'Main models used in the last 30 days',
     'View all': 'View all',
     'Recent requests': 'Recent requests',
     'minutes ago': 'minutes ago',
     'hours ago': 'hours ago',
-    'View account, usage, and service health': 'View account, usage, and service health',
+    'View account, usage, and service health':
+      'View account, usage, and service health',
     Unknown: 'Unknown',
   },
   zh: {
@@ -660,7 +703,8 @@ const overviewKeys = {
     'Service status': '服务状态',
     Normal: '正常',
     'Global nodes are operating normally': '全球节点运行正常',
-    'Complete the basics to start using the AIHub API.': '完成基础配置后即可开始使用 AIHub API。',
+    'Complete the basics to start using the AIHub API.':
+      '完成基础配置后即可开始使用 AIHub API。',
     'Continue setup': '继续设置',
     'Usage trend': '调用趋势',
     'Monitor API request volume and spend': '监控 API 请求量与消费变化',
@@ -683,23 +727,183 @@ const overviewKeys = {
     Unknown: '未知',
   },
   'zh-TW': {
-    'Available balance': '可用餘額', 'Available for API calls': '可用於 API 呼叫', 'Cumulative spend today': '今日累計消費', 'API calls today': '今日呼叫次數', 'Service status': '服務狀態', Normal: '正常', 'Global nodes are operating normally': '全球節點運作正常', 'Complete the basics to start using the AIHub API.': '完成基本設定後即可開始使用 AIHub API。', 'Continue setup': '繼續設定', 'Usage trend': '呼叫趨勢', 'Monitor API request volume and spend': '監控 API 請求量與消費變化', Spend: '消費', 'Usage trend chart': '呼叫趨勢圖', 'Total requests': '累計請求', 'Total spend': '累計消費', 'API status': 'API 狀態', 'API keys': 'API 金鑰', Unavailable: '無法使用', 'Default model': '預設模型', 'Recent request': '最近請求', 'Model usage distribution': '模型使用分佈', 'Main models used in the last 30 days': '最近 30 天主要模型呼叫情況', 'View all': '查看全部', 'Recent requests': '最近請求', 'minutes ago': '分鐘前', 'hours ago': '小時前', 'View account, usage, and service health': '查看帳戶、呼叫與服務運作情況', Unknown: '未知',
+    'Available balance': '可用餘額',
+    'Available for API calls': '可用於 API 呼叫',
+    'Cumulative spend today': '今日累計消費',
+    'API calls today': '今日呼叫次數',
+    'Service status': '服務狀態',
+    Normal: '正常',
+    'Global nodes are operating normally': '全球節點運作正常',
+    'Complete the basics to start using the AIHub API.':
+      '完成基本設定後即可開始使用 AIHub API。',
+    'Continue setup': '繼續設定',
+    'Usage trend': '呼叫趨勢',
+    'Monitor API request volume and spend': '監控 API 請求量與消費變化',
+    Spend: '消費',
+    'Usage trend chart': '呼叫趨勢圖',
+    'Total requests': '累計請求',
+    'Total spend': '累計消費',
+    'API status': 'API 狀態',
+    'API keys': 'API 金鑰',
+    Unavailable: '無法使用',
+    'Default model': '預設模型',
+    'Recent request': '最近請求',
+    'Model usage distribution': '模型使用分佈',
+    'Main models used in the last 30 days': '最近 30 天主要模型呼叫情況',
+    'View all': '查看全部',
+    'Recent requests': '最近請求',
+    'minutes ago': '分鐘前',
+    'hours ago': '小時前',
+    'View account, usage, and service health': '查看帳戶、呼叫與服務運作情況',
+    Unknown: '未知',
   },
   fr: {
-    'Available balance': 'Solde disponible', 'Available for API calls': 'Disponible pour les appels API', 'Cumulative spend today': 'Dépenses cumulées du jour', 'API calls today': "Appels API aujourd'hui", 'Service status': 'État du service', Normal: 'Normal', 'Global nodes are operating normally': 'Les nœuds mondiaux fonctionnent normalement', 'Complete the basics to start using the AIHub API.': "Terminez la configuration de base pour commencer à utiliser l'API AIHub.", 'Continue setup': 'Continuer la configuration', 'Usage trend': "Tendance d'utilisation", 'Monitor API request volume and spend': "Surveillez le volume des requêtes API et les dépenses", Spend: 'Dépenses', 'Usage trend chart': "Graphique de tendance d'utilisation", 'Total requests': 'Requêtes totales', 'Total spend': 'Dépenses totales', 'API status': "État de l'API", 'API keys': 'Clés API', Unavailable: 'Indisponible', 'Default model': 'Modèle par défaut', 'Recent request': 'Requête récente', 'Model usage distribution': "Répartition de l'utilisation des modèles", 'Main models used in the last 30 days': 'Principaux modèles utilisés au cours des 30 derniers jours', 'View all': 'Tout afficher', 'Recent requests': 'Requêtes récentes', 'minutes ago': 'min', 'hours ago': 'h', 'View account, usage, and service health': "Consultez le compte, l'utilisation et l'état des services", Unknown: 'Inconnu',
+    'Available balance': 'Solde disponible',
+    'Available for API calls': 'Disponible pour les appels API',
+    'Cumulative spend today': 'Dépenses cumulées du jour',
+    'API calls today': "Appels API aujourd'hui",
+    'Service status': 'État du service',
+    Normal: 'Normal',
+    'Global nodes are operating normally':
+      'Les nœuds mondiaux fonctionnent normalement',
+    'Complete the basics to start using the AIHub API.':
+      "Terminez la configuration de base pour commencer à utiliser l'API AIHub.",
+    'Continue setup': 'Continuer la configuration',
+    'Usage trend': "Tendance d'utilisation",
+    'Monitor API request volume and spend':
+      'Surveillez le volume des requêtes API et les dépenses',
+    Spend: 'Dépenses',
+    'Usage trend chart': "Graphique de tendance d'utilisation",
+    'Total requests': 'Requêtes totales',
+    'Total spend': 'Dépenses totales',
+    'API status': "État de l'API",
+    'API keys': 'Clés API',
+    Unavailable: 'Indisponible',
+    'Default model': 'Modèle par défaut',
+    'Recent request': 'Requête récente',
+    'Model usage distribution': "Répartition de l'utilisation des modèles",
+    'Main models used in the last 30 days':
+      'Principaux modèles utilisés au cours des 30 derniers jours',
+    'View all': 'Tout afficher',
+    'Recent requests': 'Requêtes récentes',
+    'minutes ago': 'min',
+    'hours ago': 'h',
+    'View account, usage, and service health':
+      "Consultez le compte, l'utilisation et l'état des services",
+    Unknown: 'Inconnu',
   },
   ja: {
-    'Available balance': '利用可能残高', 'Available for API calls': 'API 呼び出しに利用可能', 'Cumulative spend today': '本日の累計利用額', 'API calls today': '本日の API 呼び出し', 'Service status': 'サービス状態', Normal: '正常', 'Global nodes are operating normally': 'グローバルノードは正常に稼働しています', 'Complete the basics to start using the AIHub API.': '基本設定を完了すると AIHub API を利用できます。', 'Continue setup': '設定を続ける', 'Usage trend': '利用傾向', 'Monitor API request volume and spend': 'API リクエスト量と利用額を監視', Spend: '利用額', 'Usage trend chart': '利用傾向グラフ', 'Total requests': '合計リクエスト', 'Total spend': '合計利用額', 'API status': 'API 状態', 'API keys': 'API キー', Unavailable: '利用不可', 'Default model': 'デフォルトモデル', 'Recent request': '最近のリクエスト', 'Model usage distribution': 'モデル利用分布', 'Main models used in the last 30 days': '過去 30 日間に主に利用されたモデル', 'View all': 'すべて表示', 'Recent requests': '最近のリクエスト', 'minutes ago': '分前', 'hours ago': '時間前', 'View account, usage, and service health': 'アカウント、利用状況、サービス状態を確認',
+    'Available balance': '利用可能残高',
+    'Available for API calls': 'API 呼び出しに利用可能',
+    'Cumulative spend today': '本日の累計利用額',
+    'API calls today': '本日の API 呼び出し',
+    'Service status': 'サービス状態',
+    Normal: '正常',
+    'Global nodes are operating normally':
+      'グローバルノードは正常に稼働しています',
+    'Complete the basics to start using the AIHub API.':
+      '基本設定を完了すると AIHub API を利用できます。',
+    'Continue setup': '設定を続ける',
+    'Usage trend': '利用傾向',
+    'Monitor API request volume and spend': 'API リクエスト量と利用額を監視',
+    Spend: '利用額',
+    'Usage trend chart': '利用傾向グラフ',
+    'Total requests': '合計リクエスト',
+    'Total spend': '合計利用額',
+    'API status': 'API 状態',
+    'API keys': 'API キー',
+    Unavailable: '利用不可',
+    'Default model': 'デフォルトモデル',
+    'Recent request': '最近のリクエスト',
+    'Model usage distribution': 'モデル利用分布',
+    'Main models used in the last 30 days':
+      '過去 30 日間に主に利用されたモデル',
+    'View all': 'すべて表示',
+    'Recent requests': '最近のリクエスト',
+    'minutes ago': '分前',
+    'hours ago': '時間前',
+    'View account, usage, and service health':
+      'アカウント、利用状況、サービス状態を確認',
   },
   ru: {
-    'Available balance': 'Доступный баланс', 'Available for API calls': 'Доступно для API-запросов', 'Cumulative spend today': 'Расходы за сегодня', 'API calls today': 'API-запросов сегодня', 'Service status': 'Состояние сервиса', Normal: 'Норма', 'Global nodes are operating normally': 'Глобальные узлы работают нормально', 'Complete the basics to start using the AIHub API.': 'Завершите базовую настройку, чтобы начать использовать API AIHub.', 'Continue setup': 'Продолжить настройку', 'Usage trend': 'Динамика использования', 'Monitor API request volume and spend': 'Отслеживайте объём API-запросов и расходы', Spend: 'Расходы', 'Usage trend chart': 'График динамики использования', 'Total requests': 'Всего запросов', 'Total spend': 'Общие расходы', 'API status': 'Состояние API', 'API keys': 'API-ключи', Unavailable: 'Недоступно', 'Default model': 'Модель по умолчанию', 'Recent request': 'Последний запрос', 'Model usage distribution': 'Распределение использования моделей', 'Main models used in the last 30 days': 'Основные модели за последние 30 дней', 'View all': 'Показать все', 'Recent requests': 'Последние запросы', 'minutes ago': 'мин назад', 'hours ago': 'ч назад', 'View account, usage, and service health': 'Просмотр аккаунта, использования и состояния сервисов',
+    'Available balance': 'Доступный баланс',
+    'Available for API calls': 'Доступно для API-запросов',
+    'Cumulative spend today': 'Расходы за сегодня',
+    'API calls today': 'API-запросов сегодня',
+    'Service status': 'Состояние сервиса',
+    Normal: 'Норма',
+    'Global nodes are operating normally': 'Глобальные узлы работают нормально',
+    'Complete the basics to start using the AIHub API.':
+      'Завершите базовую настройку, чтобы начать использовать API AIHub.',
+    'Continue setup': 'Продолжить настройку',
+    'Usage trend': 'Динамика использования',
+    'Monitor API request volume and spend':
+      'Отслеживайте объём API-запросов и расходы',
+    Spend: 'Расходы',
+    'Usage trend chart': 'График динамики использования',
+    'Total requests': 'Всего запросов',
+    'Total spend': 'Общие расходы',
+    'API status': 'Состояние API',
+    'API keys': 'API-ключи',
+    Unavailable: 'Недоступно',
+    'Default model': 'Модель по умолчанию',
+    'Recent request': 'Последний запрос',
+    'Model usage distribution': 'Распределение использования моделей',
+    'Main models used in the last 30 days':
+      'Основные модели за последние 30 дней',
+    'View all': 'Показать все',
+    'Recent requests': 'Последние запросы',
+    'minutes ago': 'мин назад',
+    'hours ago': 'ч назад',
+    'View account, usage, and service health':
+      'Просмотр аккаунта, использования и состояния сервисов',
   },
   vi: {
-    'Available balance': 'Số dư khả dụng', 'Available for API calls': 'Có thể dùng cho lệnh gọi API', 'Cumulative spend today': 'Chi tiêu tích lũy hôm nay', 'API calls today': 'Lượt gọi API hôm nay', 'Service status': 'Trạng thái dịch vụ', Normal: 'Bình thường', 'Global nodes are operating normally': 'Các nút toàn cầu đang hoạt động bình thường', 'Complete the basics to start using the AIHub API.': 'Hoàn tất thiết lập cơ bản để bắt đầu sử dụng API AIHub.', 'Continue setup': 'Tiếp tục thiết lập', 'Usage trend': 'Xu hướng sử dụng', 'Monitor API request volume and spend': 'Theo dõi số lượng yêu cầu API và chi tiêu', Spend: 'Chi tiêu', 'Usage trend chart': 'Biểu đồ xu hướng sử dụng', 'Total requests': 'Tổng số yêu cầu', 'Total spend': 'Tổng chi tiêu', 'API status': 'Trạng thái API', 'API keys': 'Khóa API', Unavailable: 'Không khả dụng', 'Default model': 'Mô hình mặc định', 'Recent request': 'Yêu cầu gần đây', 'Model usage distribution': 'Phân bổ sử dụng mô hình', 'Main models used in the last 30 days': 'Các mô hình chính được sử dụng trong 30 ngày qua', 'View all': 'Xem tất cả', 'Recent requests': 'Các yêu cầu gần đây', 'minutes ago': 'phút trước', 'hours ago': 'giờ trước', 'View account, usage, and service health': 'Xem tài khoản, mức sử dụng và tình trạng dịch vụ',
+    'Available balance': 'Số dư khả dụng',
+    'Available for API calls': 'Có thể dùng cho lệnh gọi API',
+    'Cumulative spend today': 'Chi tiêu tích lũy hôm nay',
+    'API calls today': 'Lượt gọi API hôm nay',
+    'Service status': 'Trạng thái dịch vụ',
+    Normal: 'Bình thường',
+    'Global nodes are operating normally':
+      'Các nút toàn cầu đang hoạt động bình thường',
+    'Complete the basics to start using the AIHub API.':
+      'Hoàn tất thiết lập cơ bản để bắt đầu sử dụng API AIHub.',
+    'Continue setup': 'Tiếp tục thiết lập',
+    'Usage trend': 'Xu hướng sử dụng',
+    'Monitor API request volume and spend':
+      'Theo dõi số lượng yêu cầu API và chi tiêu',
+    Spend: 'Chi tiêu',
+    'Usage trend chart': 'Biểu đồ xu hướng sử dụng',
+    'Total requests': 'Tổng số yêu cầu',
+    'Total spend': 'Tổng chi tiêu',
+    'API status': 'Trạng thái API',
+    'API keys': 'Khóa API',
+    Unavailable: 'Không khả dụng',
+    'Default model': 'Mô hình mặc định',
+    'Recent request': 'Yêu cầu gần đây',
+    'Model usage distribution': 'Phân bổ sử dụng mô hình',
+    'Main models used in the last 30 days':
+      'Các mô hình chính được sử dụng trong 30 ngày qua',
+    'View all': 'Xem tất cả',
+    'Recent requests': 'Các yêu cầu gần đây',
+    'minutes ago': 'phút trước',
+    'hours ago': 'giờ trước',
+    'View account, usage, and service health':
+      'Xem tài khoản, mức sử dụng và tình trạng dịch vụ',
   },
 }
-const unknownTranslations = { en: 'Unknown', zh: '未知', 'zh-TW': '未知', fr: 'Inconnu', ja: '不明', ru: 'Неизвестно', vi: 'Không xác định' }
-for (const [locale, value] of Object.entries(unknownTranslations)) overviewKeys[locale].Unknown = value
+const unknownTranslations = {
+  en: 'Unknown',
+  zh: '未知',
+  'zh-TW': '未知',
+  fr: 'Inconnu',
+  ja: '不明',
+  ru: 'Неизвестно',
+  vi: 'Không xác định',
+}
+for (const [locale, value] of Object.entries(unknownTranslations))
+  overviewKeys[locale].Unknown = value
 const workspaceListTranslations = {
   en: ['Available workspaces', 'Subscribed'],
   zh: ['可用工作区', '已订阅'],
@@ -709,13 +913,94 @@ const workspaceListTranslations = {
   ru: ['Доступные рабочие пространства', 'Подписка активна'],
   vi: ['Workspace khả dụng', 'Đã đăng ký'],
 }
-for (const [locale, [available, subscribed]] of Object.entries(workspaceListTranslations)) {
+const walletAndWorkspaceTranslations = {
+  en: {
+    Renew: 'Renew',
+    'Workspace deleted': 'Workspace deleted',
+    'Unable to delete workspace': 'Unable to delete workspace',
+    'Delete Workspace?': 'Delete workspace?',
+    'This retires the workspace and removes it from ChatGPT subscriptions. Workspaces with active subscriptions cannot be deleted.':
+      'This retires the workspace and removes it from ChatGPT subscriptions. Workspaces with active subscriptions cannot be deleted.',
+    'Manage your account balance and top up funds to use AIHub API services':
+      'Manage your account balance and top up funds to use AIHub API services',
+  },
+  zh: {
+    Renew: '续 费',
+    'Workspace deleted': '工作区已删除',
+    'Unable to delete workspace': '无法删除工作区',
+    'Delete Workspace?': '删除工作区？',
+    'This retires the workspace and removes it from ChatGPT subscriptions. Workspaces with active subscriptions cannot be deleted.':
+      '删除后将不再在 ChatGPT 订阅中显示该工作区；存在活跃订阅的工作区无法删除。',
+    'Manage your account balance and top up funds to use AIHub API services':
+      '管理账户余额，充值资金以使用 AIHub 的 API 服务',
+    'Order History': '历史订单',
+  },
+  'zh-TW': {
+    Renew: '續費',
+    'Workspace deleted': '工作區已刪除',
+    'Unable to delete workspace': '無法刪除工作區',
+    'Delete Workspace?': '刪除工作區？',
+    'This retires the workspace and removes it from ChatGPT subscriptions. Workspaces with active subscriptions cannot be deleted.':
+      '刪除後將不再於 ChatGPT 訂閱顯示該工作區；有活躍訂閱的工作區無法刪除。',
+    'Manage your account balance and top up funds to use AIHub API services':
+      '管理帳戶餘額，充值資金以使用 AIHub 的 API 服務',
+    'Order History': '歷史訂單',
+  },
+  fr: {
+    Renew: 'Renouveler',
+    'Workspace deleted': 'Espace de travail supprimé',
+    'Unable to delete workspace': "Impossible de supprimer l'espace de travail",
+    'Delete Workspace?': "Supprimer l'espace de travail ?",
+    'This retires the workspace and removes it from ChatGPT subscriptions. Workspaces with active subscriptions cannot be deleted.':
+      "Cette action retire l'espace de travail des abonnements ChatGPT. Les espaces avec des abonnements actifs ne peuvent pas être supprimés.",
+    'Manage your account balance and top up funds to use AIHub API services':
+      'Gérez votre solde et rechargez votre compte pour utiliser les services API AIHub.',
+  },
+  ja: {
+    Renew: '更新する',
+    'Workspace deleted': 'ワークスペースを削除しました',
+    'Unable to delete workspace': 'ワークスペースを削除できません',
+    'Delete Workspace?': 'ワークスペースを削除しますか？',
+    'This retires the workspace and removes it from ChatGPT subscriptions. Workspaces with active subscriptions cannot be deleted.':
+      'この操作でワークスペースは廃止され、ChatGPT サブスクリプションから削除されます。アクティブなサブスクリプションを持つワークスペースは削除できません。',
+    'Manage your account balance and top up funds to use AIHub API services':
+      'アカウント残高を管理し、AIHub API サービス利用のためにチャージします。',
+  },
+  ru: {
+    Renew: 'Продлить',
+    'Workspace deleted': 'Рабочее пространство удалено',
+    'Unable to delete workspace': 'Не удалось удалить рабочее пространство',
+    'Delete Workspace?': 'Удалить рабочее пространство?',
+    'This retires the workspace and removes it from ChatGPT subscriptions. Workspaces with active subscriptions cannot be deleted.':
+      'Рабочее пространство будет выведено из эксплуатации и удалено из подписок ChatGPT. Рабочие пространства с активными подписками удалить нельзя.',
+    'Manage your account balance and top up funds to use AIHub API services':
+      'Управляйте балансом аккаунта и пополняйте его для использования API AIHub.',
+  },
+  vi: {
+    Renew: 'Gia hạn',
+    'Workspace deleted': 'Đã xóa workspace',
+    'Unable to delete workspace': 'Không thể xóa workspace',
+    'Delete Workspace?': 'Xóa workspace?',
+    'This retires the workspace and removes it from ChatGPT subscriptions. Workspaces with active subscriptions cannot be deleted.':
+      'Thao tác này ngừng workspace và xóa nó khỏi các gói đăng ký ChatGPT. Không thể xóa workspace có gói đăng ký đang hoạt động.',
+    'Manage your account balance and top up funds to use AIHub API services':
+      'Quản lý số dư tài khoản và nạp tiền để sử dụng các dịch vụ API AIHub.',
+  },
+}
+for (const [locale, [available, subscribed]] of Object.entries(
+  workspaceListTranslations
+)) {
   overviewKeys[locale]['Available workspaces'] = available
   overviewKeys[locale].Subscribed = subscribed
 }
-for (const [locale, values] of Object.entries(overviewKeys)) Object.assign(newKeys[locale], values)
-for (const [locale, values] of Object.entries(requestedKeys)) Object.assign(newKeys[locale], values)
-for (const [locale, values] of Object.entries(homeComparisonKeys)) Object.assign(newKeys[locale], values)
+for (const [locale, values] of Object.entries(overviewKeys))
+  Object.assign(newKeys[locale], values)
+for (const [locale, values] of Object.entries(requestedKeys))
+  Object.assign(newKeys[locale], values)
+for (const [locale, values] of Object.entries(homeComparisonKeys))
+  Object.assign(newKeys[locale], values)
+for (const [locale, values] of Object.entries(walletAndWorkspaceTranslations))
+  Object.assign(newKeys[locale], values)
 
 async function main() {
   let totalAdded = 0
@@ -737,7 +1022,7 @@ async function main() {
 
     if (count > 0) {
       json.translation = Object.fromEntries(
-        Object.entries(json.translation).sort(([a], [b]) => a.localeCompare(b)),
+        Object.entries(json.translation).sort(([a], [b]) => a.localeCompare(b))
       )
       await fs.writeFile(filePath, stableStringify(json), 'utf8')
     }

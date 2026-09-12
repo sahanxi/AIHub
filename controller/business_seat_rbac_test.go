@@ -3,6 +3,7 @@ package controller
 import (
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -73,6 +74,7 @@ func businessSeatAdminRouter() *gin.Engine {
 	admin.Use(middleware.AdminAuth())
 	{
 		admin.GET("/workspaces", AdminListBusinessWorkspaces)
+		admin.DELETE("/workspaces/:id", AdminDeleteBusinessWorkspace)
 		admin.GET("/tasks", AdminListBusinessTasks)
 		admin.GET("/seats", AdminListBusinessSeats)
 		admin.GET("/pricing", AdminListBusinessPriceVersions)
@@ -130,4 +132,25 @@ func TestBusinessSeatAdminRBACUnauthenticatedDenied(t *testing.T) {
 	router := businessSeatAdminRouter()
 	response := requestWithPAT(router, http.MethodGet, "/api/business-seat/admin/workspaces", "")
 	assert.Equal(t, http.StatusUnauthorized, response.Code)
+}
+
+func TestBusinessSeatAdminDeletesEmptyWorkspace(t *testing.T) {
+	_, adminToken := setupBusinessSeatRBACTest(t)
+	workspace, err := model.GetDefaultBusinessWorkspace()
+	require.NoError(t, err)
+
+	response := requestWithPAT(
+		businessSeatAdminRouter(),
+		http.MethodDelete,
+		"/api/business-seat/admin/workspaces/"+strconv.Itoa(workspace.Id),
+		adminToken,
+	)
+	require.Equal(t, http.StatusOK, response.Code)
+
+	deleted, err := model.GetBusinessWorkspaceById(workspace.Id)
+	require.NoError(t, err)
+	assert.Equal(t, model.BusinessWorkspaceStatusDisabled, deleted.Status)
+	list, err := model.ListBusinessWorkspaces()
+	require.NoError(t, err)
+	assert.Empty(t, list)
 }

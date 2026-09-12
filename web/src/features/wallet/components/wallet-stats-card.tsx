@@ -34,9 +34,12 @@ export function WalletStatsCard(props: WalletStatsCardProps) {
   const { t } = useTranslation()
   if (props.loading) {
     return (
-      <div className='grid grid-cols-3 divide-x rounded-lg border'>
+      <div className='grid gap-3 md:grid-cols-3'>
         {['balance', 'usage', 'requests'].map((key) => (
-          <div key={key} className='min-w-0 px-2.5 py-2.5 sm:px-5 sm:py-4'>
+          <div
+            key={key}
+            className='min-w-0 rounded-2xl border border-slate-200 bg-white/85 p-5 shadow-sm'
+          >
             <Skeleton className='h-3.5 w-full' />
             <Skeleton className='mt-2 h-6 w-full sm:h-7' />
             <Skeleton className='mt-1.5 hidden h-3.5 w-24 md:block' />
@@ -78,10 +81,19 @@ export function WalletStatsCard(props: WalletStatsCardProps) {
     },
   ]
 
+  const cardStyles = [
+    'border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-teal-100/65',
+    'border-blue-200 bg-gradient-to-br from-blue-50 via-white to-sky-100/65',
+    'border-violet-200 bg-gradient-to-br from-violet-50 via-white to-fuchsia-100/55',
+  ]
+
   return (
-    <div className='grid grid-cols-3 divide-x rounded-lg border'>
-      {stats.map((item) => (
-        <div key={item.label} className='min-w-0 px-2.5 py-2.5 sm:px-5 sm:py-4'>
+    <div className='grid gap-3 md:grid-cols-3'>
+      {stats.map((item, index) => (
+        <div
+          key={item.label}
+          className={`min-w-0 rounded-2xl border p-5 shadow-sm ${cardStyles[index]}`}
+        >
           <div className='flex items-center gap-1.5 sm:gap-2.5'>
             <IconBadge tone={item.tone} size='stat'>
               <item.icon />
@@ -91,10 +103,10 @@ export function WalletStatsCard(props: WalletStatsCardProps) {
             </div>
           </div>
 
-          <div className='text-foreground mt-1.5 font-mono text-sm font-bold tracking-tight break-all tabular-nums sm:mt-2.5 sm:text-2xl'>
+          <div className='text-foreground mt-3 font-mono text-2xl font-bold tracking-tight break-all tabular-nums'>
             {item.value}
           </div>
-          <div className='text-muted-foreground/60 mt-1 hidden text-xs md:block'>
+          <div className='text-muted-foreground/70 mt-2 hidden text-xs leading-5 md:block'>
             {item.description}
           </div>
         </div>

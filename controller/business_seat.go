@@ -170,6 +170,9 @@ func GetBusinessSeatSelf(c *gin.Context) {
 	for i := range currentSubs {
 		sub := currentSubs[i]
 		ws, _ := model.GetBusinessWorkspaceById(sub.WorkspaceId)
+		if ws == nil || ws.Status != model.BusinessWorkspaceStatusActive {
+			continue
+		}
 		var price *model.BusinessPriceVersion
 		if sub.CurrentPriceVersionId > 0 {
 			var current model.BusinessPriceVersion
@@ -540,6 +543,24 @@ func AdminUpdateBusinessWorkspace(c *gin.Context) {
 	}
 	model.RecordBusinessSeatAudit(c.GetInt("id"), "WORKSPACE_BILLING_CHANGED", "workspace", id, "")
 	common.ApiSuccess(c, ws)
+}
+
+func AdminDeleteBusinessWorkspace(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	if err := model.DeleteBusinessWorkspace(id); err != nil {
+		if errors.Is(err, model.ErrBusinessWorkspaceHasSubscriptions) {
+			common.ApiErrorMsg(c, "Workspace with active subscriptions cannot be deleted")
+			return
+		}
+		if errors.Is(err, model.ErrBusinessWorkspaceNotFound) {
+			common.ApiErrorMsg(c, "Workspace not found")
+			return
+		}
+		common.ApiError(c, err)
+		return
+	}
+	model.RecordBusinessSeatAudit(c.GetInt("id"), "WORKSPACE_DELETED", "workspace", id, "retired")
+	common.ApiSuccess(c, gin.H{"success": true})
 }
 
 func AdminListBusinessPriceVersions(c *gin.Context) {

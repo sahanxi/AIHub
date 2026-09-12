@@ -196,22 +196,24 @@ export function RechargeFormCard({
       title={t('Add Funds')}
       description={t('Choose an amount and payment method')}
       icon={<WalletCards className='h-4 w-4' />}
-      iconTone='success'
+      iconTone='info'
       disableHoverEffect
+      className='rounded-3xl border-slate-200 bg-white/90 py-0 shadow-xl shadow-blue-100/50'
+      headerClassName='border-b border-slate-100 px-5 py-5 sm:px-6 sm:py-6'
       action={
         onOpenBilling ? (
           <Button
             variant='outline'
             size='sm'
             onClick={onOpenBilling}
-            className='w-full gap-2 sm:w-auto'
+            className='w-full gap-2 rounded-xl border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:bg-blue-50 sm:w-auto'
           >
             <Receipt className='h-4 w-4' />
             {t('Order History')}
           </Button>
         ) : null
       }
-      contentClassName='space-y-4 sm:space-y-6'
+      contentClassName='space-y-5 px-5 py-5 sm:space-y-6 sm:px-6 sm:py-6'
     >
       {/* Online Topup Section */}
       {hasAnyTopup ? (
@@ -229,25 +231,22 @@ export function RechargeFormCard({
                         preset.discount ||
                         topupInfo?.discount?.[preset.value] ||
                         1.0
-                      const {
-                        displayValue,
-                        savedAmount,
-                        hasDiscount,
-                      } = calculatePresetPricing(
-                        preset.value,
-                        priceRatio,
-                        discount,
-                        usdExchangeRate
-                      )
+                      const { displayValue, savedAmount, hasDiscount } =
+                        calculatePresetPricing(
+                          preset.value,
+                          priceRatio,
+                          discount,
+                          usdExchangeRate
+                        )
                       return (
                         <Button
                           key={preset.value}
                           variant='outline'
                           className={cn(
-                            'flex min-h-16 flex-col items-start rounded-lg px-3 py-2.5 text-left whitespace-normal sm:min-h-[72px] sm:p-4',
+                            'flex min-h-16 flex-col items-start rounded-xl px-3 py-2.5 text-left whitespace-normal transition-all sm:min-h-[72px] sm:p-4',
                             selectedPreset === preset.value
-                              ? 'border-foreground bg-foreground/5 dark:border-foreground dark:bg-foreground/10'
-                              : 'border-muted'
+                              ? 'border-blue-400 bg-gradient-to-br from-blue-50 to-sky-100/70 shadow-sm'
+                              : 'border-slate-200 bg-slate-50/60 hover:border-blue-200 hover:bg-blue-50/60'
                           )}
                           onClick={() => onSelectPreset(preset)}
                         >
@@ -292,9 +291,9 @@ export function RechargeFormCard({
                     onChange={(e) => handleAmountChange(e.target.value)}
                     min={minTopup}
                     placeholder={`Minimum ${minTopup}`}
-                    className='h-9 text-base sm:h-10 sm:text-lg'
+                    className='h-11 rounded-xl border-slate-300 bg-white text-base shadow-sm focus-visible:ring-blue-400 sm:text-lg'
                   />
-                  <div className='bg-muted/30 flex min-h-9 items-center justify-between gap-2 rounded-md border px-3 lg:min-w-52'>
+                  <div className='flex min-h-11 items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50/75 px-3 lg:min-w-52'>
                     <span className='text-muted-foreground truncate text-xs'>
                       {t('Topup Amount')}
                     </span>
@@ -346,7 +345,7 @@ export function RechargeFormCard({
                               ? `${method.name}. ${disabledReason}`
                               : method.name
                           }
-                          className='min-h-14 min-w-0 justify-start gap-2 rounded-lg px-3 py-2 text-left'
+                          className='min-h-14 min-w-0 justify-start gap-2 rounded-xl border-slate-200 bg-white px-3 py-2 text-left shadow-sm hover:border-blue-300 hover:bg-blue-50'
                         >
                           {paymentLoading === method.type ? (
                             <Loader2 className='h-4 w-4 animate-spin' />
@@ -444,7 +443,7 @@ export function RechargeFormCard({
                                 ? `${method.name}. ${disabledReason}`
                                 : method.name
                             }
-                            className='min-h-14 min-w-0 justify-start gap-2 rounded-lg px-3 py-2 text-left'
+                            className='min-h-14 min-w-0 justify-start gap-2 rounded-xl border-slate-200 bg-white px-3 py-2 text-left shadow-sm hover:border-blue-300 hover:bg-blue-50'
                           >
                             {methodIcon}
                             <span className='flex min-w-0 flex-col items-start gap-0.5'>

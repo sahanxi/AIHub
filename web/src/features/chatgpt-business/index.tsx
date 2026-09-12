@@ -1,3 +1,10 @@
+import {
+  ArrowRightIcon,
+  CalendarDaysIcon,
+  CheckIcon,
+  MailIcon,
+  RefreshCwIcon,
+} from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -10,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { startGatewayCheckout } from '@/features/wallet/lib/payment'
+import { getLobeIcon } from '@/lib/lobe-icon'
 import { useSystemConfigStore } from '@/stores/system-config-store'
 
 import {
@@ -463,13 +471,35 @@ export function ChatGPTBusinessPage() {
       },
     ]
   }
-  const cardPalette = [
-    'border-slate-300 bg-slate-100',
-    'border-blue-300 bg-blue-100/80',
-    'border-violet-300 bg-violet-100/80',
-    'border-emerald-300 bg-emerald-100/80',
-    'border-amber-300 bg-amber-100/80',
-    'border-rose-300 bg-rose-100/80',
+  const cardThemes = [
+    {
+      card: 'border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-teal-100/60',
+      status: 'bg-emerald-100 text-emerald-700',
+      primary:
+        'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-200/70 hover:from-emerald-600 hover:to-teal-600',
+      accent: 'border-emerald-200 bg-white/85',
+    },
+    {
+      card: 'border-blue-200 bg-gradient-to-br from-blue-50 via-white to-sky-100/60',
+      status: 'bg-blue-100 text-blue-700',
+      primary:
+        'bg-gradient-to-r from-blue-500 to-sky-500 text-white shadow-md shadow-blue-200/70 hover:from-blue-600 hover:to-sky-600',
+      accent: 'border-blue-200 bg-white/85',
+    },
+    {
+      card: 'border-violet-200 bg-gradient-to-br from-violet-50 via-white to-fuchsia-100/55',
+      status: 'bg-violet-100 text-violet-700',
+      primary:
+        'bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-md shadow-violet-200/70 hover:from-violet-600 hover:to-fuchsia-600',
+      accent: 'border-violet-200 bg-white/85',
+    },
+    {
+      card: 'border-amber-200 bg-gradient-to-br from-amber-50 via-white to-orange-100/55',
+      status: 'bg-amber-100 text-amber-700',
+      primary:
+        'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-200/70 hover:from-amber-600 hover:to-orange-600',
+      accent: 'border-amber-200 bg-white/85',
+    },
   ]
 
   return (
@@ -508,68 +538,77 @@ export function ChatGPTBusinessPage() {
             const billingLabel = t(
               `subscription.billing.${(row.workspace.billing_cadence || workspacePrice?.billing_cadence || 'monthly').toLowerCase()}`
             )
+            const cardTheme = cardThemes[index % cardThemes.length]
 
             return (
               <Card
                 key={row.workspace.id}
-                className={`flex h-[560px] min-h-0 w-full flex-col overflow-y-auto shadow-sm transition-shadow hover:shadow-md ${cardPalette[index % cardPalette.length]}`}
+                className={`h-[560px] min-h-0 w-full overflow-y-auto rounded-3xl py-0 shadow-lg transition-shadow hover:shadow-xl ${cardTheme.card}`}
               >
-                <CardHeader className='!flex min-h-28 flex-row items-start justify-between gap-4'>
-                  <div className='min-w-0'>
-                    <CardTitle>{row.workspace.name}</CardTitle>
-                    {workspaceDescription ? (
-                      <p className='text-muted-foreground mt-1 text-sm leading-relaxed whitespace-pre-wrap'>
-                        {workspaceDescription}
-                      </p>
-                    ) : null}
-                    {workspaceSubscription ? (
-                      <div className='mt-2'>
-                        {workspaceSubscription.subscription.status ===
-                        'ACTIVE' ? (
-                          <span className='text-success text-sm font-medium'>
-                            {t('Subscribed')}
+                <CardHeader className='!flex !min-h-0 flex-row items-start justify-between gap-4 px-6 pt-6 pb-3'>
+                  <div className='flex min-w-0 items-center gap-3'>
+                    <div className='flex size-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-950 shadow-sm [&_svg]:text-slate-950'>
+                      {getLobeIcon('OpenAI', 32)}
+                    </div>
+                    <div className='min-w-0'>
+                      <CardTitle className='text-lg font-semibold'>
+                        {row.workspace.name}
+                      </CardTitle>
+                      {workspaceSubscription ? (
+                        <div className='mt-1.5'>
+                          {workspaceSubscription.subscription.status ===
+                          'ACTIVE' ? (
+                            <span
+                              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${cardTheme.status}`}
+                            >
+                              <CheckIcon className='size-3.5' />
+                              {t('Subscribed')}
+                            </span>
+                          ) : (
+                            <BusinessSubscriptionStatusBadge
+                              status={workspaceSubscription.subscription.status}
+                              t={t}
+                            />
+                          )}
+                        </div>
+                      ) : (
+                        <div className='mt-1.5'>
+                          <span
+                            className={
+                              workspaceAvailable
+                                ? `inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${cardTheme.status}`
+                                : 'text-muted-foreground inline-flex rounded-full bg-slate-200 px-2.5 py-1 text-xs font-semibold'
+                            }
+                          >
+                            {workspaceAvailable ? (
+                              <span className='size-2 rounded-full bg-current' />
+                            ) : null}
+                            {workspaceAvailable
+                              ? t('Available')
+                              : t('Currently unavailable')}
                           </span>
-                        ) : (
-                          <BusinessSubscriptionStatusBadge
-                            status={workspaceSubscription.subscription.status}
-                            t={t}
-                          />
-                        )}
-                      </div>
-                    ) : (
-                      <div className='mt-2'>
-                        <span
-                          className={
-                            workspaceAvailable
-                              ? 'text-success text-sm font-medium'
-                              : 'text-muted-foreground text-sm font-medium'
-                          }
-                        >
-                          {workspaceAvailable
-                            ? t('Available')
-                            : t('Currently unavailable')}
-                        </span>
-                      </div>
-                    )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <span className='shrink-0 rounded-full bg-white/80 px-3 py-1.5 text-xs font-semibold text-sky-700 shadow-sm ring-1 ring-sky-200/70'>
+                  <span className='shrink-0 rounded-full border border-sky-200 bg-white/90 px-3 py-1.5 text-xs font-semibold text-sky-700 shadow-sm'>
                     {billingLabel}
                   </span>
                 </CardHeader>
-                <CardContent className='flex-1 space-y-4 text-sm'>
+                <CardContent className='flex flex-1 flex-col gap-3 px-6 pb-6 text-sm'>
                   {(() => {
                     if (workspaceSubscription) {
                       return (
                         <>
                           {workspacePrice ? (
-                            <div className='border-b pb-4'>
-                              <span className='text-3xl font-semibold'>
+                            <div className='border-b border-slate-900/10 pb-3'>
+                              <span className='text-4xl font-semibold tracking-tight text-slate-950'>
                                 {formatMoney(
                                   workspacePrice.price_amount,
                                   workspacePrice.currency
                                 )}
                               </span>
-                              <span className='text-muted-foreground ml-2 text-sm'>
+                              <span className='text-muted-foreground ml-2 text-base'>
                                 {workspacePrice.display_unit ||
                                   t(
                                     `subscription.billing.${workspacePrice.billing_cadence.toLowerCase()}`
@@ -577,7 +616,10 @@ export function ChatGPTBusinessPage() {
                               </span>
                             </div>
                           ) : null}
-                          <div>
+                          <div
+                            className={`flex min-h-14 items-center gap-2 rounded-xl border px-3 ${cardTheme.accent}`}
+                          >
+                            <CalendarDaysIcon className='size-4 shrink-0 text-slate-500' />
                             <span className='text-muted-foreground'>
                               {workspaceSubscription.subscription.status ===
                               'CANCELLED'
@@ -585,36 +627,68 @@ export function ChatGPTBusinessPage() {
                                 : t('subscription.nextRenewal')}
                               :{' '}
                             </span>
-                            {formatDate(
-                              workspaceSubscription.subscription.prepaid_through
-                            )}
+                            <span className='font-semibold text-slate-800'>
+                              {formatDate(
+                                workspaceSubscription.subscription
+                                  .prepaid_through
+                              )}
+                            </span>
                           </div>
-                          <div className='space-y-2 border-t pt-4'>
-                            <p className='font-medium'>
+                          <div className='border-b border-slate-900/10 pb-3'>
+                            <p className='mb-2 font-semibold text-slate-900'>
                               {t('subscription.currentBenefits')}
                             </p>
-                            <ul className='text-muted-foreground space-y-1'>
+                            <ul className='text-muted-foreground space-y-1.5 leading-snug'>
                               {benefitItems.map((benefit) => (
-                                <li key={benefit}>✓ {benefit}</li>
+                                <li key={benefit} className='flex gap-2'>
+                                  <CheckIcon className='mt-0.5 size-4 shrink-0 text-emerald-600' />
+                                  {benefit}
+                                </li>
                               ))}
                             </ul>
+                          </div>
+                          <div
+                            className={`rounded-xl border p-3 ${cardTheme.accent}`}
+                          >
+                            <Label
+                              htmlFor={`chatgpt-email-${row.workspace.id}`}
+                              className='text-sm font-semibold text-slate-900'
+                            >
+                              {t('ChatGPT Login Email')}
+                            </Label>
+                            <div className='relative mt-2'>
+                              <MailIcon className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-500' />
+                              <Input
+                                id={`chatgpt-email-${row.workspace.id}`}
+                                className='h-11 border-slate-300 bg-white pl-9 text-sm shadow-sm'
+                                type='email'
+                                value={
+                                  workspaceSubscription.subscription
+                                    .chatgpt_email
+                                }
+                                readOnly
+                              />
+                            </div>
                           </div>
                           {(workspaceSubscription.subscription.status ===
                             'ACTIVE' ||
                             workspaceSubscription.subscription.status ===
                               'EXPIRING') && (
-                            <div className='flex flex-wrap gap-2'>
+                            <div className='mt-auto flex gap-2 pt-1'>
                               <Button
+                                className={`h-11 flex-1 rounded-xl text-base font-semibold shadow-lg ${cardTheme.primary}`}
                                 onClick={() => {
                                   setSelectedWorkspaceId(row.workspace.id)
                                   void handleRenewQuote(workspaceSubscription)
                                 }}
                                 disabled={checkoutLoading}
                               >
-                                {t('Complete renewal')}
+                                <RefreshCwIcon className='size-4' />
+                                {t('Renew')}
                               </Button>
                               <Button
                                 variant='outline'
+                                className='h-11 flex-1 rounded-xl border-slate-300 bg-white/80 text-base font-semibold text-slate-700 hover:bg-white'
                                 onClick={() => {
                                   setSelectedWorkspaceId(row.workspace.id)
                                   setCancelConfirmOpen(true)
@@ -656,14 +730,14 @@ export function ChatGPTBusinessPage() {
                       return (
                         <>
                           {workspacePrice ? (
-                            <div className='border-b pb-4'>
-                              <span className='text-3xl font-semibold'>
+                            <div className='border-b border-slate-900/10 pb-3'>
+                              <span className='text-4xl font-semibold tracking-tight text-slate-950'>
                                 {formatMoney(
                                   workspacePrice.price_amount,
                                   workspacePrice.currency
                                 )}
                               </span>
-                              <span className='text-muted-foreground ml-2 text-sm'>
+                              <span className='text-muted-foreground ml-2 text-base'>
                                 {workspacePrice.display_unit ||
                                   t(
                                     `subscription.billing.${workspacePrice.billing_cadence.toLowerCase()}`
@@ -682,14 +756,14 @@ export function ChatGPTBusinessPage() {
                     return (
                       <>
                         {workspacePrice ? (
-                          <div className='border-b pb-4'>
-                            <span className='text-3xl font-semibold'>
+                          <div className='border-b border-slate-900/10 pb-3'>
+                            <span className='text-4xl font-semibold tracking-tight text-slate-950'>
                               {formatMoney(
                                 workspacePrice.price_amount,
                                 workspacePrice.currency
                               )}
                             </span>
-                            <span className='text-muted-foreground ml-2 text-sm'>
+                            <span className='text-muted-foreground ml-2 text-base'>
                               {workspacePrice.display_unit ||
                                 t(
                                   `subscription.billing.${workspacePrice.billing_cadence.toLowerCase()}`
@@ -697,36 +771,47 @@ export function ChatGPTBusinessPage() {
                             </span>
                           </div>
                         ) : null}
-                        <p className='text-muted-foreground text-sm'>
+                        <div
+                          className={`text-muted-foreground flex min-h-14 items-center gap-2 rounded-xl border px-3 leading-snug ${cardTheme.accent}`}
+                        >
+                          <CalendarDaysIcon className='size-4 shrink-0 text-slate-500' />
                           {t('Business seat first payment may be prorated')}
-                        </p>
-                        <div className='space-y-2 border-t pt-4'>
-                          <p className='font-medium'>
+                        </div>
+                        <div className='border-b border-slate-900/10 pb-3'>
+                          <p className='mb-2 font-semibold text-slate-900'>
                             {t('subscription.currentBenefits')}
                           </p>
-                          <ul className='text-muted-foreground space-y-1'>
+                          <ul className='text-muted-foreground space-y-1.5 leading-snug'>
                             {benefitItems.map((benefit) => (
-                              <li key={benefit}>✓ {benefit}</li>
+                              <li key={benefit} className='flex gap-2'>
+                                <CheckIcon className='mt-0.5 size-4 shrink-0 text-emerald-600' />
+                                {benefit}
+                              </li>
                             ))}
                           </ul>
                         </div>
                         {!workspaceQuote ? (
                           <>
-                            <div className='rounded-xl border border-blue-200 bg-white/80 p-3 shadow-sm'>
+                            <div
+                              className={`rounded-xl border p-3 ${cardTheme.accent}`}
+                            >
                               <Label
                                 htmlFor={`chatgpt-email-${row.workspace.id}`}
-                                className='text-base font-semibold text-slate-900'
+                                className='text-sm font-semibold text-slate-900'
                               >
                                 {t('ChatGPT Login Email')}
                               </Label>
-                              <Input
-                                id={`chatgpt-email-${row.workspace.id}`}
-                                className='mt-2 h-12 border-blue-300 bg-white text-base shadow-sm ring-2 ring-blue-100 focus-visible:ring-blue-400'
-                                type='email'
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder='you@example.com'
-                              />
+                              <div className='relative mt-2'>
+                                <MailIcon className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-500' />
+                                <Input
+                                  id={`chatgpt-email-${row.workspace.id}`}
+                                  className='h-11 border-slate-300 bg-white pl-9 text-sm shadow-sm focus-visible:border-blue-400 focus-visible:ring-blue-200'
+                                  type='email'
+                                  value={email}
+                                  onChange={(e) => setEmail(e.target.value)}
+                                  placeholder='you@example.com'
+                                />
+                              </div>
                             </div>
                             <PendingOrdersList
                               orders={visiblePendingOrders}
@@ -735,6 +820,7 @@ export function ChatGPTBusinessPage() {
                               onDelete={setOrderToDelete}
                             />
                             <Button
+                              className={`mt-auto h-11 w-full rounded-xl text-base font-semibold shadow-lg ${cardTheme.primary}`}
                               onClick={() => {
                                 setSelectedWorkspaceId(row.workspace.id)
                                 void handleGetQuote(row.workspace.id)
@@ -742,6 +828,7 @@ export function ChatGPTBusinessPage() {
                               disabled={checkoutLoading}
                             >
                               {t('Next')}
+                              <ArrowRightIcon className='size-4' />
                             </Button>
                           </>
                         ) : (

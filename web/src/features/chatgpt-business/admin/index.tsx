@@ -29,6 +29,7 @@ import {
   confirmAdminSeatAdded,
   createAdminBusinessPrice,
   createAdminBusinessWorkspace,
+  deleteAdminBusinessWorkspace,
   disableAdminBusinessSeat,
   enableAdminBusinessSeat,
   getAdminBusinessOrders,
@@ -155,6 +156,8 @@ export function ChatGPTBusinessAdminPage() {
   const [editGrace, setEditGrace] = useState('')
   const [editRenewalLead, setEditRenewalLead] = useState('3')
   const [editAnchor, setEditAnchor] = useState<Date | undefined>()
+  const [deleteWorkspaceTarget, setDeleteWorkspaceTarget] =
+    useState<BusinessWorkspace | null>(null)
 
   const selectedWorkspace = useMemo(
     () =>
@@ -351,6 +354,24 @@ export function ChatGPTBusinessAdminPage() {
       void refresh()
     } else {
       toast.error(res.message || t('Unable to update workspace'))
+    }
+  }
+
+  const deleteWorkspace = async () => {
+    if (!deleteWorkspaceTarget) return
+    const res = await deleteAdminBusinessWorkspace(deleteWorkspaceTarget.id)
+    if (isApiSuccess(res)) {
+      toast.success(t('Workspace deleted'))
+      if (selectedWorkspaceId === deleteWorkspaceTarget.id) {
+        setSelectedWorkspaceId(null)
+      }
+      if (pricingWorkspaceId === deleteWorkspaceTarget.id) {
+        setPricingWorkspaceId(null)
+      }
+      setDeleteWorkspaceTarget(null)
+      void refresh()
+    } else {
+      toast.error(res.message || t('Unable to delete workspace'))
     }
   }
 
@@ -800,6 +821,13 @@ export function ChatGPTBusinessAdminPage() {
                         }}
                       >
                         {t('Add Standard Seats')}
+                      </Button>
+                      <Button
+                        size='sm'
+                        variant='destructive'
+                        onClick={() => setDeleteWorkspaceTarget(ws)}
+                      >
+                        {t('Delete')}
                       </Button>
                     </div>
                   </CardHeader>
@@ -1423,6 +1451,20 @@ export function ChatGPTBusinessAdminPage() {
             />
           </div>
         </ConfirmDialog>
+
+        <ConfirmDialog
+          open={deleteWorkspaceTarget != null}
+          onOpenChange={(open) => {
+            if (!open) setDeleteWorkspaceTarget(null)
+          }}
+          title={t('Delete Workspace?')}
+          desc={t(
+            'This retires the workspace and removes it from ChatGPT subscriptions. Workspaces with active subscriptions cannot be deleted.'
+          )}
+          confirmText={t('Delete')}
+          destructive
+          handleConfirm={() => void deleteWorkspace()}
+        />
 
         <ConfirmDialog
           open={removeSeatTarget != null}

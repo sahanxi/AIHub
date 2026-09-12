@@ -216,6 +216,7 @@ func SetApiRouter(router *gin.Engine) {
 			businessSeatAdminRoute.GET("/workspaces", controller.AdminListBusinessWorkspaces)
 			businessSeatAdminRoute.POST("/workspaces", controller.AdminCreateBusinessWorkspace)
 			businessSeatAdminRoute.PUT("/workspaces/:id", controller.AdminUpdateBusinessWorkspace)
+			businessSeatAdminRoute.DELETE("/workspaces/:id", controller.AdminDeleteBusinessWorkspace)
 			businessSeatAdminRoute.POST("/workspaces/:id/seats", controller.AdminAddBusinessSeats)
 			businessSeatAdminRoute.GET("/pricing", controller.AdminListBusinessPriceVersions)
 			businessSeatAdminRoute.POST("/pricing", controller.AdminCreateBusinessPriceVersion)
