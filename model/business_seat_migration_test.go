@@ -101,6 +101,35 @@ func TestBusinessSeatMigrationMySQL(t *testing.T) {
 	testBusinessSeatMigrationIdempotent(t, db)
 }
 
+func TestCreateBusinessPriceVersionSyncsWorkspaceBillingCadence(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	require.NoError(t, err)
+	previous := DB
+	DB = db
+	t.Cleanup(func() { DB = previous })
+	require.NoError(t, migrateBusinessSeatTables(db))
+
+	product := BusinessProduct{Code: BusinessProductCodeStandard, Name: "Standard", Enabled: true}
+	require.NoError(t, db.Create(&product).Error)
+	ws := BusinessWorkspace{
+		Name: "Annual WS", Provider: "openai", Status: BusinessWorkspaceStatusActive,
+		BillingCadence: BusinessBillingCadenceMonthly, BillingAnchorAt: 1,
+		BillingTimezone: "UTC", TotalStandardSeats: 1,
+	}
+	require.NoError(t, CreateBusinessWorkspace(&ws))
+
+	pv := BusinessPriceVersion{
+		ProductId: product.Id, WorkspaceId: ws.Id,
+		PriceAmount: decimal.RequireFromString("1999.00"), Currency: "CNY",
+		BillingCadence: BusinessBillingCadenceAnnual, DisplayUnit: "/ year",
+	}
+	require.NoError(t, CreateBusinessPriceVersion(&pv))
+
+	var stored BusinessWorkspace
+	require.NoError(t, db.First(&stored, ws.Id).Error)
+	assert.Equal(t, BusinessBillingCadenceAnnual, stored.BillingCadence)
+}
+
 func TestBusinessSeatMigrationPostgreSQL(t *testing.T) {
 	dsn := strings.TrimSpace(os.Getenv("TEST_POSTGRES_DSN"))
 	if dsn == "" {

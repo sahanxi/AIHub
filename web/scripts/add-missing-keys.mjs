@@ -1047,64 +1047,155 @@ for (const [locale, values] of Object.entries(walletAndWorkspaceTranslations))
 const businessSeatCheckoutKeys = {
   en: {
     'Billing cadence': 'Billing cadence',
+    'Business seat cycle start disclosure':
+      'Your first payment covers the current billing period. The next full billing cycle starts on the first day of the next full month, and renewal opens <renewal>{{count}} days before it starts</renewal>. Paying early does not change your billing cycle or affect your current paid access period.',
     'Business seat first payment may be prorated':
       'First payment is prorated based on the remaining time in the current workspace billing cycle.',
+    'Business seat first payment proration disclosure':
+      'Your first payment is prorated for the remaining time in the current billing cycle to align with the Workspace billing cycle. The next full billing cycle starts on the first day of the next full month, and renewal opens <renewal>{{count}} days before it starts</renewal>. Paying early does not change your billing cycle or affect your current paid access period.',
     'Checkout session expired':
       'This checkout session has expired. Please start again from the subscription page.',
+    'Complete or remove your unpaid subscription orders':
+      'Complete or remove your unpaid subscription orders',
+    'Current billing period': 'Current billing period',
+    'No pending orders': 'No pending orders',
     'Quote valid until': 'Quote valid until',
+    'Renewal time': 'Renewal time',
     'Service effective through': 'Service effective through',
+    'Subscription price': 'Subscription price',
+    'Price display unit / month': '/ month',
+    'Price display unit / year': '/ year',
+    'Redirecting to Alipay...': 'Redirecting to Alipay...',
   },
   zh: {
     'Billing cadence': '计费周期',
+    'Business seat cycle start disclosure':
+      '首次费用覆盖当前计费周期。下一完整计费周期将按下月完整月开始计算，并于<renewal>开始前 {{count}} 天开放续费</renewal>。提前续费不会改变计费周期，也不会影响您当前已付费的使用时间。',
     'Business seat first payment may be prorated':
       '首次费用按当前工作区计费周期剩余时间按比例计算',
+    'Business seat first payment proration disclosure':
+      '首次费用将按当前计费周期的剩余时间按比例计算，用于和 Workspace 统一计费周期保持一致，下一完整计费周期将按下月完整月开始计算，并于<renewal>开始前 {{count}} 天开放续费</renewal>，提前续费不会改变计费周期，也不会影响您当前已付费的使用时间。',
     'Checkout session expired': '结账信息已过期，请返回订阅页面重新操作。',
+    'Complete or remove your unpaid subscription orders':
+      '完成支付或删除未支付的订阅订单',
+    'Current billing period': '当前计费周期',
+    'No pending orders': '暂无待支付订单',
     'Quote valid until': '报价有效期至',
+    'Renewal time': '续费时间',
     'Service effective through': '服务生效至',
+    'Subscription price': '订阅价格',
+    'Price display unit / month': '月 (/ month)',
+    'Price display unit / year': '年 (/ year)',
+    'Redirecting to Alipay...': '正在跳转到支付宝...',
   },
   'zh-TW': {
     'Billing cadence': '計費週期',
+    'Business seat cycle start disclosure':
+      '首次費用涵蓋目前計費週期。下一完整計費週期將按下月完整月開始計算，並於<renewal>開始前 {{count}} 天開放續費</renewal>。提前續費不會改變計費週期，也不會影響您目前已付費的使用時間。',
     'Business seat first payment may be prorated':
       '首次費用按當前工作區計費週期剩餘時間按比例計算',
+    'Business seat first payment proration disclosure':
+      '首次費用將依目前計費週期剩餘時間按比例計算，以與 Workspace 統一計費週期保持一致，下一完整計費週期將按下月完整月開始計算，並於<renewal>開始前 {{count}} 天開放續費</renewal>，提前續費不會改變計費週期，也不會影響您目前已付費的使用時間。',
     'Checkout session expired': '結帳資訊已過期，請返回訂閱頁面重新操作。',
+    'Complete or remove your unpaid subscription orders':
+      '完成支付或刪除未支付的訂閱訂單',
+    'Current billing period': '當前計費週期',
+    'No pending orders': '暫無待支付訂單',
     'Quote valid until': '報價有效期至',
+    'Renewal time': '續費時間',
     'Service effective through': '服務生效至',
+    'Subscription price': '訂閱價格',
+    'Price display unit / month': '月 (/ month)',
+    'Price display unit / year': '年 (/ year)',
+    'Redirecting to Alipay...': '正在跳轉到支付寶...',
   },
   fr: {
     'Billing cadence': 'Billing cadence',
+    'Business seat cycle start disclosure':
+      'Your first payment covers the current billing period. The next full billing cycle starts on the first day of the next full month, and renewal opens <renewal>{{count}} days before it starts</renewal>. Paying early does not change your billing cycle or affect your current paid access period.',
     'Business seat first payment may be prorated':
       'First payment is prorated based on the remaining time in the current workspace billing cycle.',
+    'Business seat first payment proration disclosure':
+      'Your first payment is prorated for the remaining time in the current billing cycle to align with the Workspace billing cycle. The next full billing cycle starts on the first day of the next full month, and renewal opens <renewal>{{count}} days before it starts</renewal>. Paying early does not change your billing cycle or affect your current paid access period.',
     'Checkout session expired':
       'This checkout session has expired. Please start again from the subscription page.',
+    'Complete or remove your unpaid subscription orders':
+      'Complete or remove your unpaid subscription orders',
+    'Current billing period': 'Current billing period',
+    'No pending orders': 'Aucune commande en attente',
     'Quote valid until': 'Quote valid until',
+    'Renewal time': 'Renewal time',
     'Service effective through': 'Service effective through',
+    'Subscription price': 'Subscription price',
+    'Price display unit / month': '/ month',
+    'Price display unit / year': '/ year',
+    'Redirecting to Alipay...': 'Redirection vers Alipay...',
   },
   ja: {
     'Billing cadence': 'Billing cadence',
+    'Business seat cycle start disclosure':
+      'Your first payment covers the current billing period. The next full billing cycle starts on the first day of the next full month, and renewal opens <renewal>{{count}} days before it starts</renewal>. Paying early does not change your billing cycle or affect your current paid access period.',
     'Business seat first payment may be prorated':
       'First payment is prorated based on the remaining time in the current workspace billing cycle.',
+    'Business seat first payment proration disclosure':
+      'Your first payment is prorated for the remaining time in the current billing cycle to align with the Workspace billing cycle. The next full billing cycle starts on the first day of the next full month, and renewal opens <renewal>{{count}} days before it starts</renewal>. Paying early does not change your billing cycle or affect your current paid access period.',
     'Checkout session expired':
       'This checkout session has expired. Please start again from the subscription page.',
+    'Complete or remove your unpaid subscription orders':
+      'Complete or remove your unpaid subscription orders',
+    'Current billing period': 'Current billing period',
+    'No pending orders': '保留中の注文はありません',
     'Quote valid until': 'Quote valid until',
+    'Renewal time': 'Renewal time',
     'Service effective through': 'Service effective through',
+    'Subscription price': 'Subscription price',
+    'Price display unit / month': '/ month',
+    'Price display unit / year': '/ year',
+    'Redirecting to Alipay...': 'Alipayへリダイレクト中...',
   },
   ru: {
     'Billing cadence': 'Billing cadence',
+    'Business seat cycle start disclosure':
+      'Your first payment covers the current billing period. The next full billing cycle starts on the first day of the next full month, and renewal opens <renewal>{{count}} days before it starts</renewal>. Paying early does not change your billing cycle or affect your current paid access period.',
     'Business seat first payment may be prorated':
       'First payment is prorated based on the remaining time in the current workspace billing cycle.',
+    'Business seat first payment proration disclosure':
+      'Your first payment is prorated for the remaining time in the current billing cycle to align with the Workspace billing cycle. The next full billing cycle starts on the first day of the next full month, and renewal opens <renewal>{{count}} days before it starts</renewal>. Paying early does not change your billing cycle or affect your current paid access period.',
     'Checkout session expired':
       'This checkout session has expired. Please start again from the subscription page.',
+    'Complete or remove your unpaid subscription orders':
+      'Complete or remove your unpaid subscription orders',
+    'Current billing period': 'Current billing period',
+    'No pending orders': 'Нет ожидающих заказов',
     'Quote valid until': 'Quote valid until',
+    'Renewal time': 'Renewal time',
     'Service effective through': 'Service effective through',
+    'Subscription price': 'Subscription price',
+    'Price display unit / month': '/ month',
+    'Price display unit / year': '/ year',
+    'Redirecting to Alipay...': 'Перенаправление в Alipay...',
   },
   vi: {
     'Billing cadence': 'Billing cadence',
+    'Business seat cycle start disclosure':
+      'Your first payment covers the current billing period. The next full billing cycle starts on the first day of the next full month, and renewal opens <renewal>{{count}} days before it starts</renewal>. Paying early does not change your billing cycle or affect your current paid access period.',
     'Business seat first payment may be prorated':
       'First payment is prorated based on the remaining time in the current workspace billing cycle.',
+    'Business seat first payment proration disclosure':
+      'Your first payment is prorated for the remaining time in the current billing cycle to align with the Workspace billing cycle. The next full billing cycle starts on the first day of the next full month, and renewal opens <renewal>{{count}} days before it starts</renewal>. Paying early does not change your billing cycle or affect your current paid access period.',
     'Checkout session expired':
       'This checkout session has expired. Please start again from the subscription page.',
+    'Complete or remove your unpaid subscription orders':
+      'Complete or remove your unpaid subscription orders',
+    'Current billing period': 'Current billing period',
+    'No pending orders': 'Không có đơn hàng đang chờ',
     'Quote valid until': 'Quote valid until',
+    'Renewal time': 'Renewal time',
     'Service effective through': 'Service effective through',
+    'Subscription price': 'Subscription price',
+    'Price display unit / month': '/ month',
+    'Price display unit / year': '/ year',
+    'Redirecting to Alipay...': 'Đang chuyển hướng đến Alipay...',
   },
 }
 for (const [locale, values] of Object.entries(businessSeatCheckoutKeys))

@@ -13,6 +13,18 @@ export const BUSINESS_WORKSPACE_TIMEZONES = [
 
 export const BUSINESS_PRICE_CURRENCIES = ['CNY', 'USD'] as const
 
+export const BUSINESS_PRICE_DISPLAY_UNITS = ['/ month', '/ year'] as const
+
+export function getDisplayUnitLabelKey(unit: string): string {
+  if (unit === '/ month') {
+    return 'Price display unit / month'
+  }
+  if (unit === '/ year') {
+    return 'Price display unit / year'
+  }
+  return unit
+}
+
 export function getProviderLabelKey(provider: string): string {
   if (provider === 'OPENAI') {
     return 'OpenAI ChatGPT Business'

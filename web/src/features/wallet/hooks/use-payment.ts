@@ -139,7 +139,7 @@ export function usePayment() {
         if (!isStripe) {
           const url = (response as unknown as { url?: string }).url
           if (url) {
-            toast.success(i18next.t('Redirecting to payment page...'))
+            toast.success(i18next.t('Redirecting to Alipay...'))
             return startGatewayCheckout(
               url,
               (response.data as Record<string, unknown> | undefined) ?? {}

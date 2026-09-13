@@ -97,6 +97,9 @@ test('confirms deletion and removes the pending order after the API succeeds', a
   const user = userEvent.setup()
   render(<ChatGPTBusinessPage />)
 
+  await user.click(
+    await screen.findByRole('button', { name: /Pending orders/ })
+  )
   expect(await screen.findByText('¥197.08')).toBeInTheDocument()
   await user.click(screen.getByRole('button', { name: 'Delete' }))
 
@@ -275,8 +278,11 @@ test('shows pending orders even when their workspace has a pending subscription'
     ],
   })
 
+  const user = userEvent.setup()
   render(<ChatGPTBusinessPage />)
 
+  await user.click(
+    await screen.findByRole('button', { name: /Pending orders/ })
+  )
   expect(await screen.findByText('$0.62')).toBeInTheDocument()
-  expect(screen.getByText('Pending orders')).toBeInTheDocument()
 })

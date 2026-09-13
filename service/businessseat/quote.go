@@ -81,8 +81,8 @@ func (s *QuoteService) CreateQuote(input QuoteInput) (*model.BusinessQuote, erro
 	if err != nil {
 		return nil, model.ErrBusinessPricingNotConfigured
 	}
-	if pv.BillingCadence != ws.BillingCadence {
-		return nil, model.ErrBusinessBillingCadenceMismatch
+	if err := alignWorkspaceBillingCadence(ws, pv, nil); err != nil {
+		return nil, err
 	}
 
 	result, err := s.calculateQuote(ws, pv, input.OrderType, input.QuoteAt)
@@ -236,8 +236,8 @@ func (s *QuoteService) validateRenewalQuoteRequest(sub *model.BusinessSeatSubscr
 	if err != nil {
 		return model.ErrBusinessPricingNotConfigured
 	}
-	if pv.BillingCadence != ws.BillingCadence {
-		return model.ErrBusinessBillingCadenceMismatch
+	if err := alignWorkspaceBillingCadence(ws, pv, nil); err != nil {
+		return err
 	}
 	cycle, err := s.billing.RenewalCycleWindow(ws, sub.PrepaidThrough)
 	if err != nil {
@@ -266,8 +266,8 @@ func (s *QuoteService) createRenewalQuoteInTx(tx *gorm.DB, userId int, sub *mode
 	if err != nil {
 		return nil, model.ErrBusinessPricingNotConfigured
 	}
-	if pv.BillingCadence != ws.BillingCadence {
-		return nil, model.ErrBusinessBillingCadenceMismatch
+	if err := alignWorkspaceBillingCadence(ws, pv, tx); err != nil {
+		return nil, err
 	}
 
 	cycle, err := s.billing.RenewalCycleWindow(ws, sub.PrepaidThrough)
@@ -350,6 +350,21 @@ func (s *QuoteService) MarkQuoteUsed(tx *gorm.DB, quoteId int) error {
 	return tx.Model(&model.BusinessQuote{}).
 		Where("id = ? AND status = ?", quoteId, model.BusinessQuoteStatusPending).
 		Update("status", model.BusinessQuoteStatusUsed).Error
+}
+
+func alignWorkspaceBillingCadence(ws *model.BusinessWorkspace, pv *model.BusinessPriceVersion, tx *gorm.DB) error {
+	if pv.BillingCadence == ws.BillingCadence {
+		return nil
+	}
+	if tx != nil {
+		if err := model.SyncBusinessWorkspaceBillingCadenceTx(tx, ws.Id, pv.BillingCadence); err != nil {
+			return err
+		}
+	} else if err := model.SyncBusinessWorkspaceBillingCadence(ws.Id, pv.BillingCadence); err != nil {
+		return err
+	}
+	ws.BillingCadence = pv.BillingCadence
+	return nil
 }
 
 func normalizeEmail(email string) string {

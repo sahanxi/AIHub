@@ -386,6 +386,18 @@ func ListBusinessWorkspaces() ([]BusinessWorkspace, error) {
 	return list, err
 }
 
+func SyncBusinessWorkspaceBillingCadence(workspaceId int, billingCadence string) error {
+	return SyncBusinessWorkspaceBillingCadenceTx(DB, workspaceId, billingCadence)
+}
+
+func SyncBusinessWorkspaceBillingCadenceTx(tx *gorm.DB, workspaceId int, billingCadence string) error {
+	if workspaceId <= 0 || billingCadence == "" {
+		return nil
+	}
+	return tx.Model(&BusinessWorkspace{}).Where("id = ?", workspaceId).
+		Update("billing_cadence", billingCadence).Error
+}
+
 func CreateBusinessWorkspace(ws *BusinessWorkspace) error {
 	return DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(ws).Error; err != nil {
@@ -581,7 +593,16 @@ func CreateBusinessPriceVersion(pv *BusinessPriceVersion) error {
 			pv.EffectiveFrom = now
 		}
 		pv.Enabled = true
-		return tx.Create(pv).Error
+		if err := tx.Create(pv).Error; err != nil {
+			return err
+		}
+		if pv.WorkspaceId > 0 && pv.BillingCadence != "" {
+			if err := tx.Model(&BusinessWorkspace{}).Where("id = ?", pv.WorkspaceId).
+				Update("billing_cadence", pv.BillingCadence).Error; err != nil {
+				return err
+			}
+		}
+		return nil
 	})
 }
 

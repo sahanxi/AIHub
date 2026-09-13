@@ -47,7 +47,9 @@ import {
 import {
   BUSINESS_BILLING_CADENCES,
   BUSINESS_PRICE_CURRENCIES,
+  BUSINESS_PRICE_DISPLAY_UNITS,
   getBillingCadenceLabelKey,
+  getDisplayUnitLabelKey,
 } from '../constants'
 import {
   BusinessSeatStatusBadge,
@@ -178,7 +180,15 @@ export function ChatGPTBusinessAdminPage() {
 
   const loadPricing = useCallback(async (workspaceId: number | null) => {
     const pricingRes = await getAdminBusinessPricing(workspaceId ?? undefined)
-    if (isApiSuccess(pricingRes)) setCurrentPrice(pricingRes.data.current)
+    if (!isApiSuccess(pricingRes)) return
+    const current = pricingRes.data.current
+    setCurrentPrice(current)
+    if (current) {
+      setPriceAmount(current.price_amount)
+      setCurrency(current.currency)
+      setBillingCadence(current.billing_cadence)
+      setDisplayUnit(current.display_unit || '/ month')
+    }
   }, [])
 
   const loadCore = useCallback(async () => {
@@ -1221,9 +1231,14 @@ export function ChatGPTBusinessAdminPage() {
                   </Select>
                 </div>
                 {currentPrice ? (
-                  <p className='text-muted-foreground text-sm md:col-span-2'>
-                    {t('Current Price')}: {currentPrice.price_amount}{' '}
-                    {currentPrice.currency} {currentPrice.display_unit}
+                  <p className='text-sm md:col-span-2'>
+                    <span className='text-muted-foreground'>
+                      {t('Current Price')}:{' '}
+                    </span>
+                    <span className='font-semibold text-[#1677ff]'>
+                      {currentPrice.price_amount} {currentPrice.currency}{' '}
+                      {currentPrice.display_unit}
+                    </span>
                   </p>
                 ) : (
                   <p className='text-muted-foreground text-sm md:col-span-2'>
@@ -1296,10 +1311,29 @@ export function ChatGPTBusinessAdminPage() {
                   <p className='text-muted-foreground text-xs'>
                     {t('Price display helper')}
                   </p>
-                  <Input
-                    value={displayUnit}
-                    onChange={(e) => setDisplayUnit(e.target.value)}
-                  />
+                  <Select
+                    value={
+                      BUSINESS_PRICE_DISPLAY_UNITS.includes(
+                        displayUnit as (typeof BUSINESS_PRICE_DISPLAY_UNITS)[number]
+                      )
+                        ? displayUnit
+                        : '/ month'
+                    }
+                    onValueChange={(value) => value && setDisplayUnit(value)}
+                  >
+                    <SelectTrigger className='w-full'>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent alignItemWithTrigger={false}>
+                      <SelectGroup>
+                        {BUSINESS_PRICE_DISPLAY_UNITS.map((item) => (
+                          <SelectItem key={item} value={item}>
+                            {t(getDisplayUnitLabelKey(item))}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <Button onClick={() => void savePrice()}>{t('Save')}</Button>
               </CardContent>

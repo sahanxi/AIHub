@@ -30,7 +30,8 @@ import {
 } from './api'
 import { saveBusinessCheckoutSession } from './checkout-session'
 import { formatDate, formatMoney } from './format'
-import { PendingOrdersPanel } from './pending-orders-panel'
+import { PendingOrdersDialog } from './pending-orders-dialog'
+import { startBusinessAlipayPayment } from './start-payment'
 import { BusinessSubscriptionStatusBadge } from './status-display'
 import type {
   BusinessCatalog,
@@ -96,8 +97,8 @@ export function ChatGPTBusinessPage() {
       }
       if (isApiSuccess(selfRes)) {
         setSubscriptions(currentSubscriptions)
-        await loadPendingOrders()
       }
+      await loadPendingOrders()
     } finally {
       setLoading(false)
     }
@@ -110,10 +111,7 @@ export function ChatGPTBusinessPage() {
   const handlePay = async (orderId: number) => {
     setCheckoutLoading(true)
     try {
-      await navigate({
-        to: '/chatgpt-business/payment',
-        search: { order_id: orderId },
-      })
+      await startBusinessAlipayPayment(orderId, t)
     } finally {
       setCheckoutLoading(false)
     }
@@ -272,12 +270,19 @@ export function ChatGPTBusinessPage() {
   ]
 
   return (
-    <SectionPageLayout>
+    <SectionPageLayout alignActionsStart>
       <SectionPageLayout.Title>
-        {t('ChatGPT Subscription')}
+        <div className='min-w-0'>
+          <div className='text-2xl font-semibold tracking-tight'>
+            {t('ChatGPT Subscription')}
+          </div>
+          <p className='text-muted-foreground mt-0.5 text-sm font-normal'>
+            {t('Manage your ChatGPT subscription and workspace access')}
+          </p>
+        </div>
       </SectionPageLayout.Title>
       <SectionPageLayout.Actions>
-        <PendingOrdersPanel
+        <PendingOrdersDialog
           orders={pendingOrders}
           loading={checkoutLoading || deleteLoading}
           onPay={(orderId) => void handlePay(orderId)}
@@ -285,9 +290,6 @@ export function ChatGPTBusinessPage() {
         />
       </SectionPageLayout.Actions>
       <SectionPageLayout.Content>
-        <p className='text-muted-foreground mb-4 text-sm'>
-          {t('Manage your ChatGPT subscription and workspace access')}
-        </p>
         <div className='grid w-full auto-rows-fr grid-cols-1 items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3'>
           {workspaceRows.map((row, index) => {
             const workspaceSubscription = subscriptions.find(
@@ -313,9 +315,9 @@ export function ChatGPTBusinessPage() {
             return (
               <Card
                 key={row.workspace.id}
-                className={`h-[560px] min-h-0 w-full overflow-y-auto rounded-3xl py-0 shadow-lg transition-shadow hover:shadow-xl ${cardTheme.card}`}
+                className={`flex min-h-[620px] w-full flex-col overflow-y-auto rounded-3xl py-0 shadow-lg transition-shadow hover:shadow-xl ${cardTheme.card}`}
               >
-                <CardHeader className='!flex !min-h-0 flex-row items-start justify-between gap-4 px-6 pt-6 pb-3'>
+                <CardHeader className='!flex !min-h-0 flex-row items-start justify-between gap-4 px-6 pt-6 pb-2'>
                   <div className='flex min-w-0 items-center gap-3'>
                     <div className='flex size-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-950 shadow-sm [&_svg]:text-slate-950'>
                       {getLobeIcon('OpenAI', 32)}
@@ -365,7 +367,7 @@ export function ChatGPTBusinessPage() {
                     {billingLabel}
                   </span>
                 </CardHeader>
-                <CardContent className='flex flex-1 flex-col gap-3 px-6 pb-6 text-sm'>
+                <CardContent className='flex flex-1 flex-col gap-4 px-6 pt-0 pb-6 text-sm'>
                   {(() => {
                     if (workspaceSubscription) {
                       return (
@@ -407,11 +409,11 @@ export function ChatGPTBusinessPage() {
                               </div>
                             </div>
                           </div>
-                          <div className='border-b border-slate-900/10 pb-3'>
-                            <p className='mb-2 font-semibold text-slate-900'>
+                          <div className='flex min-h-0 flex-1 flex-col border-b border-slate-900/10 pb-3'>
+                            <p className='mb-3 text-base font-bold text-slate-900'>
                               {t('subscription.currentBenefits')}
                             </p>
-                            <ul className='text-muted-foreground space-y-1.5 leading-snug'>
+                            <ul className='space-y-1.5 leading-snug text-slate-900'>
                               {benefitItems.map((benefit) => (
                                 <li key={benefit} className='flex gap-2'>
                                   <CheckIcon className='mt-0.5 size-4 shrink-0 text-emerald-600' />
@@ -420,6 +422,7 @@ export function ChatGPTBusinessPage() {
                               ))}
                             </ul>
                           </div>
+                          <div className='mt-auto space-y-4'>
                           <div
                             className={`rounded-xl border p-3 ${cardTheme.accent}`}
                           >
@@ -447,7 +450,7 @@ export function ChatGPTBusinessPage() {
                             'ACTIVE' ||
                             workspaceSubscription.subscription.status ===
                               'EXPIRING') && (
-                            <div className='mt-auto flex gap-2 pt-1'>
+                            <div className='flex gap-2'>
                               <Button
                                 className={`h-11 flex-1 rounded-xl text-base font-semibold shadow-lg ${cardTheme.primary}`}
                                 onClick={() => {
@@ -480,6 +483,7 @@ export function ChatGPTBusinessPage() {
                               {t('Payment successful. Activation pending.')}
                             </p>
                           ) : null}
+                          </div>
                         </>
                       )
                     }
@@ -513,36 +517,38 @@ export function ChatGPTBusinessPage() {
                     return (
                       <>
                         {workspacePrice ? (
-                          <div className='border-b border-slate-900/10 pb-3'>
-                            <span className='text-4xl font-semibold tracking-tight text-slate-950'>
-                              {formatMoney(
-                                workspacePrice.price_amount,
-                                workspacePrice.currency
-                              )}
-                            </span>
-                            <span className='text-muted-foreground ml-2 text-base'>
-                              {workspacePrice.display_unit ||
-                                t(
-                                  `subscription.billing.${workspacePrice.billing_cadence.toLowerCase()}`
+                          <div className='border-b border-slate-900/10 pb-4'>
+                            <div className='flex flex-wrap items-end gap-x-2 gap-y-1'>
+                              <span className='text-4xl font-semibold tracking-tight text-slate-950'>
+                                {formatMoney(
+                                  workspacePrice.price_amount,
+                                  workspacePrice.currency
                                 )}
-                            </span>
+                              </span>
+                              <span className='text-muted-foreground pb-1 text-base'>
+                                {workspacePrice.display_unit ||
+                                  t(
+                                    `subscription.billing.${workspacePrice.billing_cadence.toLowerCase()}`
+                                  )}
+                              </span>
+                            </div>
                           </div>
                         ) : null}
                         <div
-                          className={`rounded-xl border px-3 py-3 ${cardTheme.accent}`}
+                          className={`rounded-xl border px-3.5 py-3.5 ${cardTheme.accent}`}
                         >
-                          <div className='flex gap-2'>
+                          <div className='flex items-start gap-2.5'>
                             <CalendarDaysIcon className='mt-0.5 size-4 shrink-0 text-slate-500' />
-                            <p className='text-muted-foreground text-sm leading-relaxed'>
+                            <p className='min-w-0 flex-1 text-sm leading-relaxed break-words text-slate-900'>
                               {t('Business seat first payment may be prorated')}
                             </p>
                           </div>
                         </div>
-                        <div className='border-b border-slate-900/10 pb-3'>
-                          <p className='mb-2 font-semibold text-slate-900'>
+                        <div className='flex min-h-0 flex-1 flex-col border-b border-slate-900/10 pb-3'>
+                          <p className='mb-3 text-base font-bold text-slate-900'>
                             {t('subscription.currentBenefits')}
                           </p>
-                          <ul className='text-muted-foreground space-y-1.5 leading-snug'>
+                          <ul className='space-y-1.5 leading-snug text-slate-900'>
                             {benefitItems.map((benefit) => (
                               <li key={benefit} className='flex gap-2'>
                                 <CheckIcon className='mt-0.5 size-4 shrink-0 text-emerald-600' />
@@ -551,6 +557,7 @@ export function ChatGPTBusinessPage() {
                             ))}
                           </ul>
                         </div>
+                        <div className='mt-auto space-y-4'>
                         <div
                           className={`rounded-xl border p-3 ${cardTheme.accent}`}
                         >
@@ -573,7 +580,7 @@ export function ChatGPTBusinessPage() {
                           </div>
                         </div>
                         <Button
-                          className={`mt-auto h-11 w-full rounded-xl text-base font-semibold shadow-lg ${cardTheme.primary}`}
+                          className={`h-11 w-full rounded-xl text-base font-semibold shadow-lg ${cardTheme.primary}`}
                           onClick={() => {
                             setSelectedWorkspaceId(row.workspace.id)
                             void handleGetQuote(row.workspace)
@@ -583,6 +590,7 @@ export function ChatGPTBusinessPage() {
                           {t('Next')}
                           <ArrowRightIcon className='size-4' />
                         </Button>
+                        </div>
                       </>
                     )
                   })()}

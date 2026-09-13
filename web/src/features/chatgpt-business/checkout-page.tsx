@@ -1,3 +1,4 @@
+import { ArrowRightIcon } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -14,6 +15,7 @@ import {
   type BusinessCheckoutSession,
 } from './checkout-session'
 import { createBusinessOrder, isApiSuccess } from './api'
+import { startBusinessAlipayPayment } from './start-payment'
 
 export function ChatGPTBusinessCheckoutPage() {
   const { t } = useTranslation()
@@ -45,10 +47,9 @@ export function ChatGPTBusinessCheckoutPage() {
         return
       }
       clearBusinessCheckoutSession()
-      await navigate({
-        to: '/chatgpt-business/payment',
-        search: { order_id: orderRes.data.id },
-      })
+      await startBusinessAlipayPayment(orderRes.data.id, t)
+    } catch {
+      toast.error(t('Unable to start payment'))
     } finally {
       setCheckoutLoading(false)
     }
@@ -78,22 +79,27 @@ export function ChatGPTBusinessCheckoutPage() {
     <SectionPageLayout>
       <SectionPageLayout.Title>{t('Billing details')}</SectionPageLayout.Title>
       <SectionPageLayout.Content>
-        <div className='mx-auto max-w-2xl space-y-4'>
+        <div className='mx-auto max-w-2xl space-y-6'>
           <BillingDisclosure
             quote={session.quote}
             productName={session.productName}
-            workspace={session.workspace}
           />
-          <div className='flex flex-wrap gap-2'>
+          <div className='flex flex-col-reverse gap-3 sm:flex-row'>
             <Button
               variant='outline'
+              className='h-12 px-8 text-base'
               onClick={handleBack}
               disabled={checkoutLoading}
             >
               {t('Back')}
             </Button>
-            <Button onClick={() => void handlePay()} disabled={checkoutLoading}>
+            <Button
+              className='h-12 flex-1 rounded-xl bg-[#1677ff] text-base font-semibold shadow-md shadow-blue-200/60 hover:bg-[#096dd9]'
+              onClick={() => void handlePay()}
+              disabled={checkoutLoading}
+            >
               {t('Alipay Payment')}
+              <ArrowRightIcon className='size-5' />
             </Button>
           </div>
         </div>
