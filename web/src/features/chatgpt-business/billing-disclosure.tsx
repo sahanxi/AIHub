@@ -45,7 +45,7 @@ export function BillingDisclosure(props: BillingDisclosureProps) {
     <div className='space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm'>
       <div>
         <p className='text-lg font-semibold text-slate-900'>{productName}</p>
-        <p className='text-muted-foreground mt-1 text-sm'>
+        <p className='mt-1 text-sm font-medium text-[#1677ff]'>
           {quote.chatgpt_email}
         </p>
       </div>

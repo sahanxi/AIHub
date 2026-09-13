@@ -1090,7 +1090,7 @@ const businessSeatCheckoutKeys = {
     'Price display unit / year': '年 (/ year)',
     'Redirecting to Alipay...': '正在跳转到支付宝...',
     'Before paying, disconnect VPN and international internet access, or payment may fail.':
-      '⚠️ 支付时请断开 VPN、国际互联网等，否则可能会支付失败！',
+      '支付时请断开 VPN、国际互联网等，否则可能会支付失败！',
   },
   'zh-TW': {
     'Billing cadence': '計費週期',
@@ -1113,7 +1113,7 @@ const businessSeatCheckoutKeys = {
     'Price display unit / year': '年 (/ year)',
     'Redirecting to Alipay...': '正在跳轉到支付寶...',
     'Before paying, disconnect VPN and international internet access, or payment may fail.':
-      '⚠️ 付款時請斷開 VPN、國際互聯網等，否則可能會付款失敗！',
+      '付款時請斷開 VPN、國際互聯網等，否則可能會付款失敗！',
   },
   fr: {
     'Billing cadence': 'Billing cadence',
@@ -1137,7 +1137,7 @@ const businessSeatCheckoutKeys = {
     'Price display unit / year': '/ year',
     'Redirecting to Alipay...': 'Redirection vers Alipay...',
     'Before paying, disconnect VPN and international internet access, or payment may fail.':
-      '⚠️ Avant de payer, déconnectez le VPN et l’accès Internet international, sinon le paiement peut échouer.',
+      'Avant de payer, déconnectez le VPN et l’accès Internet international, sinon le paiement peut échouer.',
   },
   ja: {
     'Billing cadence': 'Billing cadence',
@@ -1161,7 +1161,7 @@ const businessSeatCheckoutKeys = {
     'Price display unit / year': '/ year',
     'Redirecting to Alipay...': 'Alipayへリダイレクト中...',
     'Before paying, disconnect VPN and international internet access, or payment may fail.':
-      '⚠️ お支払いの際は VPN や国際インターネット接続を切断してください。接続していると支払いが失敗する場合があります。',
+      'お支払いの際は VPN や国際インターネット接続を切断してください。接続していると支払いが失敗する場合があります。',
   },
   ru: {
     'Billing cadence': 'Billing cadence',
@@ -1185,7 +1185,7 @@ const businessSeatCheckoutKeys = {
     'Price display unit / year': '/ year',
     'Redirecting to Alipay...': 'Перенаправление в Alipay...',
     'Before paying, disconnect VPN and international internet access, or payment may fail.':
-      '⚠️ Перед оплатой отключите VPN и международный интернет-доступ, иначе платёж может не пройти.',
+      'Перед оплатой отключите VPN и международный интернет-доступ, иначе платёж может не пройти.',
   },
   vi: {
     'Billing cadence': 'Billing cadence',
@@ -1209,7 +1209,7 @@ const businessSeatCheckoutKeys = {
     'Price display unit / year': '/ year',
     'Redirecting to Alipay...': 'Đang chuyển hướng đến Alipay...',
     'Before paying, disconnect VPN and international internet access, or payment may fail.':
-      '⚠️ Trước khi thanh toán, vui lòng ngắt VPN và kết nối internet quốc tế, nếu không thanh toán có thể thất bại.',
+      'Trước khi thanh toán, vui lòng ngắt VPN và kết nối internet quốc tế, nếu không thanh toán có thể thất bại.',
   },
 }
 for (const [locale, values] of Object.entries(businessSeatCheckoutKeys))
