@@ -36,7 +36,9 @@ import {
   isUnconfiguredTaskUsageModel,
 } from '../lib/dynamic-price'
 import { parseTags } from '../lib/filters'
+import { isModelAvailable } from '../lib/model-catalog-order'
 import { isTokenBasedModel } from '../lib/model-helpers'
+import { getPricingModelVendorName } from '../lib/model-vendor'
 import { formatPrice, formatRequestPrice } from '../lib/price'
 import { getTaskNumberFields } from '../lib/task-expr'
 import type { PricingModel, PriceType, TokenUnit } from '../types'
@@ -72,7 +74,8 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
     props.model.billing_mode === 'tiered_expr' &&
     Boolean(props.model.billing_expr)
   const isUnconfiguredTaskUsage = isUnconfiguredTaskUsageModel(props.model)
-  const isUnavailable = props.model.available === false
+  const isAvailable = isModelAvailable(props.model)
+  const vendorName = getPricingModelVendorName(props.model)
   const dynamicPriceOptions = {
     tokenUnit,
     showRechargePrice,
@@ -217,7 +220,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
     <Card
       className={cn(
         'hover:ring-foreground/20 h-full min-w-0 gap-3 transition-colors',
-        isUnavailable && 'border-dashed opacity-80'
+        !isAvailable && 'border-dashed opacity-80'
       )}
     >
       <CardHeader className='flex flex-row items-start gap-3'>
@@ -238,19 +241,24 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
           >
             {props.model.model_name}
           </h3>
-          {props.model.vendor_name && (
+          {vendorName && (
             <p
               className='text-muted-foreground mt-1 truncate text-xs'
-              title={props.model.vendor_name}
+              title={vendorName}
             >
-              {props.model.vendor_name}
+              {vendorName}
             </p>
           )}
-          {isUnavailable && (
-            <Badge variant='secondary' className='mt-2 text-[11px]'>
-              {t('Temporarily unavailable')}
-            </Badge>
-          )}
+          <Badge
+            variant={isAvailable ? 'outline' : 'secondary'}
+            className={cn(
+              'mt-2 text-[11px]',
+              isAvailable &&
+                'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+            )}
+          >
+            {isAvailable ? t('Available') : t('Temporarily unavailable')}
+          </Badge>
         </div>
         <CopyButton
           value={props.model.model_name}
@@ -261,9 +269,11 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
       </CardHeader>
       <CardContent className='flex flex-1 flex-col gap-3'>
         <div className='flex min-w-0 flex-col gap-1.5'>
-          <p className='text-muted-foreground line-clamp-2 text-[13px] leading-5 break-words'>
-            {props.model.description || t('No description available.')}
-          </p>
+          {props.model.description && (
+            <p className='text-muted-foreground line-clamp-2 text-[13px] leading-5 break-words'>
+              {props.model.description}
+            </p>
+          )}
           {tags.length > 0 && (
             <div
               role='group'

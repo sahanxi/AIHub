@@ -18,6 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { SORT_OPTIONS, FILTER_ALL } from '../constants'
 import type { PricingModel } from '../types'
+import { sortModelsByCatalogOrder } from './model-catalog-order'
 import { matchesModelClassification } from './model-classification'
 import { getPricingModelVendorName } from './model-vendor'
 
@@ -97,10 +98,7 @@ export function sortModels(
 
   switch (sortBy) {
     case SORT_OPTIONS.NAME:
-      sorted.sort((a, b) =>
-        (a.model_name || '').localeCompare(b.model_name || '')
-      )
-      break
+      return sortModelsByCatalogOrder(sorted)
     case SORT_OPTIONS.PRICE_LOW:
       sorted.sort((a, b) => getModelPrice(a) - getModelPrice(b))
       break

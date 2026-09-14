@@ -65,6 +65,7 @@ const MODEL_CATEGORY_RULES: readonly ModelCategoryRule[] = [
       'imagen',
       'veo',
       'nano-banana',
+      'nano banana',
       'palm-',
     ],
     pattern: /(?:^|[/.:])aqa$/,

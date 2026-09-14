@@ -56,8 +56,27 @@ export function buildPricingVendorOptions(
     names.add(getPricingModelVendorName(model))
   }
 
+  const VENDOR_ORDER = [
+    'OpenAI',
+    'Google',
+    'Gemini',
+    'Anthropic',
+    'Amazon',
+    'AWS',
+    'Mistral',
+    'xAI',
+    'Other',
+  ]
+
   return Array.from(names)
-    .sort((a, b) => a.localeCompare(b))
+    .sort((a, b) => {
+      const rankA = VENDOR_ORDER.indexOf(a)
+      const rankB = VENDOR_ORDER.indexOf(b)
+      const orderA = rankA === -1 ? VENDOR_ORDER.length : rankA
+      const orderB = rankB === -1 ? VENDOR_ORDER.length : rankB
+      if (orderA !== orderB) return orderA - orderB
+      return a.localeCompare(b)
+    })
     .map((name) => {
       const vendor = vendorByName.get(name)
       return {

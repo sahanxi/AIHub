@@ -109,7 +109,7 @@ describe('model cards', () => {
         name: 'Recent success-rate samples; gray bars indicate missing data.',
       })
     ).toBeVisible()
-    expect(screen.getByText('No description available.')).toBeVisible()
+    expect(screen.queryByText('No description available.')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Details' })).toBeEnabled()
   })
 

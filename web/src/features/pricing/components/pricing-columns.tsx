@@ -27,6 +27,7 @@ import {
 import { GroupBadge } from '@/components/group-badge'
 import { StatusBadge } from '@/components/status-badge'
 import { getLobeIcon } from '@/lib/lobe-icon'
+import { cn } from '@/lib/utils'
 
 import { DEFAULT_TOKEN_UNIT } from '../constants'
 import {
@@ -92,11 +93,18 @@ export function usePricingColumns(
                 {model.model_name}
               </span>
             </div>
-            {model.available === false && (
-              <span className='text-muted-foreground text-xs'>
-                {t('Temporarily unavailable')}
-              </span>
-            )}
+            <span
+              className={cn(
+                'text-xs',
+                model.available === false
+                  ? 'text-muted-foreground'
+                  : 'text-emerald-700 dark:text-emerald-400'
+              )}
+            >
+              {model.available === false
+                ? t('Temporarily unavailable')
+                : t('Available')}
+            </span>
           </div>
         )
       },
