@@ -19,6 +19,10 @@ func filterPricingByUsableGroups(pricing []model.Pricing, usableGroup map[string
 
 	filtered := make([]model.Pricing, 0, len(pricing))
 	for _, item := range pricing {
+		if !item.Available {
+			filtered = append(filtered, item)
+			continue
+		}
 		if common.StringsContains(item.EnableGroup, "all") {
 			filtered = append(filtered, item)
 			continue

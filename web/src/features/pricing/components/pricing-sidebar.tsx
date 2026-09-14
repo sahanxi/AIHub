@@ -33,10 +33,14 @@ import { cn } from '@/lib/utils'
 import {
   ENDPOINT_TYPES,
   FILTER_ALL,
-  QUOTA_TYPES,
   getEndpointTypeLabels,
-  getQuotaTypeLabels,
 } from '../constants'
+import {
+  TASK_CATEGORIES,
+  getModelTaskCategory,
+  getTaskCategoryLabels,
+  listTaskCategories,
+} from '../lib/model-task-categories'
 import type { PricingModel, PricingVendor } from '../types'
 
 type FilterOption = {
@@ -55,16 +59,13 @@ type FilterSectionProps = {
 }
 
 export interface PricingSidebarProps {
-  quotaTypeFilter: string
+  taskCategoryFilter: string
   endpointTypeFilter: string
   vendorFilter: string
-  tagFilter: string
-  onQuotaTypeChange: (value: string) => void
+  onTaskCategoryChange: (value: string) => void
   onEndpointTypeChange: (value: string) => void
   onVendorChange: (value: string) => void
-  onTagChange: (value: string) => void
   vendors: PricingVendor[]
-  tags: string[]
   models: PricingModel[]
   hasActiveFilters: boolean
   onClearFilters: () => void
@@ -79,11 +80,7 @@ function countBy(
 }
 
 function isAggregateFilterOption(value: string): boolean {
-  return (
-    value === FILTER_ALL ||
-    value === QUOTA_TYPES.ALL ||
-    value === ENDPOINT_TYPES.ALL
-  )
+  return value === FILTER_ALL || value === ENDPOINT_TYPES.ALL
 }
 
 function FilterChip(props: {
@@ -180,8 +177,8 @@ function FilterSection(props: FilterSectionProps) {
 
 export function PricingSidebar(props: PricingSidebarProps) {
   const { t } = useTranslation()
-  const quotaTypeLabels = getQuotaTypeLabels(t)
   const endpointTypeLabels = getEndpointTypeLabels(t)
+  const taskCategoryLabels = getTaskCategoryLabels(t)
 
   const vendorOptions: FilterOption[] = [
     {
@@ -202,36 +199,20 @@ export function PricingSidebar(props: PricingSidebarProps) {
       })),
   ]
 
-  const quotaOptions: FilterOption[] = [
+  const taskCategoryOptions: FilterOption[] = [
     {
-      value: QUOTA_TYPES.ALL,
-      label: quotaTypeLabels[QUOTA_TYPES.ALL],
+      value: TASK_CATEGORIES.ALL,
+      label: taskCategoryLabels[TASK_CATEGORIES.ALL],
       count: props.models.length,
     },
-    {
-      value: QUOTA_TYPES.TOKEN,
-      label: quotaTypeLabels[QUOTA_TYPES.TOKEN],
-    },
-    {
-      value: QUOTA_TYPES.REQUEST,
-      label: quotaTypeLabels[QUOTA_TYPES.REQUEST],
-    },
-    {
-      value: QUOTA_TYPES.TASK,
-      label: quotaTypeLabels[QUOTA_TYPES.TASK],
-    },
-  ]
-
-  const tagOptions: FilterOption[] = [
-    {
-      value: FILTER_ALL,
-      label: t('All Tags'),
-      count: props.models.length,
-    },
-    ...props.tags.map((tag) => ({
-      value: tag,
-      label: tag,
-    })),
+    ...listTaskCategories()
+      .filter((category) =>
+        countBy(props.models, (model) => getModelTaskCategory(model) === category)
+      )
+      .map((category) => ({
+        value: category,
+        label: taskCategoryLabels[category],
+      })),
   ]
 
   const endpointOptions: FilterOption[] = [
@@ -254,7 +235,7 @@ export function PricingSidebar(props: PricingSidebarProps) {
         <div>
           <h2 className='text-foreground text-sm font-bold'>{t('Filter')}</h2>
           <p className='text-muted-foreground mt-1 text-xs'>
-            {t('Refine models by provider, group, type, and tags.')}
+            {t('Refine models by provider, task type, endpoint, and tags.')}
           </p>
         </div>
         <Button
@@ -284,16 +265,10 @@ export function PricingSidebar(props: PricingSidebarProps) {
           onChange={props.onVendorChange}
         />
         <FilterSection
-          title={t('Model Tags')}
-          value={props.tagFilter}
-          options={tagOptions}
-          onChange={props.onTagChange}
-        />
-        <FilterSection
-          title={t('Pricing Type')}
-          value={props.quotaTypeFilter}
-          options={quotaOptions}
-          onChange={props.onQuotaTypeChange}
+          title={t('Task Type')}
+          value={props.taskCategoryFilter}
+          options={taskCategoryOptions}
+          onChange={props.onTaskCategoryChange}
         />
         <FilterSection
           title={t('Endpoint Type')}

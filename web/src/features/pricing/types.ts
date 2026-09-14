@@ -76,6 +76,8 @@ export type PricingModel = {
   billing_usage_examples?: BillingUsageExample[]
   /** Pricing version returned by backend, useful for cache busting */
   pricing_version?: string
+  /** Whether the model has at least one enabled route on an enabled channel */
+  available?: boolean
   /**
    * Optional model metadata fields reserved for backend-provided catalog data.
    * Keep them data-driven; do not synthesize display values on the client.

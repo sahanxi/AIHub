@@ -59,25 +59,22 @@ export function Pricing() {
     sortBy,
     vendorFilter,
     groupFilter,
-    quotaTypeFilter,
+    taskCategoryFilter,
     endpointTypeFilter,
-    tagFilter,
     tokenUnit,
     viewMode,
     showRechargePrice,
     setSearchInput,
     setSortBy,
     setVendorFilter,
-    setQuotaTypeFilter,
+    setTaskCategoryFilter,
     setEndpointTypeFilter,
-    setTagFilter,
     setTokenUnit,
     setViewMode,
     setShowRechargePrice,
     filteredModels,
     hasActiveFilters,
     activeFilterCount,
-    availableTags,
     clearFilters,
     clearSearch,
   } = useFilters(models || [])
@@ -190,16 +187,13 @@ export function Pricing() {
 
           <div className='grid gap-4 xl:grid-cols-[280px_minmax(0,1fr)]'>
             <PricingSidebar
-              quotaTypeFilter={quotaTypeFilter}
+              taskCategoryFilter={taskCategoryFilter}
               endpointTypeFilter={endpointTypeFilter}
               vendorFilter={vendorFilter}
-              tagFilter={tagFilter}
-              onQuotaTypeChange={setQuotaTypeFilter}
+              onTaskCategoryChange={setTaskCategoryFilter}
               onEndpointTypeChange={setEndpointTypeFilter}
               onVendorChange={setVendorFilter}
-              onTagChange={setTagFilter}
               vendors={vendors || []}
-              tags={availableTags}
               models={models || []}
               hasActiveFilters={hasActiveFilters}
               onClearFilters={clearFilters}
@@ -218,16 +212,13 @@ export function Pricing() {
                 onRechargePriceChange={setShowRechargePrice}
                 viewMode={viewMode}
                 onViewModeChange={setViewMode}
-                quotaTypeFilter={quotaTypeFilter}
+                taskCategoryFilter={taskCategoryFilter}
                 endpointTypeFilter={endpointTypeFilter}
                 vendorFilter={vendorFilter}
-                tagFilter={tagFilter}
-                onQuotaTypeChange={setQuotaTypeFilter}
+                onTaskCategoryChange={setTaskCategoryFilter}
                 onEndpointTypeChange={setEndpointTypeFilter}
                 onVendorChange={setVendorFilter}
-                onTagChange={setTagFilter}
                 vendors={vendors || []}
-                tags={availableTags}
                 models={models || []}
                 hasActiveFilters={hasActiveFilters}
                 activeFilterCount={activeFilterCount}

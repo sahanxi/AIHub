@@ -60,16 +60,13 @@ export interface PricingToolbarProps {
   onRechargePriceChange: (value: boolean) => void
   viewMode: ViewMode
   onViewModeChange: (value: ViewMode) => void
-  quotaTypeFilter: string
+  taskCategoryFilter: string
   endpointTypeFilter: string
   vendorFilter: string
-  tagFilter: string
-  onQuotaTypeChange: (value: string) => void
+  onTaskCategoryChange: (value: string) => void
   onEndpointTypeChange: (value: string) => void
   onVendorChange: (value: string) => void
-  onTagChange: (value: string) => void
   vendors: PricingVendor[]
-  tags: string[]
   models: PricingModel[]
   hasActiveFilters: boolean
   activeFilterCount: number
@@ -195,21 +192,18 @@ export function PricingToolbar(props: PricingToolbarProps) {
           <SheetHeader className={sideDrawerHeaderClassName()}>
             <SheetTitle>{t('Filter')}</SheetTitle>
             <SheetDescription>
-              {t('Filter models by provider, group, type, endpoint, and tags.')}
+              {t('Refine models by provider, task type, endpoint, and tags.')}
             </SheetDescription>
           </SheetHeader>
           <div className={sideDrawerFormClassName('gap-0')}>
             <PricingSidebar
-              quotaTypeFilter={props.quotaTypeFilter}
+              taskCategoryFilter={props.taskCategoryFilter}
               endpointTypeFilter={props.endpointTypeFilter}
               vendorFilter={props.vendorFilter}
-              tagFilter={props.tagFilter}
-              onQuotaTypeChange={props.onQuotaTypeChange}
+              onTaskCategoryChange={props.onTaskCategoryChange}
               onEndpointTypeChange={props.onEndpointTypeChange}
               onVendorChange={props.onVendorChange}
-              onTagChange={props.onTagChange}
               vendors={props.vendors}
-              tags={props.tags}
               models={props.models}
               hasActiveFilters={props.hasActiveFilters}
               onClearFilters={props.onClearFilters}

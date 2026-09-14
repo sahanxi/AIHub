@@ -40,6 +40,7 @@ type Pricing struct {
 	BillingUsageSchema     map[string]jsplugin.UsageFieldSchema `json:"billing_usage_schema,omitempty"`
 	BillingUsageExamples   []jsplugin.UsageExample              `json:"billing_usage_examples,omitempty"`
 	PricingVersion         string                               `json:"pricing_version,omitempty"`
+	Available              bool                                 `json:"available"`
 }
 
 type PricingVendor struct {
@@ -183,10 +184,16 @@ func appendPricingEndpoint(endpoints []string, endpoint string) []string {
 
 func updatePricing() {
 	//modelRatios := common.GetModelRatios()
-	enableAbilities, err := GetAllEnableAbilityWithChannels()
+	allAbilities, err := GetAllAbilityWithChannels()
 	if err != nil {
-		common.SysLog(fmt.Sprintf("GetAllEnableAbilityWithChannels error: %v", err))
+		common.SysLog(fmt.Sprintf("GetAllAbilityWithChannels error: %v", err))
 		return
+	}
+	enableAbilities := make([]AbilityWithChannel, 0, len(allAbilities))
+	for _, ability := range allAbilities {
+		if IsPricingAbilityAvailable(ability) {
+			enableAbilities = append(enableAbilities, ability)
+		}
 	}
 	// 预加载模型元数据与供应商一次，避免循环查询
 	var allMeta []Model
@@ -213,7 +220,7 @@ func updatePricing() {
 
 	// 将非精确规则模型匹配到 metaMap
 	for _, m := range prefixList {
-		for _, pricingModel := range enableAbilities {
+		for _, pricingModel := range allAbilities {
 			if strings.HasPrefix(pricingModel.Model, m.ModelName) {
 				if _, exists := metaMap[pricingModel.Model]; !exists {
 					metaMap[pricingModel.Model] = m
@@ -222,7 +229,7 @@ func updatePricing() {
 		}
 	}
 	for _, m := range suffixList {
-		for _, pricingModel := range enableAbilities {
+		for _, pricingModel := range allAbilities {
 			if strings.HasSuffix(pricingModel.Model, m.ModelName) {
 				if _, exists := metaMap[pricingModel.Model]; !exists {
 					metaMap[pricingModel.Model] = m
@@ -231,7 +238,7 @@ func updatePricing() {
 		}
 	}
 	for _, m := range containsList {
-		for _, pricingModel := range enableAbilities {
+		for _, pricingModel := range allAbilities {
 			if strings.Contains(pricingModel.Model, m.ModelName) {
 				if _, exists := metaMap[pricingModel.Model]; !exists {
 					metaMap[pricingModel.Model] = m
@@ -249,7 +256,7 @@ func updatePricing() {
 	}
 
 	// 初始化默认供应商映射
-	initDefaultVendorMapping(metaMap, vendorMap, enableAbilities)
+	initDefaultVendorMapping(metaMap, vendorMap, allAbilities)
 
 	// 构建对前端友好的供应商列表
 	vendorsList = make([]PricingVendor, 0, len(vendorMap))
@@ -263,14 +270,26 @@ func updatePricing() {
 	}
 
 	modelGroupsMap := make(map[string]*types.Set[string])
+	availableModelGroupsMap := make(map[string]*types.Set[string])
+	modelAvailableMap := make(map[string]bool)
 
-	for _, ability := range enableAbilities {
+	for _, ability := range allAbilities {
 		groups, ok := modelGroupsMap[ability.Model]
 		if !ok {
 			groups = types.NewSet[string]()
 			modelGroupsMap[ability.Model] = groups
 		}
 		groups.Add(ability.Group)
+		if !IsPricingAbilityAvailable(ability) {
+			continue
+		}
+		modelAvailableMap[ability.Model] = true
+		availableGroups, ok := availableModelGroupsMap[ability.Model]
+		if !ok {
+			availableGroups = types.NewSet[string]()
+			availableModelGroupsMap[ability.Model] = availableGroups
+		}
+		availableGroups.Add(ability.Group)
 	}
 
 	//这里使用切片而不是Set，因为一个模型可能支持多个端点类型，并且第一个端点是优先使用端点
@@ -278,7 +297,7 @@ func updatePricing() {
 	advancedCustomConfigs := loadPricingAdvancedCustomConfigs(enableAbilities)
 
 	// 先根据已有能力填充原生端点
-	for _, ability := range enableAbilities {
+	for _, ability := range allAbilities {
 		endpoints := modelSupportEndpointsStr[ability.Model]
 		channelTypes := getPricingEndpointTypesForAbility(ability, advancedCustomConfigs)
 		for _, channelType := range channelTypes {
@@ -361,17 +380,22 @@ func updatePricing() {
 	pricingMap = make([]Pricing, 0)
 	pluginGeneration := jsplugin.DefaultRegistry.Generation()
 	for model, groups := range modelGroupsMap {
+		availableGroups := availableModelGroupsMap[model]
+		enableGroupItems := groups.Items()
+		if availableGroups != nil {
+			enableGroupItems = availableGroups.Items()
+		}
 		pricing := Pricing{
 			ModelName:              model,
-			EnableGroup:            groups.Items(),
+			EnableGroup:            enableGroupItems,
 			SupportedEndpointTypes: modelSupportEndpointTypes[model],
+			Available:              modelAvailableMap[model],
 		}
 
 		// 补充模型元数据（描述、标签、供应商、状态）
 		if meta, ok := metaMap[model]; ok {
-			// 若模型被禁用(status!=1)，则直接跳过，不返回给前端
 			if meta.Status != 1 {
-				continue
+				pricing.Available = false
 			}
 			pricing.Description = meta.Description
 			pricing.Icon = meta.Icon

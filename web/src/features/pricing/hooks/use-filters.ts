@@ -24,13 +24,12 @@ import { useDebounce } from '@/hooks/use-debounce'
 import {
   FILTER_ALL,
   SORT_OPTIONS,
-  QUOTA_TYPES,
   ENDPOINT_TYPES,
   DEFAULT_TOKEN_UNIT,
   VIEW_MODES,
   type ViewMode,
 } from '../constants'
-import { filterAndSortModels, extractAllTags } from '../lib/filters'
+import { filterAndSortModels } from '../lib/filters'
 import type { PricingModel, TokenUnit } from '../types'
 
 type FilterState = {
@@ -38,9 +37,8 @@ type FilterState = {
   sort?: string
   vendor?: string
   group?: string
-  quotaType?: string
+  taskCategory?: string
   endpointType?: string
-  tag?: string
   tokenUnit?: TokenUnit
   view?: ViewMode
   rechargePrice?: boolean
@@ -60,9 +58,8 @@ export function useFilters(models: PricingModel[]) {
     sort: search.sort,
     vendor: search.vendor,
     group: search.group,
-    quotaType: search.quotaType,
+    taskCategory: search.taskCategory,
     endpointType: search.endpointType,
-    tag: search.tag,
     tokenUnit: search.tokenUnit,
     view: search.view,
     rechargePrice: search.rechargePrice,
@@ -73,9 +70,8 @@ export function useFilters(models: PricingModel[]) {
   const sortBy = filterState.sort || SORT_OPTIONS.NAME
   const vendorFilter = filterState.vendor || FILTER_ALL
   const groupFilter = filterState.group || FILTER_ALL
-  const quotaTypeFilter = filterState.quotaType || QUOTA_TYPES.ALL
+  const taskCategoryFilter = filterState.taskCategory || FILTER_ALL
   const endpointTypeFilter = filterState.endpointType || ENDPOINT_TYPES.ALL
-  const tagFilter = filterState.tag || FILTER_ALL
   const tokenUnit: TokenUnit =
     filterState.tokenUnit === 'K' ? 'K' : DEFAULT_TOKEN_UNIT
   const viewMode = normalizeViewMode(filterState.view)
@@ -110,9 +106,9 @@ export function useFilters(models: PricingModel[]) {
     (v: string) => updateFilters({ group: v === FILTER_ALL ? undefined : v }),
     [updateFilters]
   )
-  const setQuotaTypeFilter = useCallback(
+  const setTaskCategoryFilter = useCallback(
     (v: string) =>
-      updateFilters({ quotaType: v === QUOTA_TYPES.ALL ? undefined : v }),
+      updateFilters({ taskCategory: v === FILTER_ALL ? undefined : v }),
     [updateFilters]
   )
   const setEndpointTypeFilter = useCallback(
@@ -120,10 +116,6 @@ export function useFilters(models: PricingModel[]) {
       updateFilters({
         endpointType: v === ENDPOINT_TYPES.ALL ? undefined : v,
       }),
-    [updateFilters]
-  )
-  const setTagFilter = useCallback(
-    (v: string) => updateFilters({ tag: v === FILTER_ALL ? undefined : v }),
     [updateFilters]
   )
   const setTokenUnit = useCallback(
@@ -141,11 +133,6 @@ export function useFilters(models: PricingModel[]) {
     [updateFilters]
   )
 
-  const availableTags = useMemo(() => {
-    if (!models || models.length === 0) return []
-    return extractAllTags(models)
-  }, [models])
-
   const filteredModels = useMemo(() => {
     if (!models || models.length === 0) return []
 
@@ -153,9 +140,8 @@ export function useFilters(models: PricingModel[]) {
       search: debouncedSearchInput,
       vendor: vendorFilter,
       group: groupFilter,
-      quotaType: quotaTypeFilter,
+      taskCategory: taskCategoryFilter,
       endpointType: endpointTypeFilter,
-      tag: tagFilter,
       sortBy,
     })
   }, [
@@ -163,9 +149,8 @@ export function useFilters(models: PricingModel[]) {
     debouncedSearchInput,
     vendorFilter,
     groupFilter,
-    quotaTypeFilter,
+    taskCategoryFilter,
     endpointTypeFilter,
-    tagFilter,
     sortBy,
   ])
 
@@ -173,29 +158,26 @@ export function useFilters(models: PricingModel[]) {
     () =>
       vendorFilter !== FILTER_ALL ||
       groupFilter !== FILTER_ALL ||
-      quotaTypeFilter !== QUOTA_TYPES.ALL ||
-      endpointTypeFilter !== ENDPOINT_TYPES.ALL ||
-      tagFilter !== FILTER_ALL,
-    [vendorFilter, groupFilter, quotaTypeFilter, endpointTypeFilter, tagFilter]
+      taskCategoryFilter !== FILTER_ALL ||
+      endpointTypeFilter !== ENDPOINT_TYPES.ALL,
+    [vendorFilter, groupFilter, taskCategoryFilter, endpointTypeFilter]
   )
 
   const activeFilterCount = useMemo(
     () =>
       (vendorFilter !== FILTER_ALL ? 1 : 0) +
       (groupFilter !== FILTER_ALL ? 1 : 0) +
-      (quotaTypeFilter !== QUOTA_TYPES.ALL ? 1 : 0) +
-      (endpointTypeFilter !== ENDPOINT_TYPES.ALL ? 1 : 0) +
-      (tagFilter !== FILTER_ALL ? 1 : 0),
-    [vendorFilter, groupFilter, quotaTypeFilter, endpointTypeFilter, tagFilter]
+      (taskCategoryFilter !== FILTER_ALL ? 1 : 0) +
+      (endpointTypeFilter !== ENDPOINT_TYPES.ALL ? 1 : 0),
+    [vendorFilter, groupFilter, taskCategoryFilter, endpointTypeFilter]
   )
 
   const clearFilters = useCallback(() => {
     updateFilters({
       vendor: undefined,
       group: undefined,
-      quotaType: undefined,
+      taskCategory: undefined,
       endpointType: undefined,
-      tag: undefined,
     })
   }, [updateFilters])
 
@@ -208,9 +190,8 @@ export function useFilters(models: PricingModel[]) {
     sortBy,
     vendorFilter,
     groupFilter,
-    quotaTypeFilter,
+    taskCategoryFilter,
     endpointTypeFilter,
-    tagFilter,
     tokenUnit,
     viewMode,
     showRechargePrice,
@@ -218,16 +199,14 @@ export function useFilters(models: PricingModel[]) {
     setSortBy,
     setVendorFilter,
     setGroupFilter,
-    setQuotaTypeFilter,
+    setTaskCategoryFilter,
     setEndpointTypeFilter,
-    setTagFilter,
     setTokenUnit,
     setViewMode,
     setShowRechargePrice,
     filteredModels,
     hasActiveFilters,
     activeFilterCount,
-    availableTags,
     clearFilters,
     clearSearch,
   }

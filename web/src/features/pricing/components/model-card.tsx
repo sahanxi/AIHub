@@ -21,6 +21,7 @@ import { memo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { CopyButton } from '@/components/copy-button'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { getLobeIcon } from '@/lib/lobe-icon'
@@ -71,6 +72,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
     props.model.billing_mode === 'tiered_expr' &&
     Boolean(props.model.billing_expr)
   const isUnconfiguredTaskUsage = isUnconfiguredTaskUsageModel(props.model)
+  const isUnavailable = props.model.available === false
   const dynamicPriceOptions = {
     tokenUnit,
     showRechargePrice,
@@ -212,7 +214,12 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
   }
 
   return (
-    <Card className='hover:ring-foreground/20 h-full min-w-0 gap-3 transition-colors'>
+    <Card
+      className={cn(
+        'hover:ring-foreground/20 h-full min-w-0 gap-3 transition-colors',
+        isUnavailable && 'border-dashed opacity-80'
+      )}
+    >
       <CardHeader className='flex flex-row items-start gap-3'>
         <div
           aria-hidden
@@ -238,6 +245,11 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             >
               {props.model.vendor_name}
             </p>
+          )}
+          {isUnavailable && (
+            <Badge variant='secondary' className='mt-2 text-[11px]'>
+              {t('Temporarily unavailable')}
+            </Badge>
           )}
         </div>
         <CopyButton
