@@ -65,7 +65,9 @@ export function getModelReleaseScore(model: PricingModel): number {
     score += parts[index] * 1000 ** (parts.length - 1 - index)
   }
 
-  if (/gpt-6|gpt-5\.6|gpt-5\.5|gpt-5\.4|gpt-5[^.]|gpt-4o/.test(name)) {
+  if (
+    /gpt-6(?:\.|\s|$)|gpt-5(?:\.\d+|\s|$)|gpt-4o/.test(name)
+  ) {
     score += 10_000
   }
   if (/gemini\s*3\.[678]|gemini\s*3\.1\s*pro/.test(name)) {
