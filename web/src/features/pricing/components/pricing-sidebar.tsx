@@ -97,6 +97,8 @@ function FilterChip(props: {
   active: boolean
   onClick: () => void
 }) {
+  const meta = props.option.suffix ?? props.option.count
+
   return (
     <Button
       type='button'
@@ -105,27 +107,29 @@ function FilterChip(props: {
       onClick={props.onClick}
       aria-pressed={props.active}
       className={cn(
-        'h-9 max-w-full min-w-[4.5rem] gap-1.5 rounded-full px-3.5 text-sm font-medium shadow-none transition-all',
+        'h-9 w-full min-w-0 justify-between gap-2 rounded-full px-3 text-sm font-medium shadow-none transition-all',
         props.active
           ? 'border-foreground/15 bg-foreground text-background hover:bg-foreground/90 hover:text-background'
           : 'bg-background text-foreground hover:border-foreground/20 hover:bg-muted/70'
       )}
       title={props.option.label}
     >
-      {props.option.icon && (
-        <span className='shrink-0'>{props.option.icon}</span>
-      )}
-      <span className='truncate'>{props.option.label}</span>
-      {(props.option.suffix || props.option.count != null) && (
+      <span className='flex min-w-0 items-center gap-1.5'>
+        {props.option.icon && (
+          <span className='shrink-0'>{props.option.icon}</span>
+        )}
+        <span className='truncate text-left'>{props.option.label}</span>
+      </span>
+      {meta != null && (
         <span
           className={cn(
-            'min-w-[1.25rem] rounded-full px-1.5 py-0.5 text-center text-xs font-semibold tabular-nums',
+            'shrink-0 rounded-full px-1.5 py-0.5 text-center text-xs font-semibold tabular-nums',
             props.active
               ? 'bg-background/20 text-background'
               : 'bg-muted text-muted-foreground'
           )}
         >
-          {props.option.suffix ?? props.option.count}
+          {meta}
         </span>
       )}
     </Button>
@@ -145,7 +149,7 @@ function FilterSection(props: FilterSectionProps) {
         <ChevronDown className='text-muted-foreground size-4 transition-transform group-data-[panel-open]:rotate-180' />
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <div className='flex flex-wrap gap-2'>
+        <div className='grid grid-cols-2 gap-2'>
           {props.options.map((option) => (
             <FilterChip
               key={option.value}
