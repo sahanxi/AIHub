@@ -154,7 +154,7 @@ export function PromoOfferCard(props: PromoOfferCardProps) {
             return (
               <div
                 key={benefitKey}
-                className='flex min-w-0 flex-col items-center justify-center gap-2 rounded-2xl border px-3 py-3 text-center transition-transform duration-200 hover:-translate-y-px'
+                className='flex min-w-0 items-center gap-3 rounded-2xl border px-3 py-2.5 transition-transform duration-200 hover:-translate-y-px'
                 style={{
                   backgroundColor: 'rgba(255, 255, 255, 0.82)',
                   borderColor: theme.cardBorder,
@@ -170,15 +170,15 @@ export function PromoOfferCard(props: PromoOfferCardProps) {
                     aria-hidden='true'
                   />
                 </span>
-                <div className='min-w-0'>
+                <div className='flex min-w-0 flex-1 flex-col items-center justify-center text-center'>
                   <p
-                    className='text-sm leading-snug font-semibold'
+                    className='truncate text-sm leading-none font-semibold'
                     style={{ color: theme.title }}
                   >
                     {t(`home.promo.benefit.${benefitKey}.title`)}
                   </p>
                   <p
-                    className='mt-1 text-xs leading-snug'
+                    className='mt-1.5 truncate text-xs leading-none'
                     style={{ color: theme.promoBody }}
                   >
                     {t(`home.promo.benefit.${benefitKey}.description`)}
