@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useTranslation } from 'react-i18next'
 
-import { HOME_LIVE_MODELS, HOME_LIVE_VENDORS } from '../../constants'
+import { useHomeCatalog } from '../../hooks/use-home-catalog'
 import { BrandMark } from '../brand-mark'
 
 interface StatsProps {
@@ -27,18 +27,19 @@ interface StatsProps {
 
 export function Stats(_props: StatsProps) {
   const { t } = useTranslation()
+  const { vendorMarks, modelNames } = useHomeCatalog()
 
   return (
     <div className='border-border/40 bg-muted/10 relative z-10 border-y'>
-      <div className='mx-auto max-w-6xl px-6 py-10 md:py-12'>
-        <p className='text-muted-foreground mb-6 text-center text-xs font-medium tracking-widest uppercase'>
+      <div className='mx-auto max-w-6xl px-6 py-8 md:py-10'>
+        <p className='text-muted-foreground mb-5 text-center text-xs font-medium tracking-widest uppercase'>
           {t('Supported Models')}
         </p>
-        <div className='grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6'>
-          {HOME_LIVE_VENDORS.map((vendor) => (
+        <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7'>
+          {vendorMarks.map((vendor) => (
             <div
               key={vendor.name}
-              className='border-border/50 bg-background flex flex-col items-center rounded-lg border px-4 py-5 text-center'
+              className='border-border/50 bg-background flex flex-col items-center rounded-lg border px-3 py-3.5 text-center'
             >
               <BrandMark
                 icon={vendor.icon}
@@ -52,8 +53,8 @@ export function Stats(_props: StatsProps) {
             </div>
           ))}
         </div>
-        <div className='mt-6 flex flex-wrap items-center justify-center gap-2.5'>
-          {HOME_LIVE_MODELS.map((model) => (
+        <div className='mt-5 flex flex-wrap items-center justify-center gap-2.5'>
+          {modelNames.map((model) => (
             <span
               key={model}
               className='border-border/50 bg-background text-foreground/80 rounded-full border px-3.5 py-1.5 text-sm font-medium'

@@ -108,26 +108,30 @@ export function GiftBoxIllustration(props: GiftBoxIllustrationProps) {
           <circle cx='68' cy='18' r='7' fill='#8CB8FF' opacity='0.55' />
           <circle cx='96' cy='18' r='7' fill='#8CB8FF' opacity='0.55' />
 
-          <g transform='translate(46 104) rotate(6)'>
+          <g transform='translate(46 98) rotate(6)'>
             <rect
               x='0'
               y='0'
               width='78'
-              height='34'
+              height='42'
               rx='10'
-              fill='#FFF2DF'
+              fill='#FFF6E8'
               stroke='#EED9BC'
               strokeWidth='1'
             />
             <circle cx='10' cy='10' r='2' fill='#D8C2A3' />
             <circle cx='68' cy='10' r='2' fill='#D8C2A3' />
+            <path
+              d='M39 11 L41.2 15.5 L46 16.2 L42.5 19.5 L43.4 24.2 L39 21.8 L34.6 24.2 L35.5 19.5 L32 16.2 L36.8 15.5 Z'
+              fill='#D4A017'
+            />
             <text
               x='39'
-              y='22'
+              y='34'
               textAnchor='middle'
               fill='#B87924'
-              fontSize='11'
-              fontWeight='600'
+              fontSize='10.5'
+              fontWeight='700'
               fontFamily='system-ui, sans-serif'
             >
               {props.tagLabel}

@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button'
 import { useStatus } from '@/hooks/use-status'
 import { resolveDocsLink } from '@/lib/docs-link'
 
-import { HOME_LIVE_VENDORS } from '../../constants'
+import { useHomeCatalog } from '../../hooks/use-home-catalog'
 import { BrandMark, LeadingModelMarks } from '../brand-mark'
 import { HeroTerminalDemo } from '../hero-terminal-demo'
 
@@ -36,6 +36,7 @@ interface HeroProps {
 export function Hero(props: HeroProps) {
   const { t } = useTranslation()
   const { status } = useStatus()
+  const { vendorMarks } = useHomeCatalog()
   const docsLink = resolveDocsLink(status?.docs_link)
 
   const renderDocsButton = () => {
@@ -103,7 +104,7 @@ export function Hero(props: HeroProps) {
             {t('Call leading AI models through one API, including')}{' '}
             <LeadingModelMarks size={16} />{' '}
             {t(
-              'Official source, global nodes, and centralized models. Compatible with the OpenAI API and Claude Messages so you can plug into existing apps.'
+              'and other official AI models. Official source, global nodes, and centralized models. Compatible with the OpenAI API and Claude Messages so you can plug into existing apps.'
             )}
           </p>
 
@@ -113,7 +114,7 @@ export function Hero(props: HeroProps) {
           >
             {props.isAuthenticated ? (
               <Button
-                className='group h-11 rounded-lg px-5 text-sm font-medium'
+                className='group h-11 rounded-lg bg-[#2563EB] px-5 text-sm font-semibold text-white shadow-lg shadow-[#2563EB]/30 hover:bg-[#1D4ED8]'
                 render={<Link to='/dashboard' />}
               >
                 {t('Go to Dashboard')}
@@ -141,7 +142,7 @@ export function Hero(props: HeroProps) {
               </span>
             </div>
             <div className='flex flex-wrap items-center gap-3'>
-              {HOME_LIVE_VENDORS.map((vendor) => (
+              {vendorMarks.map((vendor) => (
                 <div
                   key={vendor.name}
                   className='border-border/40 bg-muted/15 text-foreground/80 flex items-center rounded-full border px-4 py-2 text-sm font-medium'

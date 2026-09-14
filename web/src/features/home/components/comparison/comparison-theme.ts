@@ -29,8 +29,9 @@ export const comparisonTheme = {
   competitorIcon: '#C96A6A',
   competitorIconBg: '#FDEEEB',
   rowBorder: 'rgba(196, 208, 224, 0.75)',
-  badgeGradient: 'linear-gradient(135deg, #2F7DF6 0%, #5B9BFF 100%)',
-  badgeShadow: '0 8px 18px rgba(47, 125, 246, 0.22)',
+  badgeGradient: 'linear-gradient(135deg, #1D4ED8 0%, #3B82F6 55%, #60A5FA 100%)',
+  badgeShadow:
+    '0 10px 24px rgba(37, 99, 235, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.35) inset',
   promoBackground:
     'linear-gradient(135deg, #F9FBFF 0%, #EDF4FF 50%, #F7FAFF 100%)',
   promoBadgeBg: 'linear-gradient(135deg, #FFEEE9 0%, #FFF5F2 100%)',

@@ -22,7 +22,8 @@ import { useTranslation } from 'react-i18next'
 import { getLobeIcon } from '@/lib/lobe-icon'
 import { cn } from '@/lib/utils'
 
-import { HOME_LIVE_VENDORS } from '../constants'
+import { useHomeCatalog } from '../hooks/use-home-catalog'
+import type { HomeVendorMark } from '../lib/home-vendor-display'
 
 type BrandMarkProps = {
   icon: string
@@ -52,16 +53,21 @@ export function BrandMark(props: BrandMarkProps) {
 
 type LeadingModelMarksProps = {
   size?: number
+  vendors?: HomeVendorMark[]
+  limit?: number
 }
 
 export function LeadingModelMarks(props: LeadingModelMarksProps) {
   const { i18n } = useTranslation()
+  const { vendorMarks } = useHomeCatalog()
   const size = props.size ?? 16
+  const limit = props.limit ?? 4
+  const vendors = (props.vendors ?? vendorMarks).slice(0, limit)
   const separator = i18n.language.startsWith('zh') ? '、' : ', '
 
   return (
     <>
-      {HOME_LIVE_VENDORS.map((vendor, index) => (
+      {vendors.map((vendor, index) => (
         <Fragment key={vendor.name}>
           {index > 0 ? <span>{separator}</span> : null}
           <BrandMark icon={vendor.icon} name={vendor.name} size={size} />

@@ -33,7 +33,7 @@ export function Features(_props: FeaturesProps) {
       id: 'models',
       title: t('One API, many models'),
       desc: t(
-        'Call GPT, Claude, Gemini, Grok, and other leading AI models through one interface.'
+        'Call GPT, Claude, Gemini, Grok, and other official AI models through one interface.'
       ),
       icon: <Layers className='size-4' />,
     },
@@ -77,7 +77,7 @@ export function Features(_props: FeaturesProps) {
           </h2>
           <p className='text-muted-foreground mx-auto mt-4 max-w-3xl text-sm leading-relaxed'>
             {t(
-              'Call ChatGPT, Claude, Gemini, and other leading AI models through one API. Official channels protect quality and stability; global nodes accelerate for security and speed. Compatible with the OpenAI API and Claude Messages so existing apps can connect quickly.'
+              'Call ChatGPT, Claude, Gemini, Grok, and other official AI models through one API. Official channels protect quality and stability; global nodes accelerate for security and speed. Compatible with the OpenAI API and Claude Messages so existing apps can connect quickly.'
             )}
           </p>
         </AnimateInView>

@@ -86,7 +86,7 @@ export function PromoOfferCard(props: PromoOfferCardProps) {
   return (
     <article
       className={cn(
-        'relative mt-8 overflow-hidden rounded-[30px] border p-6 transition-[box-shadow,transform] duration-200 hover:-translate-y-px md:p-8 lg:p-10',
+        'relative mt-6 overflow-hidden rounded-[24px] border p-5 transition-[box-shadow,transform] duration-200 hover:-translate-y-px md:p-6',
         props.className
       )}
       style={{
@@ -106,8 +106,8 @@ export function PromoOfferCard(props: PromoOfferCardProps) {
         style={{ backgroundColor: 'rgba(163, 196, 255, 0.12)' }}
       />
 
-      <div className='relative grid grid-cols-1 items-center gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_220px] lg:gap-6'>
-        <div className='space-y-5'>
+      <div className='relative grid grid-cols-1 items-center gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)_200px] lg:gap-5'>
+        <div className='space-y-3.5'>
           <span
             className='inline-flex rounded-full px-3 py-1 text-xs font-semibold tracking-wide'
             style={{
@@ -120,13 +120,13 @@ export function PromoOfferCard(props: PromoOfferCardProps) {
           <div>
             <PromoTitle />
             <p
-              className='mt-3 max-w-md text-sm leading-[1.7] md:text-[15px]'
+              className='mt-2 max-w-md text-sm leading-[1.65] md:text-[15px]'
               style={{ color: theme.promoBody }}
             >
               {t('home.promo.description')}
             </p>
             <p
-              className='mt-2 max-w-md text-xs leading-relaxed md:text-[13px]'
+              className='mt-1.5 max-w-md text-xs leading-relaxed md:text-[13px]'
               style={{ color: theme.promoSecondary }}
             >
               {t('home.promo.secondary')}
@@ -191,7 +191,7 @@ export function PromoOfferCard(props: PromoOfferCardProps) {
 
         <GiftBoxIllustration
           tagLabel={t('home.promo.giftTag')}
-          className='mx-auto h-40 w-full max-w-[220px] lg:mx-0 lg:h-44 lg:justify-self-end'
+          className='mx-auto h-36 w-full max-w-[200px] lg:mx-0 lg:h-[168px] lg:justify-self-end'
         />
       </div>
     </article>

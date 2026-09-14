@@ -58,7 +58,7 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
         </header>
 
         <div
-          className='overflow-hidden rounded-[28px] border lg:overflow-visible'
+          className='isolate overflow-hidden rounded-[28px] border'
           style={{
             background: theme.cardBackground,
             borderColor: theme.cardBorder,
@@ -66,7 +66,7 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
           }}
         >
           <div
-            className='hidden lg:grid lg:overflow-visible'
+            className='hidden lg:grid'
             style={{
               gridTemplateColumns: COMPARISON_GRID_COLUMNS,
               gridTemplateRows: `auto repeat(${ROW_COUNT}, minmax(0, auto))`,
@@ -81,7 +81,7 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
               }}
             >
               <div
-                className='flex items-center border-b px-4 py-4 text-sm font-semibold'
+                className='flex min-h-[92px] items-center justify-center border-b px-4 py-4 text-center text-sm font-semibold'
                 style={{
                   borderColor: theme.rowBorder,
                   color: theme.labelText,
@@ -119,7 +119,7 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
             </div>
 
             <div
-              className='relative z-10 col-start-2 -my-5 grid grid-rows-subgrid overflow-hidden rounded-[22px] border'
+              className='relative z-10 col-start-2 grid grid-rows-subgrid overflow-hidden rounded-[22px] border'
               style={{
                 gridRow: `1 / span ${ROW_COUNT + 1}`,
                 background: theme.aihubCardBg,
@@ -128,28 +128,30 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
               }}
             >
               <div
-                className='flex items-start justify-between gap-3 border-b px-6 py-5'
+                className='relative flex min-h-[92px] items-center justify-center border-b px-6 py-4 text-center'
                 style={{ borderColor: 'rgba(168, 200, 245, 0.55)' }}
               >
-                <div className='flex min-w-0 items-start gap-3'>
-                  <AihubMark className='flex size-11 shrink-0 items-center justify-center rounded-2xl' />
-                  <div className='min-w-0 pt-0.5'>
-                    <p
-                      className='text-xl font-bold tracking-tight md:text-[1.35rem]'
-                      style={{ color: theme.aihubTitle }}
-                    >
-                      {t('home.comparison.aihub')}
-                    </p>
-                    <p
-                      className='mt-1 text-sm leading-snug'
-                      style={{ color: theme.aihubSubtitle }}
-                    >
-                      {t('home.comparison.aihubSubtitle')}
-                    </p>
+                <div className='flex min-w-0 flex-col items-center gap-2'>
+                  <div className='flex items-center gap-3'>
+                    <AihubMark className='size-11' />
+                    <div className='min-w-0 text-left'>
+                      <p
+                        className='text-xl font-bold tracking-tight md:text-[1.35rem]'
+                        style={{ color: theme.aihubTitle }}
+                      >
+                        {t('home.comparison.aihub')}
+                      </p>
+                      <p
+                        className='mt-1 text-sm leading-snug'
+                        style={{ color: theme.aihubSubtitle }}
+                      >
+                        {t('home.comparison.aihubSubtitle')}
+                      </p>
+                    </div>
                   </div>
                 </div>
                 <span
-                  className='mt-1 shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold text-white'
+                  className='absolute top-3 right-4 shrink-0 rounded-full px-3.5 py-1.5 text-xs font-bold tracking-wide text-white uppercase'
                   style={{
                     background: theme.badgeGradient,
                     boxShadow: theme.badgeShadow,
@@ -183,7 +185,7 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
               }}
             >
               <div
-                className='border-b px-5 py-4'
+                className='flex min-h-[92px] flex-col items-center justify-center border-b px-5 py-4 text-center'
                 style={{ borderColor: theme.rowBorder }}
               >
                 <p
