@@ -751,7 +751,7 @@
     "Batch updated channel status ({{count}}/{{total}} changed)": "Statuts des canaux mis à jour par lot ({{count}}/{{total}} modifiés)",
     "Batch upstream model update": "Mise à jour groupée des modèles en amont",
     "Batch upstream model updates applied: {{channels}} channels, {{added}} added, {{removed}} removed, {{fails}} failed": "Mises à jour par lot des modèles en amont appliquées : {{channels}} canaux, {{added}} ajoutés, {{removed}} supprimés, {{fails}} échoués",
-    "Before paying, disconnect VPN and international internet access, or payment may fail.": "⚠️ Avant de payer, déconnectez le VPN et l’accès Internet international, sinon le paiement peut échouer.",
+    "Before paying, disconnect VPN and international internet access, or payment may fail.": "Avant de payer, déconnectez le VPN et l’accès Internet international, sinon le paiement peut échouer.",
     "Best for single-tenant deployments. Pricing and billing options stay hidden.": "Idéal pour les déploiements mono-utilisateur. Les options de tarification et de facturation restent masquées.",
     "Best TTFT": "Meilleur TTFT",
     "Billable input tokens": "Tokens d’entrée facturables",

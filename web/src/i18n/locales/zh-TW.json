@@ -751,7 +751,7 @@
     "Batch updated channel status ({{count}}/{{total}} changed)": "批次更新渠道狀態（{{count}}/{{total}} 個已變更）",
     "Batch upstream model update": "上游模型大量更新",
     "Batch upstream model updates applied: {{channels}} channels, {{added}} added, {{removed}} removed, {{fails}} failed": "已大量處理上游模型更新：渠道 {{channels}} 個，加入 {{added}} 個，刪除 {{removed}} 個，失敗 {{fails}} 個",
-    "Before paying, disconnect VPN and international internet access, or payment may fail.": "⚠️ 付款時請斷開 VPN、國際互聯網等，否則可能會付款失敗！",
+    "Before paying, disconnect VPN and international internet access, or payment may fail.": "付款時請斷開 VPN、國際互聯網等，否則可能會付款失敗！",
     "Best for single-tenant deployments. Pricing and billing options stay hidden.": "適合單用戶部署。定價和收費選項將被隱藏。",
     "Best TTFT": "最優 TTFT",
     "Billable input tokens": "收費輸入 token",

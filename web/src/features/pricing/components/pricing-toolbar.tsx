@@ -49,6 +49,9 @@ import { getSortLabels, type SortOption, type ViewMode } from '../constants'
 import type { PricingModel, PricingVendor, TokenUnit } from '../types'
 import { PricingSidebar } from './pricing-sidebar'
 
+const PRICING_TOGGLE_ITEM_CLASS =
+  'h-9 min-w-[4.75rem] px-3 text-sm font-medium data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:hover:bg-foreground/90 dark:data-[state=on]:bg-foreground dark:data-[state=on]:text-background'
+
 export interface PricingToolbarProps {
   filteredCount: number
   totalCount?: number
@@ -128,11 +131,15 @@ export function PricingToolbar(props: PricingToolbarProps) {
               }
             }}
             variant='outline'
-            size='sm'
+            size='default'
             aria-label={t('Price display mode')}
           >
-            <ToggleGroupItem value='standard'>{t('Standard')}</ToggleGroupItem>
-            <ToggleGroupItem value='recharge'>{t('Recharge')}</ToggleGroupItem>
+            <ToggleGroupItem value='standard' className={PRICING_TOGGLE_ITEM_CLASS}>
+              {t('Standard')}
+            </ToggleGroupItem>
+            <ToggleGroupItem value='recharge' className={PRICING_TOGGLE_ITEM_CLASS}>
+              {t('Recharge')}
+            </ToggleGroupItem>
           </ToggleGroup>
           <ToggleGroup
             value={[props.tokenUnit]}
@@ -142,11 +149,15 @@ export function PricingToolbar(props: PricingToolbarProps) {
               }
             }}
             variant='outline'
-            size='sm'
+            size='default'
             aria-label={t('Token unit')}
           >
-            <ToggleGroupItem value='M'>/1M</ToggleGroupItem>
-            <ToggleGroupItem value='K'>/1K</ToggleGroupItem>
+            <ToggleGroupItem value='M' className={PRICING_TOGGLE_ITEM_CLASS}>
+              /1M
+            </ToggleGroupItem>
+            <ToggleGroupItem value='K' className={PRICING_TOGGLE_ITEM_CLASS}>
+              /1K
+            </ToggleGroupItem>
           </ToggleGroup>
 
           <DropdownMenu>
@@ -187,6 +198,7 @@ export function PricingToolbar(props: PricingToolbarProps) {
           <DataTableViewModeToggle
             value={props.viewMode}
             onChange={props.onViewModeChange}
+            className='h-9'
           />
         </div>
       </div>

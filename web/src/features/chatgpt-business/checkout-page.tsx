@@ -103,7 +103,7 @@ export function ChatGPTBusinessCheckoutPage() {
                 <ArrowRightIcon className='size-5' />
               </Button>
             </div>
-            <p className='text-center text-sm font-semibold text-amber-700 sm:text-left'>
+            <p className='text-center text-sm font-semibold text-amber-700'>
               {t(
                 'Before paying, disconnect VPN and international internet access, or payment may fail.'
               )}

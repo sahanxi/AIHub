@@ -751,7 +751,7 @@
     "Batch updated channel status ({{count}}/{{total}} changed)": "Đã cập nhật trạng thái kênh hàng loạt ({{count}}/{{total}} đã thay đổi)",
     "Batch upstream model update": "Cập nhật mô hình thượng nguồn hàng loạt",
     "Batch upstream model updates applied: {{channels}} channels, {{added}} added, {{removed}} removed, {{fails}} failed": "Đã áp dụng cập nhật hàng loạt mô hình upstream: {{channels}} kênh, {{added}} đã thêm, {{removed}} đã xóa, {{fails}} thất bại",
-    "Before paying, disconnect VPN and international internet access, or payment may fail.": "⚠️ Trước khi thanh toán, vui lòng ngắt VPN và kết nối internet quốc tế, nếu không thanh toán có thể thất bại.",
+    "Before paying, disconnect VPN and international internet access, or payment may fail.": "Trước khi thanh toán, vui lòng ngắt VPN và kết nối internet quốc tế, nếu không thanh toán có thể thất bại.",
     "Best for single-tenant deployments. Pricing and billing options stay hidden.": "Phù hợp nhất cho triển khai đơn người dùng. Các tùy chọn giá và thanh toán sẽ được ẩn.",
     "Best TTFT": "TTFT tốt nhất",
     "Billable input tokens": "Token đầu vào tính phí",
