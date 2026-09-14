@@ -28,6 +28,7 @@ const pricingSearchSchema = z.object({
   sort: z.string().optional(),
   vendor: z.string().optional(),
   group: z.string().optional(),
+  modelClassification: z.string().optional(),
   taskCategory: z.string().optional(),
   endpointType: z.string().optional(),
   tokenUnit: z.enum(['M', 'K']).optional(),

@@ -20,9 +20,9 @@ import { describe, expect, it } from 'vitest'
 
 import { ENDPOINT_TYPES } from '../constants'
 import {
-  TASK_CATEGORIES,
-  getModelTaskCategory,
-} from '../lib/model-task-categories'
+  MODEL_CLASSIFICATIONS,
+  getModelClassification,
+} from '../lib/model-classification'
 import type { PricingModel } from '../types'
 
 function model(partial: Partial<PricingModel>): PricingModel {
@@ -37,37 +37,33 @@ function model(partial: Partial<PricingModel>): PricingModel {
   }
 }
 
-describe('model task categories', () => {
-  it('classifies embedding models as vector', () => {
+describe('model classification', () => {
+  it('classifies GPT-5.x and Grok as omnimodal', () => {
     expect(
-      getModelTaskCategory(
-        model({
-          model_name: 'text-embedding-3-large',
-          supported_endpoint_types: [ENDPOINT_TYPES.EMBEDDINGS],
-        })
-      )
-    ).toBe(TASK_CATEGORIES.VECTOR)
+      getModelClassification(model({ model_name: 'GPT-5.6 Sol' }))
+    ).toBe(MODEL_CLASSIFICATIONS.OMNIMODAL)
+    expect(
+      getModelClassification(model({ model_name: 'Grok 4.6' }))
+    ).toBe(MODEL_CLASSIFICATIONS.OMNIMODAL)
   })
 
-  it('classifies chat models as text and code by default', () => {
+  it('classifies Nano Banana Pro as vision', () => {
     expect(
-      getModelTaskCategory(
+      getModelClassification(
         model({
-          model_name: 'gpt-4.1-mini',
-          supported_endpoint_types: [ENDPOINT_TYPES.OPENAI],
+          model_name: 'Nano Banana Pro',
+          supported_endpoint_types: [ENDPOINT_TYPES.GEMINI, ENDPOINT_TYPES.OPENAI],
         })
       )
-    ).toBe(TASK_CATEGORIES.TEXT_CODE)
+    ).toBe(MODEL_CLASSIFICATIONS.VISION)
   })
 
-  it('classifies vision-capable models as multimodal', () => {
+  it('classifies Devstral as text and Magistral as omnimodal', () => {
     expect(
-      getModelTaskCategory(
-        model({
-          model_name: 'gpt-4o',
-          supported_endpoint_types: [ENDPOINT_TYPES.OPENAI],
-        })
-      )
-    ).toBe(TASK_CATEGORIES.MULTIMODAL)
+      getModelClassification(model({ model_name: 'Devstral 2' }))
+    ).toBe(MODEL_CLASSIFICATIONS.TEXT)
+    expect(
+      getModelClassification(model({ model_name: 'Magistral small' }))
+    ).toBe(MODEL_CLASSIFICATIONS.OMNIMODAL)
   })
 })

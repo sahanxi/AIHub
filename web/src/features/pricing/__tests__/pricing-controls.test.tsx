@@ -33,15 +33,13 @@ function toolbarProps(): PricingToolbarProps {
     tokenUnit: 'M',
     showRechargePrice: false,
     viewMode: 'card',
-    taskCategoryFilter: 'all',
-    endpointTypeFilter: 'all',
+    modelClassificationFilter: 'all',
     vendorFilter: 'all',
     onSortChange: vi.fn(),
     onTokenUnitChange: vi.fn(),
     onRechargePriceChange: vi.fn(),
     onViewModeChange: vi.fn(),
-    onTaskCategoryChange: vi.fn(),
-    onEndpointTypeChange: vi.fn(),
+    onModelClassificationChange: vi.fn(),
     onVendorChange: vi.fn(),
     vendors: [{ id: 1, name: 'OpenAI', icon: 'openai' }],
     models: [],
@@ -110,7 +108,7 @@ describe('pricing controls', () => {
     expect(props.onSortChange).toHaveBeenCalledWith('price-low')
   })
 
-  it('opens mobile filters from the left, selects a task category, and restores focus on close', async () => {
+  it('opens mobile filters from the left, selects a classification, and restores focus on close', async () => {
     const props = toolbarProps()
     const user = userEvent.setup()
     const { rerender } = render(<PricingToolbar {...props} />)
@@ -118,18 +116,18 @@ describe('pricing controls', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Filter' })
     expect(dialog).toHaveAttribute('data-side', 'left')
     expect(within(dialog).getByRole('button', { name: 'Reset' })).toBeDisabled()
-    await user.click(within(dialog).getByRole('button', { name: 'Image' }))
-    expect(props.onTaskCategoryChange).toHaveBeenCalledWith('image')
+    await user.click(within(dialog).getByRole('button', { name: 'Vision' }))
+    expect(props.onModelClassificationChange).toHaveBeenCalledWith('vision')
     rerender(
       <PricingToolbar
         {...props}
-        taskCategoryFilter='image'
+        modelClassificationFilter='vision'
         hasActiveFilters
         activeFilterCount={1}
       />
     )
     expect(
-      within(dialog).getByRole('button', { name: 'Image' })
+      within(dialog).getByRole('button', { name: 'Vision' })
     ).toHaveAttribute('aria-pressed', 'true')
     await user.click(within(dialog).getByRole('button', { name: 'Reset' }))
     expect(props.onClearFilters).toHaveBeenCalledOnce()

@@ -24,7 +24,6 @@ import { useDebounce } from '@/hooks/use-debounce'
 import {
   FILTER_ALL,
   SORT_OPTIONS,
-  ENDPOINT_TYPES,
   DEFAULT_TOKEN_UNIT,
   VIEW_MODES,
   type ViewMode,
@@ -37,8 +36,7 @@ type FilterState = {
   sort?: string
   vendor?: string
   group?: string
-  taskCategory?: string
-  endpointType?: string
+  modelClassification?: string
   tokenUnit?: TokenUnit
   view?: ViewMode
   rechargePrice?: boolean
@@ -58,8 +56,8 @@ export function useFilters(models: PricingModel[]) {
     sort: search.sort,
     vendor: search.vendor,
     group: search.group,
-    taskCategory: search.taskCategory,
-    endpointType: search.endpointType,
+    modelClassification:
+      search.modelClassification ?? search.taskCategory ?? search.endpointType,
     tokenUnit: search.tokenUnit,
     view: search.view,
     rechargePrice: search.rechargePrice,
@@ -70,8 +68,8 @@ export function useFilters(models: PricingModel[]) {
   const sortBy = filterState.sort || SORT_OPTIONS.NAME
   const vendorFilter = filterState.vendor || FILTER_ALL
   const groupFilter = filterState.group || FILTER_ALL
-  const taskCategoryFilter = filterState.taskCategory || FILTER_ALL
-  const endpointTypeFilter = filterState.endpointType || ENDPOINT_TYPES.ALL
+  const modelClassificationFilter =
+    filterState.modelClassification || FILTER_ALL
   const tokenUnit: TokenUnit =
     filterState.tokenUnit === 'K' ? 'K' : DEFAULT_TOKEN_UNIT
   const viewMode = normalizeViewMode(filterState.view)
@@ -106,15 +104,10 @@ export function useFilters(models: PricingModel[]) {
     (v: string) => updateFilters({ group: v === FILTER_ALL ? undefined : v }),
     [updateFilters]
   )
-  const setTaskCategoryFilter = useCallback(
-    (v: string) =>
-      updateFilters({ taskCategory: v === FILTER_ALL ? undefined : v }),
-    [updateFilters]
-  )
-  const setEndpointTypeFilter = useCallback(
+  const setModelClassificationFilter = useCallback(
     (v: string) =>
       updateFilters({
-        endpointType: v === ENDPOINT_TYPES.ALL ? undefined : v,
+        modelClassification: v === FILTER_ALL ? undefined : v,
       }),
     [updateFilters]
   )
@@ -140,8 +133,7 @@ export function useFilters(models: PricingModel[]) {
       search: debouncedSearchInput,
       vendor: vendorFilter,
       group: groupFilter,
-      taskCategory: taskCategoryFilter,
-      endpointType: endpointTypeFilter,
+      modelClassification: modelClassificationFilter,
       sortBy,
     })
   }, [
@@ -149,8 +141,7 @@ export function useFilters(models: PricingModel[]) {
     debouncedSearchInput,
     vendorFilter,
     groupFilter,
-    taskCategoryFilter,
-    endpointTypeFilter,
+    modelClassificationFilter,
     sortBy,
   ])
 
@@ -158,26 +149,23 @@ export function useFilters(models: PricingModel[]) {
     () =>
       vendorFilter !== FILTER_ALL ||
       groupFilter !== FILTER_ALL ||
-      taskCategoryFilter !== FILTER_ALL ||
-      endpointTypeFilter !== ENDPOINT_TYPES.ALL,
-    [vendorFilter, groupFilter, taskCategoryFilter, endpointTypeFilter]
+      modelClassificationFilter !== FILTER_ALL,
+    [vendorFilter, groupFilter, modelClassificationFilter]
   )
 
   const activeFilterCount = useMemo(
     () =>
       (vendorFilter !== FILTER_ALL ? 1 : 0) +
       (groupFilter !== FILTER_ALL ? 1 : 0) +
-      (taskCategoryFilter !== FILTER_ALL ? 1 : 0) +
-      (endpointTypeFilter !== ENDPOINT_TYPES.ALL ? 1 : 0),
-    [vendorFilter, groupFilter, taskCategoryFilter, endpointTypeFilter]
+      (modelClassificationFilter !== FILTER_ALL ? 1 : 0),
+    [vendorFilter, groupFilter, modelClassificationFilter]
   )
 
   const clearFilters = useCallback(() => {
     updateFilters({
       vendor: undefined,
       group: undefined,
-      taskCategory: undefined,
-      endpointType: undefined,
+      modelClassification: undefined,
     })
   }, [updateFilters])
 
@@ -190,8 +178,7 @@ export function useFilters(models: PricingModel[]) {
     sortBy,
     vendorFilter,
     groupFilter,
-    taskCategoryFilter,
-    endpointTypeFilter,
+    modelClassificationFilter,
     tokenUnit,
     viewMode,
     showRechargePrice,
@@ -199,8 +186,7 @@ export function useFilters(models: PricingModel[]) {
     setSortBy,
     setVendorFilter,
     setGroupFilter,
-    setTaskCategoryFilter,
-    setEndpointTypeFilter,
+    setModelClassificationFilter,
     setTokenUnit,
     setViewMode,
     setShowRechargePrice,

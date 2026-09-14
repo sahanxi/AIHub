@@ -52,7 +52,10 @@ const MODEL_CATEGORY_RULES: readonly ModelCategoryRule[] = [
     ],
     pattern: /(?:^|[/.:])(?:o(?:1|3|4)(?=$|[-.:])|tts-)/,
   },
-  { name: 'Anthropic', keywords: ['anthropic', 'claude'] },
+  {
+    name: 'Anthropic',
+    keywords: ['anthropic', 'claude', 'sonnet', 'opus', 'haiku', 'fable'],
+  },
   {
     name: 'Gemini',
     keywords: [
@@ -110,6 +113,7 @@ const MODEL_CATEGORY_RULES: readonly ModelCategoryRule[] = [
       'ministral',
       'pixtral',
       'magistral',
+      'devstral',
     ],
   },
   { name: 'Meta', keywords: ['meta-llama', 'llama-', 'llama2', 'llama3'] },

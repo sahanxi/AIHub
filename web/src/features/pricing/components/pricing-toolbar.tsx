@@ -60,11 +60,9 @@ export interface PricingToolbarProps {
   onRechargePriceChange: (value: boolean) => void
   viewMode: ViewMode
   onViewModeChange: (value: ViewMode) => void
-  taskCategoryFilter: string
-  endpointTypeFilter: string
+  modelClassificationFilter: string
   vendorFilter: string
-  onTaskCategoryChange: (value: string) => void
-  onEndpointTypeChange: (value: string) => void
+  onModelClassificationChange: (value: string) => void
   onVendorChange: (value: string) => void
   vendors: PricingVendor[]
   models: PricingModel[]
@@ -192,16 +190,14 @@ export function PricingToolbar(props: PricingToolbarProps) {
           <SheetHeader className={sideDrawerHeaderClassName()}>
             <SheetTitle>{t('Filter')}</SheetTitle>
             <SheetDescription>
-              {t('Refine models by provider, task type, endpoint, and tags.')}
+              {t('Refine models by provider and model classification.')}
             </SheetDescription>
           </SheetHeader>
           <div className={sideDrawerFormClassName('gap-0')}>
             <PricingSidebar
-              taskCategoryFilter={props.taskCategoryFilter}
-              endpointTypeFilter={props.endpointTypeFilter}
+              modelClassificationFilter={props.modelClassificationFilter}
               vendorFilter={props.vendorFilter}
-              onTaskCategoryChange={props.onTaskCategoryChange}
-              onEndpointTypeChange={props.onEndpointTypeChange}
+              onModelClassificationChange={props.onModelClassificationChange}
               onVendorChange={props.onVendorChange}
               vendors={props.vendors}
               models={props.models}

@@ -59,16 +59,14 @@ export function Pricing() {
     sortBy,
     vendorFilter,
     groupFilter,
-    taskCategoryFilter,
-    endpointTypeFilter,
+    modelClassificationFilter,
     tokenUnit,
     viewMode,
     showRechargePrice,
     setSearchInput,
     setSortBy,
     setVendorFilter,
-    setTaskCategoryFilter,
-    setEndpointTypeFilter,
+    setModelClassificationFilter,
     setTokenUnit,
     setViewMode,
     setShowRechargePrice,
@@ -187,11 +185,9 @@ export function Pricing() {
 
           <div className='grid gap-4 xl:grid-cols-[280px_minmax(0,1fr)]'>
             <PricingSidebar
-              taskCategoryFilter={taskCategoryFilter}
-              endpointTypeFilter={endpointTypeFilter}
+              modelClassificationFilter={modelClassificationFilter}
               vendorFilter={vendorFilter}
-              onTaskCategoryChange={setTaskCategoryFilter}
-              onEndpointTypeChange={setEndpointTypeFilter}
+              onModelClassificationChange={setModelClassificationFilter}
               onVendorChange={setVendorFilter}
               vendors={vendors || []}
               models={models || []}
@@ -212,11 +208,9 @@ export function Pricing() {
                 onRechargePriceChange={setShowRechargePrice}
                 viewMode={viewMode}
                 onViewModeChange={setViewMode}
-                taskCategoryFilter={taskCategoryFilter}
-                endpointTypeFilter={endpointTypeFilter}
+                modelClassificationFilter={modelClassificationFilter}
                 vendorFilter={vendorFilter}
-                onTaskCategoryChange={setTaskCategoryFilter}
-                onEndpointTypeChange={setEndpointTypeFilter}
+                onModelClassificationChange={setModelClassificationFilter}
                 onVendorChange={setVendorFilter}
                 vendors={vendors || []}
                 models={models || []}

@@ -18,6 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { ChevronDown, RotateCcw } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Badge } from '@/components/ui/badge'
@@ -30,17 +31,14 @@ import {
 import { getLobeIcon } from '@/lib/lobe-icon'
 import { cn } from '@/lib/utils'
 
+import { FILTER_ALL } from '../constants'
 import {
-  ENDPOINT_TYPES,
-  FILTER_ALL,
-  getEndpointTypeLabels,
-} from '../constants'
-import {
-  TASK_CATEGORIES,
-  getModelTaskCategory,
-  getTaskCategoryLabels,
-  listTaskCategories,
-} from '../lib/model-task-categories'
+  MODEL_CLASSIFICATIONS,
+  getModelClassification,
+  getModelClassificationLabels,
+  listModelClassifications,
+} from '../lib/model-classification'
+import { buildPricingVendorOptions } from '../lib/model-vendor'
 import type { PricingModel, PricingVendor } from '../types'
 
 type FilterOption = {
@@ -59,11 +57,9 @@ type FilterSectionProps = {
 }
 
 export interface PricingSidebarProps {
-  taskCategoryFilter: string
-  endpointTypeFilter: string
+  modelClassificationFilter: string
   vendorFilter: string
-  onTaskCategoryChange: (value: string) => void
-  onEndpointTypeChange: (value: string) => void
+  onModelClassificationChange: (value: string) => void
   onVendorChange: (value: string) => void
   vendors: PricingVendor[]
   models: PricingModel[]
@@ -80,7 +76,7 @@ function countBy(
 }
 
 function isAggregateFilterOption(value: string): boolean {
-  return value === FILTER_ALL || value === ENDPOINT_TYPES.ALL
+  return value === FILTER_ALL
 }
 
 function FilterChip(props: {
@@ -177,8 +173,11 @@ function FilterSection(props: FilterSectionProps) {
 
 export function PricingSidebar(props: PricingSidebarProps) {
   const { t } = useTranslation()
-  const endpointTypeLabels = getEndpointTypeLabels(t)
-  const taskCategoryLabels = getTaskCategoryLabels(t)
+  const classificationLabels = getModelClassificationLabels(t)
+  const vendorOptionsList = useMemo(
+    () => buildPricingVendorOptions(props.models, props.vendors),
+    [props.models, props.vendors]
+  )
 
   const vendorOptions: FilterOption[] = [
     {
@@ -186,46 +185,29 @@ export function PricingSidebar(props: PricingSidebarProps) {
       label: t('All Vendors'),
       count: props.models.length,
     },
-    ...props.vendors
-      .filter(
-        (vendor) =>
-          countBy(props.models, (model) => model.vendor_name === vendor.name) >
-          0
-      )
-      .map((vendor) => ({
-        value: vendor.name,
-        label: vendor.name,
-        icon: vendor.icon ? getLobeIcon(vendor.icon, 14) : undefined,
-      })),
+    ...vendorOptionsList.map((vendor) => ({
+      value: vendor.name,
+      label: vendor.name,
+      icon: vendor.icon ? getLobeIcon(vendor.icon, 14) : undefined,
+    })),
   ]
 
-  const taskCategoryOptions: FilterOption[] = [
+  const classificationOptions: FilterOption[] = [
     {
-      value: TASK_CATEGORIES.ALL,
-      label: taskCategoryLabels[TASK_CATEGORIES.ALL],
+      value: MODEL_CLASSIFICATIONS.ALL,
+      label: classificationLabels[MODEL_CLASSIFICATIONS.ALL],
       count: props.models.length,
     },
-    ...listTaskCategories()
-      .filter((category) =>
-        countBy(props.models, (model) => getModelTaskCategory(model) === category)
+    ...listModelClassifications()
+      .filter((classification) =>
+        countBy(
+          props.models,
+          (model) => getModelClassification(model) === classification
+        )
       )
-      .map((category) => ({
-        value: category,
-        label: taskCategoryLabels[category],
-      })),
-  ]
-
-  const endpointOptions: FilterOption[] = [
-    {
-      value: ENDPOINT_TYPES.ALL,
-      label: endpointTypeLabels[ENDPOINT_TYPES.ALL],
-      count: props.models.length,
-    },
-    ...Object.entries(endpointTypeLabels)
-      .filter(([value]) => value !== ENDPOINT_TYPES.ALL)
-      .map(([value, label]) => ({
-        value,
-        label,
+      .map((classification) => ({
+        value: classification,
+        label: classificationLabels[classification],
       })),
   ]
 
@@ -235,7 +217,7 @@ export function PricingSidebar(props: PricingSidebarProps) {
         <div>
           <h2 className='text-foreground text-sm font-bold'>{t('Filter')}</h2>
           <p className='text-muted-foreground mt-1 text-xs'>
-            {t('Refine models by provider, task type, endpoint, and tags.')}
+            {t('Refine models by provider and model classification.')}
           </p>
         </div>
         <Button
@@ -265,16 +247,10 @@ export function PricingSidebar(props: PricingSidebarProps) {
           onChange={props.onVendorChange}
         />
         <FilterSection
-          title={t('Task Type')}
-          value={props.taskCategoryFilter}
-          options={taskCategoryOptions}
-          onChange={props.onTaskCategoryChange}
-        />
-        <FilterSection
-          title={t('Endpoint Type')}
-          value={props.endpointTypeFilter}
-          options={endpointOptions}
-          onChange={props.onEndpointTypeChange}
+          title={t('Model Classification')}
+          value={props.modelClassificationFilter}
+          options={classificationOptions}
+          onChange={props.onModelClassificationChange}
         />
       </div>
     </aside>

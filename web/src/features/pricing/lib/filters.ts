@@ -16,9 +16,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { SORT_OPTIONS, FILTER_ALL, ENDPOINT_TYPES } from '../constants'
+import { SORT_OPTIONS, FILTER_ALL } from '../constants'
 import type { PricingModel } from '../types'
-import { matchesTaskCategory } from './model-task-categories'
+import { matchesModelClassification } from './model-classification'
+import { getPricingModelVendorName } from './model-vendor'
 
 // ----------------------------------------------------------------------------
 // Filter Utilities
@@ -51,7 +52,7 @@ export function filterByVendor(
   vendor: string
 ): PricingModel[] {
   if (vendor === FILTER_ALL) return models
-  return models.filter((m) => m.vendor_name === vendor)
+  return models.filter((m) => getPricingModelVendorName(m) === vendor)
 }
 
 /**
@@ -66,26 +67,15 @@ export function filterByGroup(
 }
 
 /**
- * Filter models by task category
+ * Filter models by model classification
  */
-export function filterByTaskCategory(
+export function filterByModelClassification(
   models: PricingModel[],
-  taskCategory: string
+  modelClassification: string
 ): PricingModel[] {
-  if (taskCategory === FILTER_ALL) return models
-  return models.filter((m) => matchesTaskCategory(m, taskCategory))
-}
-
-/**
- * Filter models by endpoint type
- */
-export function filterByEndpointType(
-  models: PricingModel[],
-  endpointType: string
-): PricingModel[] {
-  if (endpointType === ENDPOINT_TYPES.ALL) return models
+  if (modelClassification === FILTER_ALL) return models
   return models.filter((m) =>
-    m.supported_endpoint_types?.includes(endpointType)
+    matchesModelClassification(m, modelClassification)
   )
 }
 
@@ -131,16 +121,14 @@ export function filterAndSortModels(
     search: string
     vendor: string
     group: string
-    taskCategory: string
-    endpointType: string
+    modelClassification: string
     sortBy: string
   }
 ): PricingModel[] {
   let result = filterBySearch(models, filters.search)
   result = filterByVendor(result, filters.vendor)
   result = filterByGroup(result, filters.group)
-  result = filterByTaskCategory(result, filters.taskCategory)
-  result = filterByEndpointType(result, filters.endpointType)
+  result = filterByModelClassification(result, filters.modelClassification)
   result = sortModels(result, filters.sortBy)
 
   return result
