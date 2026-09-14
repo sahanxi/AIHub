@@ -90,12 +90,22 @@ function formatGroupRatio(ratio: number | undefined): string | undefined {
   return `x${formatted}`
 }
 
+function isAggregateFilterOption(value: string): boolean {
+  return (
+    value === FILTER_ALL ||
+    value === QUOTA_TYPES.ALL ||
+    value === ENDPOINT_TYPES.ALL
+  )
+}
+
 function FilterChip(props: {
   option: FilterOption
   active: boolean
   onClick: () => void
+  variant?: 'aggregate' | 'category'
 }) {
   const meta = props.option.suffix ?? props.option.count
+  const chipVariant = props.variant ?? 'category'
 
   return (
     <Button
@@ -105,7 +115,8 @@ function FilterChip(props: {
       onClick={props.onClick}
       aria-pressed={props.active}
       className={cn(
-        'inline-flex h-9 w-auto max-w-full shrink-0 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium whitespace-nowrap shadow-none transition-all',
+        'flex h-9 w-full items-center justify-center gap-1.5 rounded-full px-2.5 text-sm font-medium whitespace-nowrap shadow-none transition-all',
+        chipVariant === 'aggregate' && 'max-w-full',
         props.active
           ? 'border-foreground/15 bg-foreground text-background hover:bg-foreground/90 hover:text-background'
           : 'bg-background text-foreground hover:border-foreground/20 hover:bg-muted/70'
@@ -114,7 +125,7 @@ function FilterChip(props: {
       {props.option.icon && (
         <span className='shrink-0'>{props.option.icon}</span>
       )}
-      <span>{props.option.label}</span>
+      <span className='text-center'>{props.option.label}</span>
       {meta != null && (
         <span
           className={cn(
@@ -132,6 +143,13 @@ function FilterChip(props: {
 }
 
 function FilterSection(props: FilterSectionProps) {
+  const aggregateOption = props.options.find((option) =>
+    isAggregateFilterOption(option.value)
+  )
+  const categoryOptions = props.options.filter(
+    (option) => !isAggregateFilterOption(option.value)
+  )
+
   return (
     <Collapsible
       defaultOpen
@@ -144,15 +162,28 @@ function FilterSection(props: FilterSectionProps) {
         <ChevronDown className='text-muted-foreground size-4 transition-transform group-data-[panel-open]:rotate-180' />
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <div className='flex flex-wrap gap-2'>
-          {props.options.map((option) => (
+        <div className='space-y-2'>
+          {aggregateOption && (
             <FilterChip
-              key={option.value}
-              option={option}
-              active={props.value === option.value}
-              onClick={() => props.onChange(option.value)}
+              option={aggregateOption}
+              active={props.value === aggregateOption.value}
+              onClick={() => props.onChange(aggregateOption.value)}
+              variant='aggregate'
             />
-          ))}
+          )}
+          {categoryOptions.length > 0 && (
+            <div className='grid grid-cols-2 gap-2'>
+              {categoryOptions.map((option) => (
+                <FilterChip
+                  key={option.value}
+                  option={option}
+                  active={props.value === option.value}
+                  onClick={() => props.onChange(option.value)}
+                  variant='category'
+                />
+              ))}
+            </div>
+          )}
         </div>
       </CollapsibleContent>
     </Collapsible>
