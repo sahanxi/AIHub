@@ -37,8 +37,6 @@ import {
   getEndpointTypeLabels,
   getQuotaTypeLabels,
 } from '../constants'
-import { hasTaskUsageSchema } from '../lib/dynamic-price'
-import { parseTags } from '../lib/filters'
 import type { PricingModel, PricingVendor } from '../types'
 
 type FilterOption = {
@@ -106,9 +104,8 @@ function FilterChip(props: {
       size='default'
       onClick={props.onClick}
       aria-pressed={props.active}
-      title={props.option.label}
       className={cn(
-        'h-9 w-full min-w-0 items-center justify-center gap-1.5 rounded-full px-2.5 text-sm font-medium shadow-none transition-all',
+        'inline-flex h-9 w-auto max-w-full shrink-0 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium whitespace-nowrap shadow-none transition-all',
         props.active
           ? 'border-foreground/15 bg-foreground text-background hover:bg-foreground/90 hover:text-background'
           : 'bg-background text-foreground hover:border-foreground/20 hover:bg-muted/70'
@@ -117,9 +114,7 @@ function FilterChip(props: {
       {props.option.icon && (
         <span className='shrink-0'>{props.option.icon}</span>
       )}
-      <span className='min-w-0 truncate whitespace-nowrap'>
-        {props.option.label}
-      </span>
+      <span>{props.option.label}</span>
       {meta != null && (
         <span
           className={cn(
@@ -149,7 +144,7 @@ function FilterSection(props: FilterSectionProps) {
         <ChevronDown className='text-muted-foreground size-4 transition-transform group-data-[panel-open]:rotate-180' />
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <div className='grid grid-cols-2 items-stretch gap-2'>
+        <div className='flex flex-wrap gap-2'>
           {props.options.map((option) => (
             <FilterChip
               key={option.value}
