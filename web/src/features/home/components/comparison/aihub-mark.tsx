@@ -7,12 +7,13 @@ interface AihubMarkProps {
 }
 
 export function AihubMark(props: AihubMarkProps) {
-  const logo = useSystemConfigStore((state) => state.logo) || DEFAULT_LOGO
+  const logo =
+    useSystemConfigStore((state) => state.config.logo) || DEFAULT_LOGO
 
   return (
     <span
       className={cn(
-        'flex shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white p-1.5',
+        'inline-flex aspect-square shrink-0 items-center justify-center rounded-2xl bg-white/95 p-1',
         props.className
       )}
       aria-hidden='true'
@@ -23,7 +24,7 @@ export function AihubMark(props: AihubMarkProps) {
       <img
         src={logo}
         alt=''
-        className='size-full object-contain'
+        className='h-full w-full object-contain object-center'
         loading='lazy'
       />
     </span>

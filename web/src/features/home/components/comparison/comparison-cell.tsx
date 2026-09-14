@@ -29,7 +29,9 @@ export function ComparisonCell(props: ComparisonCellProps) {
     <div
       className={cn(
         'flex items-start gap-3',
-        emphasized ? 'px-6 py-4 md:px-7 md:py-[18px]' : 'px-5 py-3 md:px-5 md:py-3.5',
+        emphasized
+          ? 'px-7 py-[18px] md:px-8 md:py-5'
+          : 'px-5 py-3 md:px-5 md:py-3.5',
         props.className
       )}
     >

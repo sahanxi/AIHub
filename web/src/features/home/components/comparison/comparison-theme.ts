@@ -12,8 +12,9 @@ export const comparisonTheme = {
   labelIcon: '#475467',
   aihubCardBg:
     'linear-gradient(180deg, #FFFFFF 0%, #F3F8FF 42%, #E6F0FF 100%)',
-  aihubCardBorder: '#A8C8F5',
-  aihubCardGlow: '0 16px 48px rgba(47, 125, 246, 0.14), 0 0 0 1px rgba(47, 125, 246, 0.10)',
+  aihubCardBorder: '#8CB8FF',
+  aihubCardGlow:
+    '0 24px 64px rgba(37, 99, 235, 0.24), 0 12px 28px rgba(47, 125, 246, 0.16), 0 0 0 1px rgba(47, 125, 246, 0.14)',
   aihubTitle: '#0B1633',
   aihubSubtitle: '#4A5568',
   aihubConclusion: '#0F1A31',
@@ -49,4 +50,6 @@ export const comparisonTheme = {
   },
 } as const
 
-export const COMPARISON_GRID_COLUMNS = 'minmax(88px, 14%) minmax(0, 48%) minmax(0, 38%)'
+export const COMPARISON_GRID_COLUMNS =
+  'minmax(88px, 12%) minmax(0, 52%) minmax(0, 34%)'
+export const AIHUB_COLUMN_FLOAT_OFFSET = '1.5rem'

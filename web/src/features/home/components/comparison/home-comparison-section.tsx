@@ -7,6 +7,7 @@ import { ComparisonCell } from './comparison-cell'
 import { COMPARISON_ROWS } from './comparison-config'
 import { ComparisonRow } from './comparison-row'
 import {
+  AIHUB_COLUMN_FLOAT_OFFSET,
   COMPARISON_GRID_COLUMNS,
   comparisonTheme as theme,
 } from './comparison-theme'
@@ -58,7 +59,7 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
         </header>
 
         <div
-          className='isolate overflow-hidden rounded-[28px] border'
+          className='isolate overflow-hidden rounded-[28px] border lg:overflow-visible lg:border-0 lg:bg-transparent lg:shadow-none'
           style={{
             background: theme.cardBackground,
             borderColor: theme.cardBorder,
@@ -66,18 +67,19 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
           }}
         >
           <div
-            className='hidden lg:grid'
+            className='relative hidden lg:grid lg:overflow-visible lg:py-6'
             style={{
               gridTemplateColumns: COMPARISON_GRID_COLUMNS,
               gridTemplateRows: `auto repeat(${ROW_COUNT}, minmax(0, auto))`,
             }}
           >
             <div
-              className='col-start-1 row-span-full grid grid-rows-subgrid border-r'
+              className='col-start-1 row-span-full grid grid-rows-subgrid rounded-l-[28px] border border-r-0'
               style={{
                 gridRow: `1 / span ${ROW_COUNT + 1}`,
                 background: theme.labelColumnBg,
                 borderColor: theme.labelColumnBorder,
+                boxShadow: theme.cardShadow,
               }}
             >
               <div
@@ -119,21 +121,25 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
             </div>
 
             <div
-              className='relative z-10 col-start-2 grid grid-rows-subgrid overflow-hidden rounded-[22px] border'
+              className='relative z-20 col-start-2 grid grid-rows-subgrid overflow-hidden rounded-[24px] border-2'
               style={{
                 gridRow: `1 / span ${ROW_COUNT + 1}`,
+                marginTop: `calc(-1 * ${AIHUB_COLUMN_FLOAT_OFFSET})`,
+                marginBottom: `calc(-1 * ${AIHUB_COLUMN_FLOAT_OFFSET})`,
+                marginLeft: '-0.35rem',
+                marginRight: '-0.35rem',
                 background: theme.aihubCardBg,
                 borderColor: theme.aihubCardBorder,
                 boxShadow: theme.aihubCardGlow,
               }}
             >
               <div
-                className='relative flex min-h-[92px] items-center justify-center border-b px-6 py-4 text-center'
+                className='relative flex min-h-[104px] items-center justify-center border-b px-7 py-5 text-center'
                 style={{ borderColor: 'rgba(168, 200, 245, 0.55)' }}
               >
                 <div className='flex min-w-0 flex-col items-center gap-2'>
-                  <div className='flex items-center gap-3'>
-                    <AihubMark className='size-11' />
+                  <div className='flex items-center gap-3.5'>
+                    <AihubMark className='size-14' />
                     <div className='min-w-0 text-left'>
                       <p
                         className='text-xl font-bold tracking-tight md:text-[1.35rem]'
@@ -178,10 +184,12 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
             </div>
 
             <div
-              className='col-start-3 row-span-full grid grid-rows-subgrid'
+              className='col-start-3 row-span-full grid grid-rows-subgrid rounded-r-[28px] border border-l-0'
               style={{
                 gridRow: `1 / span ${ROW_COUNT + 1}`,
                 background: theme.competitorColumnBg,
+                borderColor: theme.competitorColumnBorder,
+                boxShadow: theme.cardShadow,
               }}
             >
               <div
