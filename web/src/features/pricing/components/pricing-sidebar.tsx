@@ -106,25 +106,24 @@ function FilterChip(props: {
       size='default'
       onClick={props.onClick}
       aria-pressed={props.active}
+      title={props.option.label}
       className={cn(
-        'h-auto min-h-9 w-full min-w-0 items-start justify-between gap-2 rounded-2xl px-3 py-2 text-sm font-medium whitespace-normal shadow-none transition-all',
+        'h-9 w-full min-w-0 items-center justify-center gap-1.5 rounded-full px-2.5 text-sm font-medium shadow-none transition-all',
         props.active
           ? 'border-foreground/15 bg-foreground text-background hover:bg-foreground/90 hover:text-background'
           : 'bg-background text-foreground hover:border-foreground/20 hover:bg-muted/70'
       )}
     >
-      <span className='flex min-w-0 flex-1 items-start gap-1.5'>
-        {props.option.icon && (
-          <span className='mt-0.5 shrink-0'>{props.option.icon}</span>
-        )}
-        <span className='text-left leading-snug break-words'>
-          {props.option.label}
-        </span>
+      {props.option.icon && (
+        <span className='shrink-0'>{props.option.icon}</span>
+      )}
+      <span className='min-w-0 truncate whitespace-nowrap'>
+        {props.option.label}
       </span>
       {meta != null && (
         <span
           className={cn(
-            'mt-0.5 shrink-0 rounded-full px-1.5 py-0.5 text-center text-xs font-semibold tabular-nums',
+            'shrink-0 rounded-full px-1.5 py-0.5 text-center text-xs font-semibold tabular-nums',
             props.active
               ? 'bg-background/20 text-background'
               : 'bg-muted text-muted-foreground'
@@ -177,22 +176,23 @@ export function PricingSidebar(props: PricingSidebarProps) {
       count: props.models.length,
     },
     ...props.vendors
+      .filter(
+        (vendor) =>
+          countBy(props.models, (model) => model.vendor_name === vendor.name) >
+          0
+      )
       .map((vendor) => ({
         value: vendor.name,
         label: vendor.name,
-        count: countBy(
-          props.models,
-          (model) => model.vendor_name === vendor.name
-        ),
         icon: vendor.icon ? getLobeIcon(vendor.icon, 14) : undefined,
-      }))
-      .filter((vendor) => vendor.count > 0),
+      })),
   ]
 
   const groupOptions: FilterOption[] = [
     {
       value: FILTER_ALL,
       label: t('All Groups'),
+      count: props.models.length,
     },
     ...props.groups.map((group) => ({
       value: group,
@@ -210,23 +210,14 @@ export function PricingSidebar(props: PricingSidebarProps) {
     {
       value: QUOTA_TYPES.TOKEN,
       label: quotaTypeLabels[QUOTA_TYPES.TOKEN],
-      count: countBy(
-        props.models,
-        (model) => model.quota_type === 0 && !hasTaskUsageSchema(model)
-      ),
     },
     {
       value: QUOTA_TYPES.REQUEST,
       label: quotaTypeLabels[QUOTA_TYPES.REQUEST],
-      count: countBy(
-        props.models,
-        (model) => model.quota_type === 1 && !hasTaskUsageSchema(model)
-      ),
     },
     {
       value: QUOTA_TYPES.TASK,
       label: quotaTypeLabels[QUOTA_TYPES.TASK],
-      count: countBy(props.models, (model) => hasTaskUsageSchema(model)),
     },
   ]
 
@@ -239,11 +230,6 @@ export function PricingSidebar(props: PricingSidebarProps) {
     ...props.tags.map((tag) => ({
       value: tag,
       label: tag,
-      count: countBy(props.models, (model) =>
-        parseTags(model.tags)
-          .map((item) => item.toLowerCase())
-          .includes(tag.toLowerCase())
-      ),
     })),
   ]
 
@@ -258,10 +244,6 @@ export function PricingSidebar(props: PricingSidebarProps) {
       .map(([value, label]) => ({
         value,
         label,
-        count: countBy(
-          props.models,
-          (model) => model.supported_endpoint_types?.includes(value) ?? false
-        ),
       })),
   ]
 
