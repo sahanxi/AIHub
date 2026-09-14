@@ -100,11 +100,16 @@ function FilterChip(props: {
   return (
     <Button
       type='button'
-      variant={props.active ? 'secondary' : 'outline'}
-      size='sm'
+      variant='outline'
+      size='default'
       onClick={props.onClick}
       aria-pressed={props.active}
-      className='h-auto max-w-full gap-1.5 px-2 py-1 text-xs'
+      className={cn(
+        'h-9 max-w-full min-w-[4.5rem] gap-1.5 rounded-full px-3.5 text-sm font-medium shadow-none transition-all',
+        props.active
+          ? 'border-foreground/15 bg-foreground text-background hover:bg-foreground/90 hover:text-background'
+          : 'bg-background text-foreground hover:border-foreground/20 hover:bg-muted/70'
+      )}
       title={props.option.label}
     >
       {props.option.icon && (
@@ -114,9 +119,9 @@ function FilterChip(props: {
       {(props.option.suffix || props.option.count != null) && (
         <span
           className={cn(
-            'rounded-md px-1.5 py-0.5 text-[12px]',
+            'min-w-[1.25rem] rounded-full px-1.5 py-0.5 text-center text-xs font-semibold tabular-nums',
             props.active
-              ? 'bg-background text-foreground'
+              ? 'bg-background/20 text-background'
               : 'bg-muted text-muted-foreground'
           )}
         >
@@ -140,7 +145,7 @@ function FilterSection(props: FilterSectionProps) {
         <ChevronDown className='text-muted-foreground size-4 transition-transform group-data-[panel-open]:rotate-180' />
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <div className='flex flex-wrap gap-1.5'>
+        <div className='flex flex-wrap gap-2'>
           {props.options.map((option) => (
             <FilterChip
               key={option.value}

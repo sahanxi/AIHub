@@ -70,7 +70,7 @@ export function DataTableViewModeToggle(props: DataTableViewModeToggleProps) {
       role='group'
       aria-label={t('View mode')}
       className={cn(
-        'bg-muted/60 inline-flex h-8 items-center rounded-lg border p-0.5 [&_button[aria-pressed=true]]:bg-foreground [&_button[aria-pressed=true]]:text-background [&_button[aria-pressed=true]]:hover:bg-foreground/90',
+        'bg-muted/60 inline-flex h-8 items-center rounded-lg border p-0.5',
         props.className
       )}
     >
@@ -88,7 +88,7 @@ export function DataTableViewModeToggle(props: DataTableViewModeToggleProps) {
                   onClick={() => props.onChange(segment.value)}
                   aria-label={segment.tooltip}
                   aria-pressed={isActive}
-                  className='h-full w-8'
+                  className='h-full w-7'
                 >
                   <Icon className='size-3.5' />
                 </Button>
