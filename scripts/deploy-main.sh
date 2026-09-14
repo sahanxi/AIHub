@@ -1,22 +1,34 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Non-interactive deploy for /opt/ai-platform on Tokyo host.
+# Non-interactive deploy: git pull from GitHub, sync platform files, Docker build + up.
 ROOT="${AI_PLATFORM_ROOT:-/opt/ai-platform}"
 SRC="${ROOT}/src/new-api"
 DEPLOY="${ROOT}/deploy"
+SCRIPTS="${ROOT}/scripts"
 STATE="${ROOT}/backups/deploy-state"
+DEPLOY_KEY="${GITHUB_DEPLOY_KEY:-${ROOT}/secrets/github_deploy_key}"
+
+export GIT_SSH_COMMAND="ssh -i ${DEPLOY_KEY} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
 
 cd "${SRC}"
+git remote set-url origin git@github.com:sahanxi/AIHub.git
 git fetch origin
 git checkout main
-git pull origin main
+git reset --hard origin/main
 
 SHA="$(git rev-parse --short HEAD)"
-IMAGE="ai-platform-newapi:v1-${SHA}"
+IMAGE_NAME="${IMAGE_NAME:-ai-platform-newapi}"
+IMAGE="${IMAGE_NAME}:v1-${SHA}"
 
-if [[ -x "${ROOT}/scripts/backup.sh" ]]; then
-  "${ROOT}/scripts/backup.sh"
+# Sync deploy templates and scripts from the repo checkout (preserve secrets/.env).
+rsync -a --delete \
+  --exclude '.env' \
+  "${SRC}/deploy/" "${DEPLOY}/"
+rsync -a --delete "${SRC}/scripts/" "${SCRIPTS}/"
+
+if [[ -x "${SCRIPTS}/backup.sh" ]]; then
+  "${SCRIPTS}/backup.sh"
 fi
 
 mkdir -p "${STATE}"
@@ -32,15 +44,25 @@ docker build -t "${IMAGE}" "${SRC}"
 cd "${DEPLOY}"
 tmp_env="$(mktemp)"
 trap 'rm -f "${tmp_env}"' EXIT
-grep -v '^IMAGE_TAG=' .env > "${tmp_env}" || true
+grep -vE '^(IMAGE_NAME|IMAGE_TAG)=' .env > "${tmp_env}" || true
 {
   cat "${tmp_env}"
-  echo "IMAGE_NAME=ai-platform-newapi"
+  echo "IMAGE_NAME=${IMAGE_NAME}"
   echo "IMAGE_TAG=v1-${SHA}"
 } > .env.new
 mv .env.new .env
 chmod 600 .env
 
-docker compose --env-file .env up -d
-"${ROOT}/scripts/healthcheck.sh"
+if [[ -f "${ROOT}/secrets/.env" ]]; then
+  grep -vE '^(IMAGE_NAME|IMAGE_TAG)=' "${ROOT}/secrets/.env" > "${tmp_env}" || true
+  {
+    cat "${tmp_env}"
+    echo "IMAGE_NAME=${IMAGE_NAME}"
+    echo "IMAGE_TAG=v1-${SHA}"
+  } > "${ROOT}/secrets/.env"
+  chmod 600 "${ROOT}/secrets/.env"
+fi
+
+docker compose --env-file .env up -d --force-recreate new-api
+"${SCRIPTS}/healthcheck.sh"
 echo "deployed ${IMAGE}"
