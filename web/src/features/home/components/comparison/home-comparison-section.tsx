@@ -2,7 +2,6 @@ import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/lib/utils'
 
-import { AihubMark } from './aihub-mark'
 import { ComparisonCell } from './comparison-cell'
 import { COMPARISON_ROWS } from './comparison-config'
 import { ComparisonRow } from './comparison-row'
@@ -58,14 +57,7 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
           </p>
         </header>
 
-        <div
-          className='isolate overflow-hidden rounded-[28px] border lg:overflow-visible lg:border-0 lg:bg-transparent lg:shadow-none'
-          style={{
-            background: theme.cardBackground,
-            borderColor: theme.cardBorder,
-            boxShadow: theme.cardShadow,
-          }}
-        >
+        <div className='isolate lg:overflow-visible'>
           <div
             className='relative hidden lg:grid lg:overflow-visible lg:py-6'
             style={{
@@ -79,7 +71,6 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
                 gridRow: `1 / span ${ROW_COUNT + 1}`,
                 background: theme.labelColumnBg,
                 borderColor: theme.labelColumnBorder,
-                boxShadow: theme.cardShadow,
               }}
             >
               <div
@@ -137,24 +128,19 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
                 className='relative flex min-h-[104px] items-center justify-center border-b px-7 py-5 text-center'
                 style={{ borderColor: 'rgba(168, 200, 245, 0.55)' }}
               >
-                <div className='flex min-w-0 flex-col items-center gap-2'>
-                  <div className='flex items-center gap-3.5'>
-                    <AihubMark className='size-14' />
-                    <div className='min-w-0 text-left'>
-                      <p
-                        className='text-xl font-bold tracking-tight md:text-[1.35rem]'
-                        style={{ color: theme.aihubTitle }}
-                      >
-                        {t('home.comparison.aihub')}
-                      </p>
-                      <p
-                        className='mt-1 text-sm leading-snug'
-                        style={{ color: theme.aihubSubtitle }}
-                      >
-                        {t('home.comparison.aihubSubtitle')}
-                      </p>
-                    </div>
-                  </div>
+                <div className='min-w-0 text-center'>
+                  <p
+                    className='text-xl font-bold tracking-tight md:text-[1.35rem]'
+                    style={{ color: theme.aihubTitle }}
+                  >
+                    {t('home.comparison.aihub')}
+                  </p>
+                  <p
+                    className='mt-1 text-sm leading-snug'
+                    style={{ color: theme.aihubSubtitle }}
+                  >
+                    {t('home.comparison.aihubSubtitle')}
+                  </p>
                 </div>
                 <span
                   className='absolute top-3 right-4 shrink-0 rounded-full px-3.5 py-1.5 text-xs font-bold tracking-wide text-white uppercase'
@@ -189,7 +175,6 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
                 gridRow: `1 / span ${ROW_COUNT + 1}`,
                 background: theme.competitorColumnBg,
                 borderColor: theme.competitorColumnBorder,
-                boxShadow: theme.cardShadow,
               }}
             >
               <div
@@ -228,7 +213,14 @@ export function HomeComparisonSection(props: HomeComparisonSectionProps) {
             </div>
           </div>
 
-          <div className='lg:hidden'>
+          <div
+            className='overflow-hidden rounded-[28px] border lg:hidden'
+            style={{
+              background: theme.cardBackground,
+              borderColor: theme.cardBorder,
+              boxShadow: theme.cardShadow,
+            }}
+          >
             {COMPARISON_ROWS.map((row) => (
               <ComparisonRow
                 key={row.key}
