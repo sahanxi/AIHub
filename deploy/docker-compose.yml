@@ -1,4 +1,6 @@
 # Production Compose for the productized New API engine.
+# The application image is built by GitHub Actions and pulled by update-image.sh.
+# Never build or synchronize application source on the production server.
 # Bind New API to loopback only. MySQL and Redis stay on the backend network.
 
 name: ai-platform

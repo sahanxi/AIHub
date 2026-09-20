@@ -1,0 +1,73 @@
+name: Production image (GHCR)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-image-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    name: Build and publish linux/amd64
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Stamp application version
+        run: printf 'sha-%s\n' "$GITHUB_SHA" > VERSION
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@c99871dec2022cc055c062a10cc1a1310835ceb4 # v4.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push immutable image
+        id: build
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/sahanxi/ai-platform-newapi:sha-${{ github.sha }}
+            ghcr.io/sahanxi/ai-platform-newapi:main
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=sha-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: mode=max
+          sbom: true
+
+      - name: Publish deployment summary
+        env:
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          IMAGE_REF="ghcr.io/sahanxi/ai-platform-newapi:sha-${GITHUB_SHA}"
+          {
+            echo "## Production image"
+            echo
+            echo "Immutable image: \`${IMAGE_REF}\`"
+            echo
+            echo "Digest: \`${IMAGE_DIGEST}\`"
+            echo
+            echo "Deploy on Tokyo:"
+            echo '```bash'
+            echo "sudo /opt/ai-platform/deploy/update-image.sh ${IMAGE_REF}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

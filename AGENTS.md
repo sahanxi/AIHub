@@ -54,6 +54,28 @@ web/           — Frontend (React 19, Rsbuild, Base UI, Tailwind)
 
 ## Rules
 
+### Production Build and Deployment (Mandatory)
+
+Production application delivery is image-based. GitHub Actions is the only supported production build environment; production servers only pull and run a previously published immutable image.
+
+- Never deploy application source with `rsync`, `scp`, SFTP, `tar` streams, shared folders, or ad-hoc file copying.
+- Never use `git pull` plus `docker build`, `docker compose build`, or any other production-server build as a release process.
+- Never deploy a mutable tag such as `latest`, `main`, or a branch name. Deploy the immutable `sha-<full-40-character-git-sha>` tag emitted by the repository workflow, and verify that the image's `org.opencontainers.image.revision` label matches that SHA.
+- For this application, `.github/workflows/production-image.yml` builds and publishes `ghcr.io/sahanxi/ai-platform-newapi:sha-<git-sha>`. The moving `main` tag is discovery-only and MUST NOT be deployed.
+- Production updates MUST run `/opt/ai-platform/deploy/update-image.sh <immutable-image-ref>` on the Tokyo server. The script pulls first, atomically updates only `IMAGE_NAME`/`IMAGE_TAG`, recreates only `new-api`, waits for the Compose healthcheck, and rolls back on failure.
+- Persistent data, logs, secrets, databases, TLS material, and runtime `.env` files stay on the server or in managed services. They MUST NOT be baked into images or copied through the application deployment path.
+- A new deployable application or backend MUST include, before its first production release: a Dockerfile, a GitHub Actions image workflow, an immutable image naming rule, a Compose healthcheck, loopback-only application ports behind Nginx, a server-side pull/update script with rollback, and a short runbook under its `deploy/` directory.
+- An agent changing a Dockerfile, build inputs, Compose image configuration, healthcheck, or production workflow MUST update the deployment runbook in the same change and validate the workflow plus the server update script syntax.
+- Bootstrap or infrastructure configuration changes are separate reviewed operations. They do not authorize copying application source to production.
+
+Canonical process:
+
+1. Merge or push reviewed code to GitHub.
+2. Wait for `Production image (GHCR)` to succeed and copy its immutable `sha-...` image reference/digest from the Actions summary.
+3. On Tokyo, run the server update script with that exact image reference.
+4. Verify container health, `https://aihub.xzsmart.top/api/status`, logs, and resource usage.
+5. Keep the previous image locally for rollback; do not prune it as part of deployment.
+
 ### Common Code Quality
 
 - New code should stay direct and readable. Prefer early returns, clear branches, and well-named local variables to deep nesting or layered control flow.
